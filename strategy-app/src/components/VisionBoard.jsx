@@ -1,11 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, X, CheckCircle, Clock, Lightbulb, Calendar, Target, Layers, FileText } from 'lucide-react';
+import { ArrowLeft, X, CheckCircle, Clock, Lightbulb } from 'lucide-react';
 
 // --- Constants & Variants ---
 
 const COLORS = {
-    root: { bg: 'rgba(255, 255, 255, 0.05)', border: 'rgba(255, 255, 255, 0.2)', text: '#ffffff' },
     year: { bg: 'rgba(255, 255, 255, 0.05)', border: 'rgba(255, 255, 255, 0.2)', text: '#ffffff' },
     vision: { bg: 'rgba(0, 243, 255, 0.1)', border: 'rgba(0, 243, 255, 0.3)', text: '#e0fbfc' },
     theme: { bg: 'rgba(188, 19, 254, 0.1)', border: 'rgba(188, 19, 254, 0.3)', text: '#f3d9fa' },
@@ -139,54 +138,85 @@ const OrbitLayout = ({ centerItem, orbitItems, onCenterClick, onOrbitClick, cent
     );
 };
 
+const YearsLayout = ({ years, onYearClick }) => {
+    return (
+        <div style={{ display: 'flex', gap: '3rem', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+            {years.map((year, index) => (
+                <Bubble
+                    key={year.id}
+                    title={year.title}
+                    subtitle="Rok"
+                    type="year"
+                    size={240}
+                    delay={index * 0.1}
+                    onClick={() => onYearClick(year)}
+                />
+            ))}
+        </div>
+    );
+};
+
 // --- Main Component ---
 
 export function VisionBoard({ data }) {
     // State for Navigation Path
-    const [path, setPath] = useState([]); // Array of selected items: [year, vision, theme]
+    const [path, setPath] = useState([]); // Array of selected items
     const [selectedDetail, setSelectedDetail] = useState(null);
 
     // Derived State
-    const currentLevel = path.length; // 0: Root, 1: Year, 2: Vision, 3: Theme
+    const currentLevel = path.length;
 
     // Helper to get current view data
     const viewData = useMemo(() => {
         if (currentLevel === 0) {
-            // Root Level: Show Years
-            return {
-                center: { title: 'Ambiente', subtitle: 'Strategie', id: 'root' },
-                orbit: data.years,
-                centerType: 'root',
-                orbitType: 'year'
-            };
+            // Level 0: Years ONLY (No Orbit, No Center Parent)
+            return { type: 'years', items: data.years };
         }
         else if (currentLevel === 1) {
-            // Level 1: Selected Year -> Show Visions
+            // Level 1: Vision Center + Themes Orbit
+            // We clicked a Year. We need to find the Vision for this year.
             const year = path[0];
             const visions = data.visions.filter(v => v.yearId === year.id);
-            return { center: { ...year, subtitle: 'Rok' }, orbit: visions, centerType: 'year', orbitType: 'vision' };
+            // Auto-select the first vision
+            const activeVision = visions[0] || { title: 'Žádná vize', subtitle: 'Vytvořte vizi', id: 'empty', yearId: year.id };
+
+            const themes = activeVision.id !== 'empty' ? data.themes.filter(t => t.visionId === activeVision.id) : [];
+
+            return {
+                type: 'orbit',
+                center: { ...activeVision, subtitle: 'Vize' },
+                orbit: themes,
+                centerType: 'vision',
+                orbitType: 'theme'
+            };
         }
         else if (currentLevel === 2) {
-            // Level 2: Selected Vision -> Show Themes
-            const vision = path[1];
-            const themes = data.themes.filter(t => t.visionId === vision.id);
-            return { center: { ...vision, subtitle: 'Vize' }, orbit: themes, centerType: 'vision', orbitType: 'theme' };
-        }
-        else if (currentLevel === 3) {
-            // Level 3: Selected Theme -> Show Projects
-            const theme = path[2];
+            // Level 2: Theme Center + Projects Orbit
+            // path[0] = Year, path[1] = Theme (because we skipped selecting Vision explicitly in UI)
+
+            const theme = path[1];
             const projects = data.projects.filter(p => p.themeId === theme.id);
-            return { center: { ...theme, subtitle: 'Hlavní téma' }, orbit: projects, centerType: 'theme', orbitType: 'project' };
+            return {
+                type: 'orbit',
+                center: { ...theme, subtitle: 'Hlavní téma' },
+                orbit: projects,
+                centerType: 'theme',
+                orbitType: 'project'
+            };
         }
         return null;
     }, [path, data, currentLevel]);
 
     // Handlers
-    const handleOrbitClick = (item) => {
-        if (currentLevel < 3) {
+    const handleItemClick = (item) => {
+        if (currentLevel === 0) {
+            // Clicked Year -> Go to Level 1 (Auto-select Vision)
+            setPath([item]);
+        } else if (currentLevel === 1) {
+            // Clicked Theme -> Go to Level 2
             setPath([...path, item]);
-        } else {
-            // It's a project, show detail
+        } else if (currentLevel === 2) {
+            // Clicked Project -> Show Detail
             setSelectedDetail(item);
         }
     };
@@ -235,12 +265,8 @@ export function VisionBoard({ data }) {
             {/* Breadcrumbs */}
             <div style={{ position: 'absolute', top: '2rem', left: '50%', transform: 'translateX(-50%)', color: 'rgba(255,255,255,0.5)', zIndex: 50, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <span style={{ color: path.length === 0 ? 'white' : 'inherit' }}>Ambiente</span>
-                {path.map((item, index) => (
-                    <React.Fragment key={item.id}>
-                        <span>/</span>
-                        <span style={{ color: index === path.length - 1 ? 'white' : 'inherit' }}>{item.title}</span>
-                    </React.Fragment>
-                ))}
+                {path.length > 0 && <span style={{ color: 'white' }}> / {path[0].title}</span>}
+                {path.length > 1 && <span style={{ color: 'white' }}> / {path[1].title}</span>}
             </div>
 
             {/* Main Content Area */}
@@ -251,16 +277,20 @@ export function VisionBoard({ data }) {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 1.1 }}
                     transition={{ duration: 0.5 }}
-                    style={{ width: '100%', height: '100%' }}
+                    style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                 >
-                    <OrbitLayout
-                        centerItem={viewData.center}
-                        orbitItems={viewData.orbit}
-                        centerType={viewData.centerType}
-                        orbitType={viewData.orbitType}
-                        onOrbitClick={handleOrbitClick}
-                        onCenterClick={() => { }}
-                    />
+                    {viewData.type === 'years' ? (
+                        <YearsLayout years={viewData.items} onYearClick={handleItemClick} />
+                    ) : (
+                        <OrbitLayout
+                            centerItem={viewData.center}
+                            orbitItems={viewData.orbit}
+                            centerType={viewData.centerType}
+                            orbitType={viewData.orbitType}
+                            onOrbitClick={handleItemClick}
+                            onCenterClick={() => { }}
+                        />
+                    )}
                 </motion.div>
             </AnimatePresence>
 

@@ -605,28 +605,35 @@ export function VisionBoard({ data, theme = 'dark' }) {
             return { type: 'years', items: data.years };
         }
         else if (currentLevel === 1) {
-            // Level 1: Vision Center + Themes Orbit
-            // We clicked a Year. We need to find the Vision for this year.
+            // Level 1: Year Center + Visions Orbit
+            // Show all visions for this year as orbiting items
             const year = path[0];
             const visions = data.visions.filter(v => v.yearId === year.id);
-            // Auto-select the first vision
-            const activeVision = visions[0] || { title: 'Žádná vize', subtitle: 'Vytvořte vizi', id: 'empty', yearId: year.id };
-
-            const themes = activeVision.id !== 'empty' ? data.themes.filter(t => t.visionId === activeVision.id) : [];
 
             return {
                 type: 'orbit',
-                center: { ...activeVision, subtitle: 'Vize' },
+                center: { ...year, subtitle: 'Rok' },
+                orbit: visions.length > 0 ? visions : [{ title: 'Žádná vize', subtitle: 'Vytvořte vizi', id: 'empty' }],
+                centerType: 'year',
+                orbitType: 'vision'
+            };
+        }
+        else if (currentLevel === 2) {
+            // Level 2: Vision Center + Themes Orbit
+            const vision = path[1];
+            const themes = data.themes.filter(t => t.visionId === vision.id);
+
+            return {
+                type: 'orbit',
+                center: { ...vision, subtitle: 'Vize' },
                 orbit: themes,
                 centerType: 'vision',
                 orbitType: 'theme'
             };
         }
-        else if (currentLevel === 2) {
-            // Level 2: Theme Center + Projects Orbit
-            // path[0] = Year, path[1] = Theme (because we skipped selecting Vision explicitly in UI)
-
-            const theme = path[1];
+        else if (currentLevel === 3) {
+            // Level 3: Theme Center + Projects Orbit
+            const theme = path[2];
             const projects = data.projects.filter(p => p.themeId === theme.id);
             return {
                 type: 'orbit',
@@ -641,13 +648,18 @@ export function VisionBoard({ data, theme = 'dark' }) {
 
     // Handlers
     const handleItemClick = (item) => {
+        if (item.id === 'empty') return; // Don't navigate to empty placeholder
+        
         if (currentLevel === 0) {
-            // Clicked Year -> Go to Level 1 (Auto-select Vision)
+            // Clicked Year -> Go to Level 1 (Show Visions)
             setPath([item]);
         } else if (currentLevel === 1) {
-            // Clicked Theme -> Go to Level 2
+            // Clicked Vision -> Go to Level 2 (Show Themes)
             setPath([...path, item]);
         } else if (currentLevel === 2) {
+            // Clicked Theme -> Go to Level 3 (Show Projects)
+            setPath([...path, item]);
+        } else if (currentLevel === 3) {
             // Clicked Project -> Show Detail
             setSelectedDetail(item);
         }
@@ -782,7 +794,7 @@ export function VisionBoard({ data, theme = 'dark' }) {
                         display: 'flex', 
                         alignItems: 'center',
                         gap: '0.5rem',
-                        fontSize: '0.9rem',
+                        fontSize: '0.85rem',
                         background: theme === 'dark' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.8)',
                         padding: '0.5rem 1rem',
                         borderRadius: '20px',
@@ -797,30 +809,19 @@ export function VisionBoard({ data, theme = 'dark' }) {
                         }}>
                             Ambiente
                         </span>
-                        {path.length > 0 && (
-                            <>
+                        {path.map((item, index) => (
+                            <React.Fragment key={item.id}>
                                 <span style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.3)' : '#cbd5e1' }}>/</span>
                                 <span style={{ 
-                                    color: path.length === 1 
+                                    color: index === path.length - 1 
                                         ? (theme === 'dark' ? '#fff' : '#0f172a') 
                                         : (theme === 'dark' ? 'rgba(255,255,255,0.5)' : '#94a3b8'),
-                                    fontWeight: path.length === 1 ? 600 : 400
+                                    fontWeight: index === path.length - 1 ? 600 : 400
                                 }}>
-                                    {path[0].title}
+                                    {item.title}
                                 </span>
-                            </>
-                        )}
-                        {path.length > 1 && (
-                            <>
-                                <span style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.3)' : '#cbd5e1' }}>/</span>
-                                <span style={{ 
-                                    color: theme === 'dark' ? '#fff' : '#0f172a',
-                                    fontWeight: 600
-                                }}>
-                                    {path[1].title}
-                                </span>
-                            </>
-                        )}
+                            </React.Fragment>
+                        ))}
                     </div>
                 </div>
             )}

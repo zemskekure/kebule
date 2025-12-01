@@ -140,15 +140,22 @@ export function Dashboard({ data, theme = 'dark' }) {
                     >
                         <h3 style={{ color: textColor }}><HardHat size={18} /> Plánované otevíračky</h3>
                         <div className="restaurants-list-dashboard">
-                            {(newRestaurants || []).length > 0 ? (newRestaurants || []).map(rest => (
-                                <div key={rest.id} className="dashboard-rest-item" style={{ background: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)', borderLeftColor: accentColor }}>
-                                    <div className="rest-header">
-                                        <h4 style={{ color: textColor }}>{rest.title}</h4>
-                                        <span className="rest-date" style={{ color: accentColor }}>{rest.openingDate || 'TBD'}</span>
+                            {(newRestaurants || []).length > 0 ? (newRestaurants || []).map(rest => {
+                                const formatDate = (dateStr) => {
+                                    if (!dateStr) return 'TBD';
+                                    const date = new Date(dateStr);
+                                    return date.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+                                };
+                                return (
+                                    <div key={rest.id} className="dashboard-rest-item" style={{ background: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)', borderLeftColor: accentColor }}>
+                                        <div className="rest-header">
+                                            <h4 style={{ color: textColor }}>{rest.title}</h4>
+                                            <span className="rest-date" style={{ color: accentColor }}>{formatDate(rest.openingDate)}</span>
+                                        </div>
+                                        <div className="rest-phase" style={{ color: textSecondary }}>Fáze: {rest.phase}</div>
                                     </div>
-                                    <div className="rest-phase" style={{ color: textSecondary }}>Fáze: {rest.phase}</div>
-                                </div>
-                            )) : (
+                                );
+                            }) : (
                                 <p className="empty-text" style={{ color: textSecondary }}>Žádné nové restaurace v plánu.</p>
                             )}
                         </div>

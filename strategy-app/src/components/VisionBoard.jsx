@@ -360,7 +360,7 @@ const TimelineView = ({ newRestaurants = [], locations = [], brands = [], theme 
 
     // Group by year
     const groupedByYear = sortedItems.reduce((acc, item) => {
-        const year = item.openingDate ? new Date(item.openingDate).getFullYear() : 'Bez data';
+        const year = item.openingDate ? new Date(item.openingDate).getFullYear() : 'Neupřesněno';
         if (!acc[year]) acc[year] = [];
         acc[year].push(item);
         return acc;
@@ -391,9 +391,23 @@ const TimelineView = ({ newRestaurants = [], locations = [], brands = [], theme 
     };
 
     const formatDate = (dateStr) => {
-        if (!dateStr) return 'Datum nespecifikováno';
+        if (!dateStr) return 'Neupřesněno';
         const date = new Date(dateStr);
         return date.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+    };
+
+    const translatePhase = (phase) => {
+        const translations = {
+            'Idea': 'Nápad',
+            'Planning': 'Plánování',
+            'Construction': 'Stavba',
+            'Rekonstrukce': 'Rekonstrukce',
+            'Hiring': 'Nábor',
+            'Menu': 'Menu a testování',
+            'Opening': 'Otevření',
+            'Reopening': 'Znovuotevření'
+        };
+        return translations[phase] || phase;
     };
 
     const getBrandName = (brandIds) => {
@@ -562,7 +576,7 @@ const TimelineView = ({ newRestaurants = [], locations = [], brands = [], theme 
                                                 background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
                                                 color: textSecondary
                                             }}>
-                                                {item.phase}
+                                                {translatePhase(item.phase)}
                                             </span>
                                         )}
                                     </div>

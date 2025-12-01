@@ -142,9 +142,22 @@ export function Dashboard({ data, theme = 'dark' }) {
                         <div className="restaurants-list-dashboard">
                             {(newRestaurants || []).length > 0 ? (newRestaurants || []).map(rest => {
                                 const formatDate = (dateStr) => {
-                                    if (!dateStr) return 'TBD';
+                                    if (!dateStr) return 'Neupřesněno';
                                     const date = new Date(dateStr);
                                     return date.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+                                };
+                                const translatePhase = (phase) => {
+                                    const translations = {
+                                        'Idea': 'Nápad',
+                                        'Planning': 'Plánování',
+                                        'Construction': 'Stavba',
+                                        'Rekonstrukce': 'Rekonstrukce',
+                                        'Hiring': 'Nábor',
+                                        'Menu': 'Menu a testování',
+                                        'Opening': 'Otevření',
+                                        'Reopening': 'Znovuotevření'
+                                    };
+                                    return translations[phase] || phase;
                                 };
                                 return (
                                     <div key={rest.id} className="dashboard-rest-item" style={{ background: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)', borderLeftColor: accentColor }}>
@@ -152,7 +165,7 @@ export function Dashboard({ data, theme = 'dark' }) {
                                             <h4 style={{ color: textColor }}>{rest.title}</h4>
                                             <span className="rest-date" style={{ color: accentColor }}>{formatDate(rest.openingDate)}</span>
                                         </div>
-                                        <div className="rest-phase" style={{ color: textSecondary }}>Fáze: {rest.phase}</div>
+                                        <div className="rest-phase" style={{ color: textSecondary }}>Fáze: {translatePhase(rest.phase)}</div>
                                     </div>
                                 );
                             }) : (
@@ -211,9 +224,22 @@ export function Dashboard({ data, theme = 'dark' }) {
                                 }
                             };
                             const formatDate = (dateStr) => {
-                                if (!dateStr) return 'TBD';
+                                if (!dateStr) return 'Neupřesněno';
                                 const date = new Date(dateStr);
-                                return date.toLocaleDateString('cs-CZ', { month: 'short', year: 'numeric' });
+                                return date.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+                            };
+                            const translatePhase = (phase) => {
+                                const translations = {
+                                    'Idea': 'Nápad',
+                                    'Planning': 'Plánování',
+                                    'Construction': 'Stavba',
+                                    'Rekonstrukce': 'Rekonstrukce',
+                                    'Hiring': 'Nábor',
+                                    'Menu': 'Menu a testování',
+                                    'Opening': 'Otevření',
+                                    'Reopening': 'Znovuotevření'
+                                };
+                                return translations[phase] || phase;
                             };
 
                             return (
@@ -273,7 +299,7 @@ export function Dashboard({ data, theme = 'dark' }) {
                                                     fontSize: '0.8rem', 
                                                     color: textSecondary 
                                                 }}>
-                                                    {item.phase}
+                                                    {translatePhase(item.phase)}
                                                 </span>
                                             )}
                                         </div>

@@ -241,22 +241,22 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                                 <select
                                     className="form-control"
                                     style={inputStyle}
-                                    value={item.phase || 'Idea'}
+                                    value={item.phase || 'Nápad'}
                                     onChange={e => handleChange('phase', e.target.value)}
                                 >
-                                    <option value="Idea">Idea</option>
+                                    <option value="Nápad">Nápad</option>
                                     {item.category === 'facelift' ? (
                                         <>
-                                            <option value="Planning">Plánování</option>
-                                            <option value="Construction">Rekonstrukce</option>
-                                            <option value="Reopening">Znovuotevření</option>
+                                            <option value="Plánování">Plánování</option>
+                                            <option value="Rekonstrukce">Rekonstrukce</option>
+                                            <option value="Znovuotevření">Znovuotevření</option>
                                         </>
                                     ) : (
                                         <>
-                                            <option value="Construction">Stavba</option>
-                                            <option value="Hiring">Nábor</option>
-                                            <option value="Menu">Menu & Tasting</option>
-                                            <option value="Opening">Opening</option>
+                                            <option value="Stavba">Stavba</option>
+                                            <option value="Nábor">Nábor</option>
+                                            <option value="Menu">Menu a testování</option>
+                                            <option value="Otevření">Otevření</option>
                                         </>
                                     )}
                                 </select>

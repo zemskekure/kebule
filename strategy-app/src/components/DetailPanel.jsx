@@ -167,16 +167,75 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                                 </div>
                             )}
 
-                            <div className="form-group">
-                                <label className="form-label" style={labelStyle}>Datum otevření</label>
-                                <input
-                                    type="date"
-                                    className="form-control"
-                                    style={inputStyle}
-                                    value={item.openingDate || ''}
-                                    onChange={e => handleChange('openingDate', e.target.value)}
-                                />
-                            </div>
+                            {/* Different fields for Facelifts vs New Restaurants */}
+                            {item.category === 'facelift' ? (
+                                <>
+                                    <div className="form-group">
+                                        <label className="form-label" style={labelStyle}>Datum realizace</label>
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            style={inputStyle}
+                                            value={item.realizationDate || ''}
+                                            onChange={e => handleChange('realizationDate', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label" style={labelStyle}>Zavřeno od</label>
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            style={inputStyle}
+                                            value={item.closedFrom || ''}
+                                            onChange={e => handleChange('closedFrom', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label" style={labelStyle}>Zavřeno do</label>
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            style={inputStyle}
+                                            value={item.closedTo || ''}
+                                            onChange={e => handleChange('closedTo', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label" style={labelStyle}>Plánované změny</label>
+                                        <textarea
+                                            className="form-control"
+                                            style={{ ...inputStyle, minHeight: '100px' }}
+                                            placeholder="Popište plánované změny..."
+                                            value={item.plannedChanges || ''}
+                                            onChange={e => handleChange('plannedChanges', e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div className="form-group">
+                                        <label className="form-label" style={labelStyle}>Datum otevření</label>
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            style={inputStyle}
+                                            value={item.openingDate || ''}
+                                            onChange={e => handleChange('openingDate', e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="form-group">
+                                        <label className="form-label" style={labelStyle}>Shrnutí konceptu</label>
+                                        <textarea
+                                            className="form-control"
+                                            style={inputStyle}
+                                            placeholder="Krátký popis konceptu..."
+                                            value={item.conceptSummary || ''}
+                                            onChange={e => handleChange('conceptSummary', e.target.value)}
+                                        />
+                                    </div>
+                                </>
+                            )}
+
                             <div className="form-group">
                                 <label className="form-label" style={labelStyle}>Fáze</label>
                                 <select
@@ -186,21 +245,21 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                                     onChange={e => handleChange('phase', e.target.value)}
                                 >
                                     <option value="Idea">Idea</option>
-                                    <option value="Construction">Stavba</option>
-                                    <option value="Hiring">Nábor</option>
-                                    <option value="Menu">Menu & Tasting</option>
-                                    <option value="Opening">Opening</option>
+                                    {item.category === 'facelift' ? (
+                                        <>
+                                            <option value="Planning">Plánování</option>
+                                            <option value="Construction">Rekonstrukce</option>
+                                            <option value="Reopening">Znovuotevření</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="Construction">Stavba</option>
+                                            <option value="Hiring">Nábor</option>
+                                            <option value="Menu">Menu & Tasting</option>
+                                            <option value="Opening">Opening</option>
+                                        </>
+                                    )}
                                 </select>
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label" style={labelStyle}>Shrnutí konceptu</label>
-                                <textarea
-                                    className="form-control"
-                                    style={inputStyle}
-                                    placeholder="Krátký popis konceptu..."
-                                    value={item.conceptSummary || ''}
-                                    onChange={e => handleChange('conceptSummary', e.target.value)}
-                                />
                             </div>
                         </div>
 
@@ -215,44 +274,50 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                                 onChange={e => handleChange('contact', e.target.value)}
                             />
                         </div>
-                        <div className="form-group">
-                            <label className="form-label" style={labelStyle}>Account Manager</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                style={inputStyle}
-                                placeholder="Jméno managera"
-                                value={item.accountManager || ''}
-                                onChange={e => handleChange('accountManager', e.target.value)}
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label" style={labelStyle}>Sociální sítě</label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                style={{ ...inputStyle, marginBottom: '0.5rem' }}
-                                placeholder="Web URL"
-                                value={item.socialLinks?.web || ''}
-                                onChange={e => handleNestedChange('socialLinks', 'web', e.target.value)}
-                            />
-                            <input
-                                type="text"
-                                className="form-control"
-                                style={{ ...inputStyle, marginBottom: '0.5rem' }}
-                                placeholder="Instagram URL"
-                                value={item.socialLinks?.instagram || ''}
-                                onChange={e => handleNestedChange('socialLinks', 'instagram', e.target.value)}
-                            />
-                            <input
-                                type="text"
-                                className="form-control"
-                                style={inputStyle}
-                                placeholder="Facebook URL"
-                                value={item.socialLinks?.facebook || ''}
-                                onChange={e => handleNestedChange('socialLinks', 'facebook', e.target.value)}
-                            />
-                        </div>
+
+                        {/* Social links and Account Manager only for NEW restaurants */}
+                        {item.category !== 'facelift' && (
+                            <>
+                                <div className="form-group">
+                                    <label className="form-label" style={labelStyle}>Account Manager</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        style={inputStyle}
+                                        placeholder="Jméno managera"
+                                        value={item.accountManager || ''}
+                                        onChange={e => handleChange('accountManager', e.target.value)}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label" style={labelStyle}>Sociální sítě</label>
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        style={{ ...inputStyle, marginBottom: '0.5rem' }}
+                                        placeholder="Web URL"
+                                        value={item.socialLinks?.web || ''}
+                                        onChange={e => handleNestedChange('socialLinks', 'web', e.target.value)}
+                                    />
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        style={{ ...inputStyle, marginBottom: '0.5rem' }}
+                                        placeholder="Instagram URL"
+                                        value={item.socialLinks?.instagram || ''}
+                                        onChange={e => handleNestedChange('socialLinks', 'instagram', e.target.value)}
+                                    />
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        style={inputStyle}
+                                        placeholder="Facebook URL"
+                                        value={item.socialLinks?.facebook || ''}
+                                        onChange={e => handleNestedChange('socialLinks', 'facebook', e.target.value)}
+                                    />
+                                </div>
+                            </>
+                        )}
                     </>
                 )}
 
@@ -433,6 +498,17 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                                 value={item.address || ''}
                                 onChange={e => handleChange('address', e.target.value)}
                                 placeholder="Ulice, město"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={labelStyle}>Account Manager</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                style={inputStyle}
+                                value={item.accountManager || ''}
+                                onChange={e => handleChange('accountManager', e.target.value)}
+                                placeholder="Jméno managera"
                             />
                         </div>
                     </>

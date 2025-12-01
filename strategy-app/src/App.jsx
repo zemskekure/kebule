@@ -634,6 +634,93 @@ function App() {
     }
   };
 
+  const handleSandboxAddNode = (type, position) => {
+    const newId = Date.now().toString();
+    const sandboxPosition = position;
+
+    setData(prev => {
+      let newState = { ...prev };
+
+      if (type === 'year') {
+        const newYear = { id: newId, title: '202X', sandboxPosition };
+        newState.years = [...prev.years, newYear];
+      } else if (type === 'vision') {
+        // Needs a yearId, but in sandbox we might not have one yet. 
+        // We'll assign to the first year or a "Unassigned" state if possible.
+        // For now, let's pick the first year if available.
+        const yearId = prev.years.length > 0 ? prev.years[0].id : 'y1';
+        const newVision = { id: newId, yearId, title: 'Nová vize', description: '', sandboxPosition };
+        newState.visions = [...prev.visions, newVision];
+      } else if (type === 'theme') {
+        // Assign to first vision or empty
+        const visionId = prev.visions.length > 0 ? prev.visions[0].id : 'v1';
+        const newTheme = { id: newId, visionId, title: 'Nové téma', description: '', priority: 'Střední', sandboxPosition };
+        newState.themes = [...prev.themes, newTheme];
+      } else if (type === 'project') {
+        const themeId = prev.themes.length > 0 ? prev.themes[0].id : 't1';
+        const newProject = {
+          id: newId,
+          themeId,
+          title: 'Nový projekt',
+          description: '',
+          status: 'Nápad',
+          brands: [],
+          type: 'standard',
+          sandboxPosition
+        };
+        newState.projects = [...prev.projects, newProject];
+      } else if (type === 'influence') {
+        const newInfluence = {
+          id: newId,
+          title: 'Nový vliv',
+          type: 'external',
+          description: '',
+          connectedThemeIds: [],
+          sandboxPosition
+        };
+        newState.influences = [...(prev.influences || []), newInfluence];
+      } else if (type === 'newRestaurant') {
+        const newRest = {
+          id: newId,
+          title: 'Nová restaurace',
+          description: '',
+          status: 'Idea',
+          brands: [],
+          category: 'new',
+          locationId: null,
+          openingDate: '',
+          phase: 'Idea',
+          conceptSummary: '',
+          socialLinks: { web: '', instagram: '', facebook: '' },
+          contact: '',
+          accountManager: '',
+          sandboxPosition
+        };
+        newState.newRestaurants = [...(prev.newRestaurants || []), newRest];
+      } else if (type === 'reconstruction') {
+        const newRest = {
+          id: newId,
+          title: 'Nový facelift',
+          description: '',
+          status: 'Idea',
+          brands: [],
+          category: 'facelift',
+          locationId: null,
+          openingDate: '',
+          phase: 'Idea',
+          conceptSummary: '',
+          socialLinks: { web: '', instagram: '', facebook: '' },
+          contact: '',
+          accountManager: '',
+          sandboxPosition
+        };
+        newState.newRestaurants = [...(prev.newRestaurants || []), newRest];
+      }
+
+      return newState;
+    });
+  };
+
   const exportData = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
     const downloadAnchorNode = document.createElement('a');
@@ -907,6 +994,7 @@ function App() {
           theme={currentTheme}
           onUpdateNode={updateNode}
           onDeleteNode={deleteNode}
+          onAddNode={handleSandboxAddNode}
         />
       ) : (
         <div style={{

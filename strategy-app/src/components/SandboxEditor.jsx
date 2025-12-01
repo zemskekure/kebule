@@ -176,7 +176,7 @@ const edgeStyles = {
 const SYNCABLE_TYPES = ['year', 'vision', 'theme', 'project', 'influence', 'newRestaurant', 'reconstruction'];
 
 // Main Sandbox Component
-function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode }) {
+function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode, onAddNode }) {
     const isDark = theme === 'dark';
     const textSecondary = isDark ? '#94a3b8' : '#64748b';
     const reactFlowWrapper = useRef(null);
@@ -428,6 +428,43 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+    // Sync nodes with initialNodes when data changes, but preserve positions of existing nodes
+    useEffect(() => {
+        setNodes((currentNodes) => {
+            const currentNodesMap = new Map(currentNodes.map(n => [n.id, n]));
+
+            return initialNodes.map(newNode => {
+                if (currentNodesMap.has(newNode.id)) {
+                    // Preserve current position and selection state
+                    const currentNode = currentNodesMap.get(newNode.id);
+                    return {
+                        ...newNode,
+                        position: currentNode.position,
+                        selected: currentNode.selected,
+                        dragging: currentNode.dragging
+                    };
+                }
+                return newNode;
+            });
+        });
+
+        // Also sync edges, but preserve selection
+        setEdges((currentEdges) => {
+            const currentEdgesMap = new Map(currentEdges.map(e => [e.id, e]));
+            return initialEdges.map(newEdge => {
+                if (currentEdgesMap.has(newEdge.id)) {
+                    const currentEdge = currentEdgesMap.get(newEdge.id);
+                    return {
+                        ...newEdge,
+                        selected: currentEdge.selected
+                    };
+                }
+                return newEdge;
+            });
+        });
+    }, [initialNodes, initialEdges, setNodes, setEdges]);
+
     const [selectedNodes, setSelectedNodes] = useState([]);
     const [selectedEdges, setSelectedEdges] = useState([]);
     const [isAddingNode, setIsAddingNode] = useState(null);
@@ -436,13 +473,46 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
     const [editSubtitle, setEditSubtitle] = useState('');
 
     const onConnect = useCallback(
-        (params) => setEdges((eds) => addEdge({
-            ...params,
-            type: 'smoothstep',
-            style: edgeStyles.default,
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#64748b' },
-        }, eds)),
-        [setEdges]
+        (params) => {
+            // Create the visual edge
+            setEdges((eds) => addEdge({
+                ...params,
+                type: 'smoothstep',
+                style: edgeStyles.default,
+                markerEnd: { type: MarkerType.ArrowClosed, color: '#64748b' },
+            }, eds));
+
+            // Update data hierarchy if applicable
+            // source is parent, target is child
+            const sourceNode = nodes.find(n => n.id === params.source);
+            const targetNode = nodes.find(n => n.id === params.target);
+
+            if (sourceNode && targetNode && onUpdateNode) {
+                const sourceType = sourceNode.data.nodeType;
+                const targetType = targetNode.data.nodeType;
+                const targetId = targetNode.data.originalId;
+                const sourceId = sourceNode.data.originalId;
+
+                if (targetId && sourceId) {
+                    if (sourceType === 'year' && targetType === 'vision') {
+                        onUpdateNode('vision', targetId, { yearId: sourceId });
+                    } else if (sourceType === 'vision' && targetType === 'theme') {
+                        onUpdateNode('theme', targetId, { visionId: sourceId });
+                    } else if (sourceType === 'theme' && targetType === 'project') {
+                        onUpdateNode('project', targetId, { themeId: sourceId });
+                    } else if (sourceType === 'influence' && targetType === 'theme') {
+                        // Influence -> Theme is many-to-many via connectedThemeIds array
+                        // We need to fetch the current influence object to append
+                        // Since we don't have direct access to the full object here easily without searching data prop again,
+                        // we can assume the parent component handles the update logic if we pass the full array.
+                        // But updateNode expects partial updates.
+                        // For arrays, it's trickier. Let's skip for now or implement if critical.
+                        // The user asked for "Téma" specifically.
+                    }
+                }
+            }
+        },
+        [setEdges, nodes, onUpdateNode]
     );
 
     const onSelectionChange = useCallback(({ nodes, edges }) => {
@@ -492,19 +562,31 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
         setEditingNode(null);
     };
 
-    const handleAddNode = (nodeType) => {
-        const newNode = {
-            id: `${nodeType}-new-${Date.now()}`,
-            type: 'custom',
-            position: { x: 400, y: 300 },
-            data: {
-                label: `Nový ${nodeTypeLabels[nodeType] || nodeType}`,
-                nodeType: nodeType,
-                originalId: null,
-                isNew: true,
-            },
+    const handleAddNode = (type) => {
+        // Calculate position (center of screen or offset)
+        // Ideally we project the center of the view, but for now fixed offset
+        const position = {
+            x: -project({ x: 0, y: 0 }).x + 400,
+            y: -project({ x: 0, y: 0 }).y + 300
         };
-        setNodes((nds) => [...nds, newNode]);
+
+        if (onAddNode) {
+            onAddNode(type, position);
+        } else {
+            // Fallback for local testing if onAddNode not provided
+            const id = `${type}-${Date.now()}`;
+            const newNode = {
+                id,
+                type: 'custom',
+                position: position,
+                data: {
+                    label: nodeTypeLabels[type] || 'Nový prvek',
+                    nodeType: type,
+                    // No originalId implies it's local-only until saved/synced
+                },
+            };
+            setNodes((nds) => nds.concat(newNode));
+        }
         setIsAddingNode(null);
     };
 

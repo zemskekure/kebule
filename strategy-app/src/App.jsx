@@ -576,6 +576,57 @@ function App() {
     setSelectedNode(null);
   };
 
+  // Move item to new parent (for drag and drop)
+  const moveItem = (itemType, itemId, newParentId, newIndex = null) => {
+    setData(prev => {
+      let newState = { ...prev };
+      
+      if (itemType === 'project') {
+        // Move project to new theme
+        newState.projects = prev.projects.map(p => 
+          p.id === itemId ? { ...p, themeId: newParentId } : p
+        );
+        // Reorder if index provided
+        if (newIndex !== null) {
+          const movedProject = newState.projects.find(p => p.id === itemId);
+          const otherProjects = newState.projects.filter(p => p.id !== itemId);
+          const themeProjects = otherProjects.filter(p => p.themeId === newParentId);
+          const restProjects = otherProjects.filter(p => p.themeId !== newParentId);
+          themeProjects.splice(newIndex, 0, movedProject);
+          newState.projects = [...restProjects, ...themeProjects];
+        }
+      } else if (itemType === 'theme') {
+        // Move theme to new vision
+        newState.themes = prev.themes.map(t => 
+          t.id === itemId ? { ...t, visionId: newParentId } : t
+        );
+        if (newIndex !== null) {
+          const movedTheme = newState.themes.find(t => t.id === itemId);
+          const otherThemes = newState.themes.filter(t => t.id !== itemId);
+          const visionThemes = otherThemes.filter(t => t.visionId === newParentId);
+          const restThemes = otherThemes.filter(t => t.visionId !== newParentId);
+          visionThemes.splice(newIndex, 0, movedTheme);
+          newState.themes = [...restThemes, ...visionThemes];
+        }
+      } else if (itemType === 'vision') {
+        // Move vision to new year
+        newState.visions = prev.visions.map(v => 
+          v.id === itemId ? { ...v, yearId: newParentId } : v
+        );
+        if (newIndex !== null) {
+          const movedVision = newState.visions.find(v => v.id === itemId);
+          const otherVisions = newState.visions.filter(v => v.id !== itemId);
+          const yearVisions = otherVisions.filter(v => v.yearId === newParentId);
+          const restVisions = otherVisions.filter(v => v.yearId !== newParentId);
+          yearVisions.splice(newIndex, 0, movedVision);
+          newState.visions = [...restVisions, ...yearVisions];
+        }
+      }
+      
+      return newState;
+    });
+  };
+
   const addYear = () => {
     const newId = Date.now().toString();
     const newYear = { id: newId, title: '202X' };
@@ -1026,6 +1077,7 @@ function App() {
             onAddNewRestaurant={addNewRestaurant}
             onAddBrand={addBrand}
             onAddLocation={addLocation}
+            onMoveItem={moveItem}
             onRestoreBackup={restoreData}
             theme={currentTheme}
           />

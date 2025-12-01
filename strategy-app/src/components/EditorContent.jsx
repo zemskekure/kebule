@@ -1,14 +1,134 @@
 import React, { useState } from 'react';
-import { Plus, ChevronDown, ChevronRight, Edit2, Trash2, Calendar, MapPin, User, ExternalLink, Zap } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Edit2, Trash2, Calendar, MapPin, User, ExternalLink, Zap, GripVertical } from 'lucide-react';
 import { BackupManager } from './BackupManager';
 
-// Šiška Content (Thought System)
-function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddProject, theme }) {
+// Šiška Content (Thought System) with Drag & Drop
+function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddProject, onMoveItem, theme }) {
     const isDark = theme === 'dark';
     const textColor = isDark ? '#ffffff' : '#212529';
     const textSecondary = isDark ? '#adb5bd' : '#6c757d';
     const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e9ecef';
     const cardBg = isDark ? 'rgba(255, 255, 255, 0.03)' : '#ffffff';
+    
+    // Drag and drop state
+    const [draggedItem, setDraggedItem] = useState(null);
+    const [dropTarget, setDropTarget] = useState(null);
+
+    const handleDragStart = (e, itemType, itemId, parentId) => {
+        setDraggedItem({ type: itemType, id: itemId, parentId });
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', JSON.stringify({ type: itemType, id: itemId, parentId }));
+        // Add a slight delay to allow the drag image to be captured
+        setTimeout(() => {
+            e.target.style.opacity = '0.5';
+        }, 0);
+    };
+
+    const handleDragEnd = (e) => {
+        e.target.style.opacity = '1';
+        setDraggedItem(null);
+        setDropTarget(null);
+    };
+
+    const handleDragOver = (e, targetType, targetId) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        
+        // Only allow valid drop targets
+        if (draggedItem) {
+            const isValidDrop = 
+                (draggedItem.type === 'project' && targetType === 'theme') ||
+                (draggedItem.type === 'theme' && targetType === 'vision') ||
+                (draggedItem.type === 'vision' && targetType === 'year') ||
+                (draggedItem.type === 'project' && targetType === 'project') ||
+                (draggedItem.type === 'theme' && targetType === 'theme') ||
+                (draggedItem.type === 'vision' && targetType === 'vision');
+            
+            if (isValidDrop) {
+                setDropTarget({ type: targetType, id: targetId });
+            }
+        }
+    };
+
+    const handleDragLeave = (e) => {
+        // Only clear if we're leaving the actual element, not entering a child
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+            setDropTarget(null);
+        }
+    };
+
+    const handleDrop = (e, targetType, targetId, targetParentId) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!draggedItem || !onMoveItem) return;
+        
+        // Determine the new parent based on drop target
+        let newParentId = null;
+        let newIndex = null;
+        
+        if (draggedItem.type === 'project') {
+            if (targetType === 'theme') {
+                // Dropped on a theme - move to that theme
+                newParentId = targetId;
+            } else if (targetType === 'project') {
+                // Dropped on another project - move to same theme, reorder
+                const targetProject = data.projects.find(p => p.id === targetId);
+                if (targetProject) {
+                    newParentId = targetProject.themeId;
+                    const themeProjects = data.projects.filter(p => p.themeId === targetProject.themeId);
+                    newIndex = themeProjects.findIndex(p => p.id === targetId);
+                }
+            }
+        } else if (draggedItem.type === 'theme') {
+            if (targetType === 'vision') {
+                newParentId = targetId;
+            } else if (targetType === 'theme') {
+                const targetTheme = data.themes.find(t => t.id === targetId);
+                if (targetTheme) {
+                    newParentId = targetTheme.visionId;
+                    const visionThemes = data.themes.filter(t => t.visionId === targetTheme.visionId);
+                    newIndex = visionThemes.findIndex(t => t.id === targetId);
+                }
+            }
+        } else if (draggedItem.type === 'vision') {
+            if (targetType === 'year') {
+                newParentId = targetId;
+            } else if (targetType === 'vision') {
+                const targetVision = data.visions.find(v => v.id === targetId);
+                if (targetVision) {
+                    newParentId = targetVision.yearId;
+                    const yearVisions = data.visions.filter(v => v.yearId === targetVision.yearId);
+                    newIndex = yearVisions.findIndex(v => v.id === targetId);
+                }
+            }
+        }
+        
+        if (newParentId !== null) {
+            onMoveItem(draggedItem.type, draggedItem.id, newParentId, newIndex);
+        }
+        
+        setDraggedItem(null);
+        setDropTarget(null);
+    };
+
+    const getDragHandleStyle = (isHovered = false) => ({
+        cursor: 'grab',
+        padding: '4px',
+        marginRight: '0.5rem',
+        color: isHovered ? textColor : textSecondary,
+        opacity: isHovered ? 1 : 0.5,
+        transition: 'opacity 0.2s'
+    });
+
+    const getDropTargetStyle = (targetType, targetId) => {
+        const isDropTarget = dropTarget?.type === targetType && dropTarget?.id === targetId;
+        return isDropTarget ? {
+            outline: `2px dashed ${isDark ? '#00b4d8' : '#0d6efd'}`,
+            outlineOffset: '2px',
+            backgroundColor: isDark ? 'rgba(0, 180, 216, 0.1)' : 'rgba(13, 110, 253, 0.05)'
+        } : {};
+    };
 
     return (
         <div style={{ padding: '1.5rem' }}>
@@ -80,13 +200,27 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                             </div>
 
                             {isExpanded && (
-                                <div style={{ padding: '0 1rem 1rem 2.5rem' }}>
+                                <div 
+                                    style={{ padding: '0 1rem 1rem 2.5rem' }}
+                                    onDragOver={(e) => handleDragOver(e, 'year', year.id)}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={(e) => handleDrop(e, 'year', year.id, null)}
+                                >
                                     {yearVisions.map(vision => {
                                         const visionThemes = data.themes.filter(t => t.visionId === vision.id);
                                         const isVisionExpanded = expandedNodes[vision.id];
 
                                         return (
-                                            <div key={vision.id} style={{ marginTop: '0.75rem' }}>
+                                            <div 
+                                                key={vision.id} 
+                                                style={{ marginTop: '0.75rem' }}
+                                                draggable
+                                                onDragStart={(e) => handleDragStart(e, 'vision', vision.id, year.id)}
+                                                onDragEnd={handleDragEnd}
+                                                onDragOver={(e) => handleDragOver(e, 'vision', vision.id)}
+                                                onDragLeave={handleDragLeave}
+                                                onDrop={(e) => handleDrop(e, 'vision', vision.id, year.id)}
+                                            >
                                                 <div
                                                     style={{
                                                         display: 'flex',
@@ -96,10 +230,14 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                         backgroundColor: selectedNode?.id === vision.id
                                                             ? (isDark ? 'rgba(0, 180, 216, 0.15)' : 'rgba(0, 180, 216, 0.1)')
                                                             : (isDark ? 'rgba(255, 255, 255, 0.03)' : '#f8f9fa'),
-                                                        cursor: 'pointer'
+                                                        cursor: 'pointer',
+                                                        ...getDropTargetStyle('vision', vision.id)
                                                     }}
                                                     onClick={() => onSelectNode('vision', vision.id)}
                                                 >
+                                                    <div style={getDragHandleStyle()} className="drag-handle">
+                                                        <GripVertical size={14} />
+                                                    </div>
                                                     <button
                                                         onClick={(e) => { e.stopPropagation(); onToggleNode(vision.id); }}
                                                         style={{
@@ -112,20 +250,34 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                     >
                                                         {isVisionExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                                     </button>
-                                                    <span style={{ fontWeight: 500, color: textColor }}>{vision.title}</span>
-                                                    <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: textSecondary }}>
+                                                    <span style={{ fontWeight: 500, color: textColor, flex: 1 }}>{vision.title}</span>
+                                                    <span style={{ fontSize: '0.8rem', color: textSecondary }}>
                                                         {visionThemes.length} témat
                                                     </span>
                                                 </div>
 
                                                 {isVisionExpanded && (
-                                                    <div style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}>
+                                                    <div 
+                                                        style={{ marginLeft: '1.5rem', marginTop: '0.5rem' }}
+                                                        onDragOver={(e) => handleDragOver(e, 'vision', vision.id)}
+                                                        onDragLeave={handleDragLeave}
+                                                        onDrop={(e) => handleDrop(e, 'vision', vision.id, year.id)}
+                                                    >
                                                         {visionThemes.map(themeItem => {
                                                             const themeProjects = data.projects.filter(p => p.themeId === themeItem.id);
                                                             const isThemeExpanded = expandedNodes[themeItem.id];
 
                                                             return (
-                                                                <div key={themeItem.id} style={{ marginBottom: '0.5rem' }}>
+                                                                <div 
+                                                                    key={themeItem.id} 
+                                                                    style={{ marginBottom: '0.5rem' }}
+                                                                    draggable
+                                                                    onDragStart={(e) => handleDragStart(e, 'theme', themeItem.id, vision.id)}
+                                                                    onDragEnd={handleDragEnd}
+                                                                    onDragOver={(e) => handleDragOver(e, 'theme', themeItem.id)}
+                                                                    onDragLeave={handleDragLeave}
+                                                                    onDrop={(e) => handleDrop(e, 'theme', themeItem.id, vision.id)}
+                                                                >
                                                                     <div
                                                                         style={{
                                                                             display: 'flex',
@@ -136,10 +288,14 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                 ? (isDark ? 'rgba(255, 193, 7, 0.1)' : 'rgba(255, 193, 7, 0.05)')
                                                                                 : 'transparent',
                                                                             cursor: 'pointer',
-                                                                            borderRadius: '0 6px 6px 0'
+                                                                            borderRadius: '0 6px 6px 0',
+                                                                            ...getDropTargetStyle('theme', themeItem.id)
                                                                         }}
                                                                         onClick={() => onSelectNode('theme', themeItem.id)}
                                                                     >
+                                                                        <div style={getDragHandleStyle()} className="drag-handle">
+                                                                            <GripVertical size={12} />
+                                                                        </div>
                                                                         <button
                                                                             onClick={(e) => { e.stopPropagation(); onToggleNode(themeItem.id); }}
                                                                             style={{
@@ -159,10 +315,21 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
 
                                                                     {/* Projects under theme */}
                                                                     {isThemeExpanded && (
-                                                                        <div style={{ marginLeft: '1.5rem', marginTop: '0.25rem' }}>
+                                                                        <div 
+                                                                            style={{ marginLeft: '1.5rem', marginTop: '0.25rem' }}
+                                                                            onDragOver={(e) => handleDragOver(e, 'theme', themeItem.id)}
+                                                                            onDragLeave={handleDragLeave}
+                                                                            onDrop={(e) => handleDrop(e, 'theme', themeItem.id, vision.id)}
+                                                                        >
                                                                             {themeProjects.map(project => (
                                                                                 <div
                                                                                     key={project.id}
+                                                                                    draggable
+                                                                                    onDragStart={(e) => handleDragStart(e, 'project', project.id, themeItem.id)}
+                                                                                    onDragEnd={handleDragEnd}
+                                                                                    onDragOver={(e) => handleDragOver(e, 'project', project.id)}
+                                                                                    onDragLeave={handleDragLeave}
+                                                                                    onDrop={(e) => handleDrop(e, 'project', project.id, themeItem.id)}
                                                                                     onClick={() => onSelectNode('project', project.id)}
                                                                                     style={{
                                                                                         display: 'flex',
@@ -174,9 +341,13 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                             ? (isDark ? 'rgba(25, 135, 84, 0.15)' : 'rgba(25, 135, 84, 0.1)')
                                                                                             : (isDark ? 'rgba(255, 255, 255, 0.02)' : '#fafafa'),
                                                                                         cursor: 'pointer',
-                                                                                        borderRadius: '0 6px 6px 0'
+                                                                                        borderRadius: '0 6px 6px 0',
+                                                                                        ...getDropTargetStyle('project', project.id)
                                                                                     }}
                                                                                 >
+                                                                                    <div style={getDragHandleStyle()} className="drag-handle">
+                                                                                        <GripVertical size={12} />
+                                                                                    </div>
                                                                                     <div style={{ flex: 1 }}>
                                                                                         <div style={{ color: textColor, fontWeight: 500, fontSize: '0.9rem' }}>{project.title}</div>
                                                                                         {project.description && (
@@ -736,6 +907,7 @@ export function EditorContent({
     onAddNewRestaurant,
     onAddBrand,
     onAddLocation,
+    onMoveItem,
     onRestoreBackup,
     theme
 }) {
@@ -762,6 +934,7 @@ export function EditorContent({
                         onAddVision={onAddVision}
                         onAddTheme={onAddTheme}
                         onAddProject={onAddProject}
+                        onMoveItem={onMoveItem}
                         theme={theme}
                     />
                 );

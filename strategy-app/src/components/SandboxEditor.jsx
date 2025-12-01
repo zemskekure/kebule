@@ -346,6 +346,37 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
         // NOTE: Brand connections are not pre-loaded since brands are not shown by default
         // Users can manually add brands and connect them to strategy elements
 
+        // Merge with saved edges from localStorage
+        try {
+            const savedEdgesStr = localStorage.getItem('sandbox_edges');
+            if (savedEdgesStr) {
+                const savedEdges = JSON.parse(savedEdgesStr);
+                const savedEdgesMap = new Map(savedEdges.map(e => [e.id, e]));
+
+                // 1. Update existing data-driven edges with saved properties (style, type)
+                edges.forEach((edge, index) => {
+                    if (savedEdgesMap.has(edge.id)) {
+                        const saved = savedEdgesMap.get(edge.id);
+                        edges[index] = {
+                            ...edge,
+                            style: saved.style,
+                            markerEnd: saved.markerEnd,
+                            animated: saved.animated,
+                            data: { ...edge.data, ...saved.data }
+                        };
+                        savedEdgesMap.delete(edge.id); // Remove handled edge
+                    }
+                });
+
+                // 2. Add remaining saved edges (manual connections)
+                savedEdgesMap.forEach(savedEdge => {
+                    edges.push(savedEdge);
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load sandbox edges', e);
+        }
+
         return edges;
     }, [data]);
 
@@ -496,7 +527,11 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
         }
         // Save to localStorage as backup
         localStorage.setItem('sandbox_positions', JSON.stringify(positions));
-        alert('Pozice uloženy!');
+
+        // Save edges to localStorage to persist manual connections and styles
+        localStorage.setItem('sandbox_edges', JSON.stringify(edges));
+
+        alert('Pozice a propojení uloženy!');
     };
 
     const handleResetLayout = () => {

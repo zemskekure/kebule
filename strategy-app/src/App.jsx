@@ -1,38 +1,303 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, Download, Upload, LayoutGrid, List, Zap, HardHat, BarChart3, Search } from 'lucide-react';
+import { Plus, Download, Upload, LayoutGrid, List, Zap, HardHat, BarChart3, Search, Moon, Sun, GitBranch } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { YearNode } from './components/MindMap';
 import { DetailPanel } from './components/DetailPanel';
 import { VisionBoard } from './components/VisionBoard';
 import { Dashboard } from './components/Dashboard';
 import { AIChatWindow } from './components/AIChatWindow';
+import { EditorSidebar } from './components/EditorSidebar';
+import { EditorContent } from './components/EditorContent';
+import { SandboxEditor } from './components/SandboxEditor';
 
 // --- Types & Initial Data ---
 
 const INITIAL_BRANDS = [
-  { id: 'b1', name: 'Lokál', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b2', name: 'Eska', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b3', name: 'Café Savoy', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b4', name: 'Brasileiro', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b5', name: 'Čestr', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b6', name: 'Amaso', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b7', name: 'Bokovka', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b8', name: 'Bufet', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b9', name: 'Burger Service', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b10', name: 'Cukrárna Myšák', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b11', name: 'Dva kohouti', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b12', name: 'Kantýna', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b13', name: 'Kuchyň', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b14', name: 'La Degustation', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b15', name: 'Marie B.', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b16', name: 'Naše maso', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b17', name: 'Pasta Fresca', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b18', name: 'Pastacaffé', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b19', name: 'Pizza Nuova', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b20', name: 'Pult', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b21', name: 'Štangl', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b22', name: 'U Kalendů', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
-  { id: 'b23', name: 'UM', logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' },
+  {
+    id: 'b1',
+    name: 'Lokál',
+    foundationYear: '2009',
+    conceptShort: 'Tradiční česká hospoda',
+    description: 'Lokál je místem pro každého. Čepujeme pečlivě ošetřené pivo a vaříme klasická česká jídla bez umělých dochucovadel a polotovarů.',
+    logoUrl: '',
+    socialLinks: { web: 'lokal.ambi.cz', instagram: 'lokalcz', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b2',
+    name: 'Eska',
+    foundationYear: '2015',
+    conceptShort: 'Restaurace s pekárnou',
+    description: 'Eska je restaurace s pekárnou v Karlíně, která spojuje staré a nové. Tradiční postupy jako kvašení, sušení a pečení na ohni potkávají moderní přístup.',
+    logoUrl: '',
+    socialLinks: { web: 'eska.ambi.cz', instagram: 'eska_karlin', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b3',
+    name: 'Café Savoy',
+    foundationYear: '1893',
+    conceptShort: 'Noblesní kavárna',
+    description: 'Kavárna a restaurace v prvorepublikovém stylu. Vyhlášené snídaně, vídeňská káva a cukrářské výrobky vlastní výroby.',
+    logoUrl: '',
+    socialLinks: { web: 'cafesavoy.ambi.cz', instagram: 'cafesavoy', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b4',
+    name: 'Brasileiro',
+    foundationYear: '2004',
+    conceptShort: 'Brazilská churrascaria',
+    description: 'Autentická brazilská restaurace typu rodizio. Číšníci "passadores" odkrajují maso z jehel přímo na talíř hostů.',
+    logoUrl: '',
+    socialLinks: { web: 'brasileiro.ambi.cz', instagram: 'brasileiro_slovanskydum', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b5',
+    name: 'Čestr',
+    foundationYear: '2011',
+    conceptShort: 'Steakhouse s českým masem',
+    description: 'Restaurace zaměřená na vyzrálé hovězí maso z českého strakatého skotu a vepřové z přeštických prasat.',
+    logoUrl: '',
+    socialLinks: { web: 'cestr.ambi.cz', instagram: 'cestr_ambiente', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b6',
+    name: 'Amaso',
+    foundationYear: '2011',
+    conceptShort: 'Zpracování masa',
+    description: 'Dodáváme maso do restaurací Ambiente i zákazníkům domů. Staříme hovězí a vyrábíme vlastní uzeniny.',
+    logoUrl: '',
+    socialLinks: { web: 'amaso.cz', instagram: 'amaso_cz', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b7',
+    name: 'Bokovka',
+    foundationYear: '2014',
+    conceptShort: 'Vinný bar',
+    description: 'Vinný bar v Dlouhé ulici. Výběr vín od přátel a kamarádů, sýry a drobné občerstvení.',
+    logoUrl: '',
+    socialLinks: { web: 'bokovka.ambi.cz', instagram: 'bokovka', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b8',
+    name: 'Bufet',
+    foundationYear: '2017',
+    conceptShort: 'Gril a fast food',
+    description: 'Kvalitní fast food v Karlíně. Burgery, hranolky a pivo.',
+    logoUrl: '',
+    socialLinks: { web: '', instagram: '', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b9',
+    name: 'Burger Service',
+    foundationYear: '2023',
+    conceptShort: 'Burgery s sebou',
+    description: 'Revoluční 1. Rychlé burgery z kvalitního masa.',
+    logoUrl: '',
+    socialLinks: { web: 'burgerservice.cz', instagram: 'burgerservice_cz', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b10',
+    name: 'Cukrárna Myšák',
+    foundationYear: '1911',
+    conceptShort: 'Tradiční cukrárna',
+    description: 'Legendární pražská cukrárna ve Vodičkově ulici. Klasické české zákusky, káva a snídaně.',
+    logoUrl: '',
+    socialLinks: { web: 'mysak.ambi.cz', instagram: 'cukrarna.mysak', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b11',
+    name: 'Dva kohouti',
+    foundationYear: '2018',
+    conceptShort: 'Pivovar a výčep',
+    description: 'Místní pivovar v Karlíně. Pivo vaříme ráno a čepujeme večer.',
+    logoUrl: '',
+    socialLinks: { web: 'dvakohouti.cz', instagram: 'dvakohouti', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b12',
+    name: 'Kantýna',
+    foundationYear: '2017',
+    conceptShort: 'Řeznictví a večeře',
+    description: 'Masová restaurace v bývalé bance. Maso si vyberete u pultu a kuchaři vám ho připraví na ohni.',
+    logoUrl: '',
+    socialLinks: { web: 'kantyna.ambi.cz', instagram: 'kantyna', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b13',
+    name: 'Kuchyň',
+    foundationYear: '2018',
+    conceptShort: 'Hradní restaurace',
+    description: 'Česká kuchyně na Pražském hradě s nejlepším výhledem na město.',
+    logoUrl: '',
+    socialLinks: { web: 'kuchyn.ambi.cz', instagram: 'kuchyn_na_hrade', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b14',
+    name: 'La Degustation',
+    foundationYear: '2006',
+    conceptShort: 'Michelin',
+    description: 'Degustační večeře postavená na myšlenkách kuchařky Marie B. Svobodové z roku 1894.',
+    logoUrl: '',
+    socialLinks: { web: 'ladegustation.cz', instagram: 'ladegustation', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b15',
+    name: 'Marie B.',
+    foundationYear: '2023',
+    conceptShort: 'Svobodná kuchyně',
+    description: 'Sestra La Degustation. Víno a jídlo bez lístku, formou "carte blanche".',
+    logoUrl: '',
+    socialLinks: { web: 'marieb.cz', instagram: 'marieb__prague', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b16',
+    name: 'Naše maso',
+    foundationYear: '2014',
+    conceptShort: 'Řeznictví',
+    description: 'Řeznictví v Dlouhé ulici. Prodej masa a bistro s tatarákem a sekanou v housce.',
+    logoUrl: '',
+    socialLinks: { web: 'nasemaso.cz', instagram: 'nase_maso', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b17',
+    name: 'Pasta Fresca',
+    foundationYear: '2003',
+    conceptShort: 'Italská trattorie',
+    description: 'Domácí těstoviny a italská klasika v Celetné ulici.',
+    logoUrl: '',
+    socialLinks: { web: 'pastafresca.ambi.cz', instagram: 'pastafresca_ambiente', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b18',
+    name: 'Pastacaffé',
+    foundationYear: '2001',
+    conceptShort: 'Italské bistro',
+    description: 'Snídaně, káva a těstoviny. Rychlý italský bar.',
+    logoUrl: '',
+    socialLinks: { web: 'pastacaffe.ambi.cz', instagram: 'pastacaffe_ambiente', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b19',
+    name: 'Pizza Nuova',
+    foundationYear: '2006',
+    conceptShort: 'Neapolská pizza',
+    description: 'Pravá neapolská pizza z pece na dřevo a těstovinový bar.',
+    logoUrl: '',
+    socialLinks: { web: 'pizzanuova.ambi.cz', instagram: 'pizzanuova', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b20',
+    name: 'Pult',
+    foundationYear: '2021',
+    conceptShort: 'Výčep',
+    description: 'Šest druhů ležáků pečlivě ošetřených a načepovaných.',
+    logoUrl: '',
+    socialLinks: { web: 'pult.ambi.cz', instagram: 'pult_pivo', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b21',
+    name: 'Štangl',
+    foundationYear: '2023',
+    conceptShort: 'Moderní česká kuchyně',
+    description: 'Restaurace nad Eskou zaměřená na lokální suroviny a divoké byliny.',
+    logoUrl: '',
+    socialLinks: { web: 'stangl.ambi.cz', instagram: 'stangl_karlin', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b22',
+    name: 'U Kalendů',
+    foundationYear: '2021',
+    conceptShort: 'Hostinec a pekárna',
+    description: 'Tradiční pražská hospoda na náplavce s vlastní pekárnou.',
+    logoUrl: '',
+    socialLinks: { web: 'ukalendu.ambi.cz', instagram: 'u_kalendu', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+  {
+    id: 'b23',
+    name: 'UM',
+    foundationYear: '2020',
+    conceptShort: 'Vzdělávací centrum',
+    description: 'Školicí centrum pro profesionály i veřejnost. Kurzy vaření, pečení a čepování.',
+    logoUrl: '',
+    socialLinks: { web: 'um.ambi.cz', instagram: 'um_ambiente', facebook: '' },
+    contact: '',
+    accountManager: ''
+  },
+];
+
+const INITIAL_LOCATIONS = [
+  // Lokál
+  { id: 'l1', brandId: 'b1', name: 'Dlouhááá', address: 'Dlouhá 33, Praha 1' },
+  { id: 'l2', brandId: 'b1', name: 'U Bílé kuželky', address: 'Míšeňská 12, Praha 1' },
+  { id: 'l3', brandId: 'b1', name: 'Hamburk', address: 'Sokolovská 55, Praha 8' },
+  { id: 'l4', brandId: 'b1', name: 'Nad Stromovkou', address: 'Nad Královskou oborou 31, Praha 7' },
+  { id: 'l5', brandId: 'b1', name: 'U Zavadilů', address: 'K Verneráku 70/1, Praha 4' },
+  { id: 'l6', brandId: 'b1', name: 'Korunní', address: 'Korunní 984/39, Praha 2' },
+  { id: 'l7', brandId: 'b1', name: 'U Jiráta', address: 'Vodičkova 699/30, Praha 1' },
+  // Brasileiro
+  { id: 'l8', brandId: 'b4', name: 'Brasileiro Slovanský dům', address: 'Na Příkopě 22, Praha 1' },
+  { id: 'l9', brandId: 'b4', name: 'Brasileiro U Zelené žáby', address: 'U Radnice 8, Praha 1' },
+  // Eska & Štangl
+  { id: 'l10', brandId: 'b2', name: 'Eska Karlín', address: 'Pernerova 49, Praha 8' },
+  { id: 'l24', brandId: 'b2', name: 'Eska Letná', address: 'Šmeralova, Praha 7' }, // New
+  { id: 'l11', brandId: 'b21', name: 'Štangl', address: 'Pernerova 49, Praha 8' },
+  // Others
+  { id: 'l12', brandId: 'b3', name: 'Café Savoy', address: 'Vítězná 5, Praha 5' },
+  { id: 'l13', brandId: 'b5', name: 'Čestr', address: 'Legerova 57/75, Praha 1' },
+  { id: 'l14', brandId: 'b13', name: 'Kuchyň', address: 'Hradčanské nám. 186/1, Praha 1' },
+  { id: 'l15', brandId: 'b14', name: 'La Degustation', address: 'Haštalská 18, Praha 1' },
+  { id: 'l16', brandId: 'b12', name: 'Kantýna', address: 'Politických vězňů 5, Praha 1' },
+  { id: 'l17', brandId: 'b16', name: 'Naše maso', address: 'Dlouhá 39, Praha 1' },
+  { id: 'l18', brandId: 'b17', name: 'Pasta Fresca', address: 'Celetná 11, Praha 1' },
+  { id: 'l19', brandId: 'b18', name: 'Pastacaffé Vodičkova', address: 'Vodičkova 67, Praha 1' },
+  { id: 'l20', brandId: 'b18', name: 'Pastacaffé Vězeňská', address: 'Vězeňská 1, Praha 1' },
+  { id: 'l21', brandId: 'b19', name: 'Pizza Nuova', address: 'Revoluční 1, Praha 1' },
+  { id: 'l22', brandId: 'b10', name: 'Myšák Vodičkova', address: 'Vodičkova 710/31, Praha 1' },
+  { id: 'l25', brandId: 'b10', name: 'Myšák Holešovice', address: 'Osadní, Praha 7' }, // New
+  { id: 'l23', brandId: 'b22', name: 'U Kalendů', address: 'Rašínovo nábřeží 383/58, Praha 2' },
 ];
 
 const INITIAL_YEARS = [
@@ -52,6 +317,7 @@ const INITIAL_THEMES = [
   { id: 't1', visionId: 'v1', title: 'Digitalizace', description: 'Zlepšení procesů pomocí technologií.', priority: 'Vysoká' },
   { id: 't2', visionId: 'v1', title: 'Udržitelnost', description: 'Ekologie a zero waste.', priority: 'Střední' },
   { id: 't3', visionId: 'v1', title: 'Lidé a péče', description: 'Nábor a vzdělávání talentů.', priority: 'Vysoká' },
+  { id: 't4', visionId: 'v1', title: 'Expanze', description: 'Nové pobočky a koncepty.', priority: 'Vysoká' },
 ];
 
 const INITIAL_PROJECTS = [
@@ -69,11 +335,13 @@ const INITIAL_PROJECTS = [
 const INITIAL_NEW_RESTAURANTS = [
   {
     id: 'nr1',
-    themeId: 't2',
+    themeId: 't4',
     title: 'Nový Lokál - Dejvice',
     description: 'Expanze do další čtvrti.',
     status: 'V přípravě',
     brands: ['b1'],
+    category: 'new', // 'new' | 'facelift'
+    locationId: null, // For facelifts
     openingDate: '2026-03-15',
     phase: 'Construction',
     conceptSummary: 'Klasický Lokál s větším důrazem na zahrádku.',
@@ -81,6 +349,22 @@ const INITIAL_NEW_RESTAURANTS = [
     contact: 'Jan Novák',
     accountManager: 'Petra Svobodová'
   },
+  {
+    id: 'nr2',
+    themeId: 't2',
+    title: 'Rekonstrukce kuchyně Dlouhá',
+    description: 'Modernizace vybavení.',
+    status: 'Plánování',
+    brands: ['b1'],
+    category: 'facelift',
+    locationId: 'l1', // Dlouhá
+    openingDate: '2026-06-01',
+    phase: 'Planning',
+    conceptSummary: 'Nové konvektomaty a indukce.',
+    socialLinks: { web: '', instagram: '', facebook: '' },
+    contact: 'Karel Šéfkuchař',
+    accountManager: ''
+  }
 ];
 
 const INITIAL_INFLUENCES = [
@@ -89,7 +373,7 @@ const INITIAL_INFLUENCES = [
   { id: 'i3', title: 'Vlastní pekárna', type: 'internal', description: 'Možnost zásobovat všechny pobočky.', connectedThemeIds: ['t2'] },
 ];
 
-const STORAGE_KEY = 'strategieAmbiente_v4';
+const STORAGE_KEY = 'strategieAmbiente_v8';
 
 // --- Hooks ---
 
@@ -121,6 +405,7 @@ function App() {
   // State
   const [data, setData] = useLocalStorage(STORAGE_KEY, {
     brands: INITIAL_BRANDS,
+    locations: INITIAL_LOCATIONS,
     years: INITIAL_YEARS,
     visions: INITIAL_VISIONS,
     themes: INITIAL_THEMES,
@@ -130,32 +415,76 @@ function App() {
   });
 
   const [viewMode, setViewMode] = useState('admin'); // 'admin' | 'dashboard' | 'vision'
+  const [editorSection, setEditorSection] = useState('thought-system'); // Editor section state
   const [selectedNode, setSelectedNode] = useState(null); // { type: 'year'|'vision'|'theme'|'project'|'influence'|'newRestaurant', id: string }
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
+  const [selectedLocationIds, setSelectedLocationIds] = useState([]);
   const [expandedNodes, setExpandedNodes] = useState({}); // { [id]: boolean }
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Theme state for each view
+  const [themes, setThemes] = useLocalStorage('themes_v1', {
+    admin: 'light',
+    dashboard: 'dark',
+    vision: 'dark',
+    sandbox: 'dark'
+  });
+
+  const toggleTheme = (view) => {
+    setThemes(prev => ({
+      ...prev,
+      [view]: prev[view] === 'light' ? 'dark' : 'light'
+    }));
+  };
+
+  const currentTheme = themes[viewMode];
+
   // Actions
   const addBrand = (name) => {
-    if (!name.trim()) return;
-    const newBrand = { id: Date.now().toString(), name, logoUrl: '', socialLinks: { web: '', instagram: '', facebook: '' }, contact: '', accountManager: '' };
+    const newId = Date.now().toString();
+    const brandName = name && name.trim() ? name : 'Nová značka';
+    const newBrand = { 
+      id: newId, 
+      name: brandName, 
+      logoUrl: '', 
+      conceptShort: '',
+      description: '',
+      foundationYear: '',
+      socialLinks: { web: '', instagram: '', facebook: '' }, 
+      contact: '', 
+      accountManager: '' 
+    };
     setData(prev => ({ ...prev, brands: [...prev.brands, newBrand] }));
+    selectNode('brand', newId);
+  };
+
+  const addLocation = (brandId, name, address) => {
+    const newId = Date.now().toString();
+    const locationName = name && name.trim() ? name : 'Nová pobočka';
+    const newLocation = { id: newId, brandId, name: locationName, address: address || '' };
+    setData(prev => ({ ...prev, locations: [...(prev.locations || []), newLocation] }));
+    selectNode('location', newId);
   };
 
   const addInfluence = (title, type) => {
-    if (!title.trim()) return;
-    const newInfluence = { id: Date.now().toString(), title, type, description: '', connectedThemeIds: [] };
+    const newId = Date.now().toString();
+    const influenceTitle = title && title.trim() ? title : 'Nový vliv';
+    const influenceType = type || 'external';
+    const newInfluence = { id: newId, title: influenceTitle, type: influenceType, description: '', connectedThemeIds: [] };
     setData(prev => ({ ...prev, influences: [...(prev.influences || []), newInfluence] }));
+    selectNode('influence', newId);
   };
 
-  const addNewRestaurant = () => {
+  const addNewRestaurant = (category = 'new') => {
     const newId = Date.now().toString();
     const newRest = {
       id: newId,
-      title: 'Nová restaurace',
+      title: category === 'new' ? 'Nová restaurace' : 'Nový facelift',
       description: '',
       status: 'Idea',
       brands: [],
+      category: category,
+      locationId: null,
       openingDate: '',
       phase: 'Idea',
       conceptSummary: '',
@@ -173,6 +502,12 @@ function App() {
     );
   };
 
+  const toggleLocationFilter = (id) => {
+    setSelectedLocationIds(prev =>
+      prev.includes(id) ? prev.filter(lId => lId !== id) : [...prev, id]
+    );
+  };
+
   const toggleNode = (id) => {
     setExpandedNodes(prev => ({ ...prev, [id]: !prev[id] }));
   };
@@ -187,15 +522,19 @@ function App() {
         type === 'vision' ? 'visions' :
           type === 'theme' ? 'themes' :
             type === 'project' ? 'projects' :
-              type === 'newRestaurant' ? 'newRestaurants' : 'influences';
+              type === 'newRestaurant' ? 'newRestaurants' :
+                type === 'reconstruction' ? 'facelifts' :
+                  type === 'brand' ? 'brands' :
+                    type === 'location' ? 'locations' : 'influences';
       const collection = prev[collectionName] || [];
       const updatedCollection = collection.map(item => item.id === id ? { ...item, ...updates } : item);
       return { ...prev, [collectionName]: updatedCollection };
     });
   };
 
-  const deleteNode = (type, id) => {
-    if (!window.confirm('Opravdu chcete smazat tento záznam?')) return;
+  const deleteNode = (type, id, options = {}) => {
+    const { skipConfirm = false } = options;
+    if (!skipConfirm && !window.confirm('Opravdu chcete smazat tento záznam?')) return;
 
     setData(prev => {
       let newState = { ...prev };
@@ -221,8 +560,16 @@ function App() {
         newState.projects = prev.projects.filter(p => p.id !== id);
       } else if (type === 'newRestaurant') {
         newState.newRestaurants = prev.newRestaurants.filter(r => r.id !== id);
+      } else if (type === 'reconstruction') {
+        newState.facelifts = (prev.facelifts || []).filter(r => r.id !== id);
       } else if (type === 'influence') {
         newState.influences = prev.influences.filter(i => i.id !== id);
+      } else if (type === 'brand') {
+        newState.brands = prev.brands.filter(b => b.id !== id);
+        // Also delete all locations of this brand
+        newState.locations = (prev.locations || []).filter(l => l.brandId !== id);
+      } else if (type === 'location') {
+        newState.locations = (prev.locations || []).filter(l => l.id !== id);
       }
       return newState;
     });
@@ -270,16 +617,19 @@ function App() {
   };
 
   const handleAICommand = (cmd) => {
-    // ... existing AI logic ...
-    if (cmd.type === 'UPDATE_DATE') {
-      const targetRest = data.newRestaurants[0];
+    console.log("Received AI Command:", cmd);
+
+    if (cmd.command === 'UPDATE_DATE') {
+      // Find restaurant by fuzzy name match
+      const targetName = cmd.target.toLowerCase();
+      const targetRest = data.newRestaurants.find(r => r.title.toLowerCase().includes(targetName));
+
       if (targetRest) {
-        const parts = cmd.date.split('.');
-        if (parts.length === 3) {
-          const isoDate = `${parts[2].trim()}-${parts[1].trim().padStart(2, '0')}-${parts[0].trim().padStart(2, '0')}`;
-          updateNode('newRestaurant', targetRest.id, { openingDate: isoDate });
-          alert(`AI: Datum pro ${targetRest.title} aktualizováno na ${isoDate}`);
-        }
+        updateNode('newRestaurant', targetRest.id, { openingDate: cmd.date });
+        // Optional: Show a toast or notification
+        console.log(`Updated ${targetRest.title} to ${cmd.date}`);
+      } else {
+        alert(`AI Error: Nemohu najít restauraci s názvem "${cmd.target}"`);
       }
     }
   };
@@ -302,6 +652,12 @@ function App() {
       try {
         const json = JSON.parse(e.target.result);
         if (json.brands && json.years) {
+          // Ensure locations exists for older exports
+          if (!json.locations) json.locations = [];
+          // Ensure newRestaurants have categories
+          if (json.newRestaurants) {
+            json.newRestaurants = json.newRestaurants.map(r => ({ ...r, category: r.category || 'new' }));
+          }
           setData(json);
           alert('Data byla úspěšně importována.');
         } else {
@@ -317,27 +673,56 @@ function App() {
   // Derived state for filtering
   const filteredProjects = useMemo(() => {
     let result = data.projects;
-    if (selectedBrandIds.length > 0) {
-      result = result.filter(p => p.brands.some(bId => selectedBrandIds.includes(bId)));
+    // Filter by Brand OR Location
+    if (selectedBrandIds.length > 0 || selectedLocationIds.length > 0) {
+      result = result.filter(p => {
+        const hasBrand = p.brands.some(bId => selectedBrandIds.includes(bId));
+        // Projects don't have direct location link usually, but if they did:
+        // For now, we assume projects are brand-level. If we want location specificity for projects, we'd need a locationId on projects.
+        // But the requirement says "filter by brand location".
+        // If a project belongs to Brand A, and we select Location A1 (child of Brand A), strictly speaking the project is for the whole brand unless specified.
+        // However, usually "Location Filter" implies narrowing down.
+        // Let's keep projects filtered by Brand for now, as they are strategic.
+        // If the user wants to filter projects by location, we'd need to add locationId to projects.
+        // Wait, the user said "filter by brand location".
+        // Let's assume for now projects are brand-wide.
+        // BUT, for Facelifts (which are in newRestaurants), they DO have locationId.
+        return hasBrand;
+      });
     }
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(p => p.title.toLowerCase().includes(q));
     }
     return result;
-  }, [data.projects, selectedBrandIds, searchQuery]);
+  }, [data.projects, selectedBrandIds, selectedLocationIds, searchQuery]);
 
   const filteredNewRestaurants = useMemo(() => {
     let result = data.newRestaurants || [];
-    if (selectedBrandIds.length > 0) {
-      result = result.filter(r => r.brands.some(bId => selectedBrandIds.includes(bId)));
+
+    if (selectedBrandIds.length > 0 || selectedLocationIds.length > 0) {
+      result = result.filter(r => {
+        const brandMatch = r.brands.some(bId => selectedBrandIds.includes(bId));
+        const locationMatch = r.locationId && selectedLocationIds.includes(r.locationId);
+
+        // Logic:
+        // 1. If Brand is selected, show it (Brand supersedes location).
+        // 2. If Location is selected (and Brand NOT selected), show it.
+        // 3. If Brand is NOT selected and Location is NOT selected, show everything (handled by outer if).
+
+        if (selectedBrandIds.length > 0 && brandMatch) return true;
+        if (selectedLocationIds.length > 0 && locationMatch) return true;
+
+        return false;
+      });
     }
+
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(r => r.title.toLowerCase().includes(q));
     }
     return result;
-  }, [data.newRestaurants, selectedBrandIds, searchQuery]);
+  }, [data.newRestaurants, selectedBrandIds, selectedLocationIds, searchQuery]);
 
   const filteredThemes = useMemo(() => {
     let result = data.themes;
@@ -382,49 +767,114 @@ function App() {
 
   return (
     <div className="app-container" style={{ flexDirection: 'column' }}>
-      <header>
+      <header style={{
+        backgroundColor: currentTheme === 'dark' ? 'rgba(20, 20, 20, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+        color: currentTheme === 'dark' ? '#ffffff' : '#212529'
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h1>Thought OS: Ambiente</h1>
+          <h1 style={{ color: currentTheme === 'dark' ? '#ffffff' : '#212529' }}>Šiška: Ambiente</h1>
         </div>
 
         {/* Global Search */}
         <div className="global-search">
-          <Search size={16} className="search-icon" />
+          <Search size={16} className="search-icon" style={{ color: currentTheme === 'dark' ? '#adb5bd' : '#adb5bd' }} />
           <input
             type="text"
             placeholder="Hledat..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
+            style={{
+              backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#f1f3f5',
+              color: currentTheme === 'dark' ? '#ffffff' : '#212529',
+              border: currentTheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent'
+            }}
           />
         </div>
 
         <div className="header-actions">
-          <div className="view-toggle">
+          <div className="view-toggle" style={{
+            backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#f1f3f5'
+          }}>
             <button
               className={`toggle-btn ${viewMode === 'admin' ? 'active' : ''}`}
               onClick={() => setViewMode('admin')}
+              style={{
+                color: currentTheme === 'dark' ? (viewMode === 'admin' ? '#000' : '#fff') : (viewMode === 'admin' ? '#212529' : '#868e96'),
+                backgroundColor: viewMode === 'admin' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
+              }}
             >
               <List size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Editor
             </button>
             <button
               className={`toggle-btn ${viewMode === 'dashboard' ? 'active' : ''}`}
               onClick={() => setViewMode('dashboard')}
+              style={{
+                color: currentTheme === 'dark' ? (viewMode === 'dashboard' ? '#000' : '#fff') : (viewMode === 'dashboard' ? '#212529' : '#868e96'),
+                backgroundColor: viewMode === 'dashboard' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
+              }}
             >
               <BarChart3 size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Dashboard
             </button>
             <button
               className={`toggle-btn ${viewMode === 'vision' ? 'active' : ''}`}
               onClick={() => setViewMode('vision')}
+              style={{
+                color: currentTheme === 'dark' ? (viewMode === 'vision' ? '#000' : '#fff') : (viewMode === 'vision' ? '#212529' : '#868e96'),
+                backgroundColor: viewMode === 'vision' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
+              }}
             >
               <LayoutGrid size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Vize
             </button>
+            <button
+              className={`toggle-btn ${viewMode === 'sandbox' ? 'active' : ''}`}
+              onClick={() => setViewMode('sandbox')}
+              style={{
+                color: currentTheme === 'dark' ? (viewMode === 'sandbox' ? '#000' : '#fff') : (viewMode === 'sandbox' ? '#212529' : '#868e96'),
+                backgroundColor: viewMode === 'sandbox' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
+              }}
+            >
+              <GitBranch size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Sandbox
+            </button>
           </div>
+
+          {/* Theme Toggle Button */}
+          <button
+            className="btn btn-sm"
+            onClick={() => toggleTheme(viewMode)}
+            title={currentTheme === 'dark' ? 'Přepnout na světlý režim' : 'Přepnout na tmavý režim'}
+            style={{
+              backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#fff',
+              color: currentTheme === 'dark' ? '#fff' : '#212529',
+              border: currentTheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef'
+            }}
+          >
+            {currentTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+          </button>
+
           {viewMode === 'admin' && (
             <>
-              <button className="btn btn-sm" onClick={exportData} title="Exportovat JSON">
+              <button
+                className="btn btn-sm"
+                onClick={exportData}
+                title="Exportovat JSON"
+                style={{
+                  backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#fff',
+                  color: currentTheme === 'dark' ? '#fff' : '#212529',
+                  border: currentTheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef'
+                }}
+              >
                 <Download size={16} />
               </button>
-              <label className="btn btn-sm" title="Importovat JSON" style={{ cursor: 'pointer' }}>
+              <label
+                className="btn btn-sm"
+                title="Importovat JSON"
+                style={{
+                  cursor: 'pointer',
+                  backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#fff',
+                  color: currentTheme === 'dark' ? '#fff' : '#212529',
+                  border: currentTheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef'
+                }}
+              >
                 <Upload size={16} />
                 <input type="file" style={{ display: 'none' }} onChange={importData} accept=".json" />
               </label>
@@ -434,73 +884,60 @@ function App() {
       </header>
 
       {viewMode === 'vision' ? (
-        <VisionBoard data={data} />
+        <VisionBoard data={data} theme={currentTheme} />
       ) : viewMode === 'dashboard' ? (
-        <Dashboard data={data} />
+        <Dashboard data={data} theme={currentTheme} />
+      ) : viewMode === 'sandbox' ? (
+        <SandboxEditor
+          data={data}
+          theme={currentTheme}
+          onUpdateNode={updateNode}
+          onDeleteNode={deleteNode}
+        />
       ) : (
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          <Sidebar
-            brands={data.brands}
-            influences={data.influences || []}
-            newRestaurants={filteredNewRestaurants}
-            selectedBrandIds={selectedBrandIds}
-            onAddBrand={addBrand}
-            onAddInfluence={addInfluence}
-            onAddNewRestaurant={addNewRestaurant}
-            onToggleFilter={toggleBrandFilter}
-            onSelectInfluence={(id) => selectNode('influence', id)}
-            onSelectNewRestaurant={(id) => selectNode('newRestaurant', id)}
-            selectedNode={selectedNode}
+        <div style={{
+          display: 'flex',
+          flex: 1,
+          overflow: 'hidden',
+          backgroundColor: currentTheme === 'dark' ? '#0a0a0a' : '#f8f9fa'
+        }}>
+          {/* New Editor Sidebar with Menu */}
+          <EditorSidebar
+            activeSection={editorSection}
+            onSectionChange={setEditorSection}
+            theme={currentTheme}
           />
 
-          <div className="panel panel-center">
-            <div className="panel-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Mapa myšlenek</span>
-              <div className="header-actions">
-                <button className="btn btn-primary btn-sm" onClick={addYear}>
-                  <Plus size={16} /> Přidat rok
-                </button>
-              </div>
-            </div>
-            <div className="panel-content">
-              {filteredYears.length === 0 ? (
-                <div className="empty-state">
-                  <p>Žádná data k zobrazení. Přidejte rok nebo upravte filtry.</p>
-                </div>
-              ) : (
-                filteredYears.map(year => (
-                  <YearNode
-                    key={year.id}
-                    data={year}
-                    visions={filteredVisions.filter(v => v.yearId === year.id)}
-                    allThemes={filteredThemes}
-                    allProjects={filteredProjects}
-                    expanded={!!expandedNodes[year.id]}
-                    onToggle={() => toggleNode(year.id)}
-                    selected={selectedNode?.id === year.id}
-                    onSelect={() => selectNode('year', year.id)}
-                    onAddVision={() => addVision(year.id)}
-                    onToggleNode={toggleNode}
-                    expandedNodes={expandedNodes}
-                    selectedNode={selectedNode}
-                    onSelectNode={selectNode}
-                    onAddTheme={addTheme}
-                    onAddProject={addProject}
-                  />
-                ))
-              )}
-            </div>
-          </div>
+          {/* Editor Content Area */}
+          <EditorContent
+            activeSection={editorSection}
+            data={data}
+            selectedNode={selectedNode}
+            expandedNodes={expandedNodes}
+            onSelectNode={selectNode}
+            onToggleNode={toggleNode}
+            onAddYear={addYear}
+            onAddVision={addVision}
+            onAddTheme={addTheme}
+            onAddProject={addProject}
+            onAddInfluence={addInfluence}
+            onAddNewRestaurant={addNewRestaurant}
+            onAddBrand={addBrand}
+            onAddLocation={addLocation}
+            theme={currentTheme}
+          />
 
+          {/* Detail Panel */}
           <DetailPanel
             selectedNode={selectedNode}
             data={data}
             onUpdate={updateNode}
             onDelete={deleteNode}
+            theme={currentTheme}
           />
 
-          {/* AI Chat Window - Only in Admin Mode */}
-          <AIChatWindow onCommand={handleAICommand} />
+          {/* AI Chat Window */}
+          <AIChatWindow onCommand={handleAICommand} data={data} />
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Brain, Zap, HardHat, Building2, Store, ChevronRight } from 'lucide-react';
+import { Brain, Zap, HardHat, Building2, Store, Database, ChevronRight } from 'lucide-react';
 
 const EDITOR_SECTIONS = [
     { id: 'thought-system', label: 'Šiška', icon: Brain, description: 'Vize, témata a projekty' },
@@ -7,6 +7,7 @@ const EDITOR_SECTIONS = [
     { id: 'reconstructions', label: 'Rekonstrukce & Facelifty', icon: HardHat, description: 'Plánované rekonstrukce' },
     { id: 'new-restaurants', label: 'Nové restaurace', icon: Building2, description: 'Nové koncepty a pobočky' },
     { id: 'brands', label: 'Značky & Pobočky', icon: Store, description: 'Správa značek a poboček' },
+    { id: 'backups', label: 'Zálohy', icon: Database, description: 'Správa záloh dat' },
 ];
 
 export function EditorSidebar({ activeSection, onSectionChange, theme = 'light' }) {

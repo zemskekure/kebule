@@ -443,16 +443,16 @@ function App() {
   const addBrand = (name) => {
     const newId = Date.now().toString();
     const brandName = name && name.trim() ? name : 'Nová značka';
-    const newBrand = { 
-      id: newId, 
-      name: brandName, 
-      logoUrl: '', 
+    const newBrand = {
+      id: newId,
+      name: brandName,
+      logoUrl: '',
       conceptShort: '',
       description: '',
       foundationYear: '',
-      socialLinks: { web: '', instagram: '', facebook: '' }, 
-      contact: '', 
-      accountManager: '' 
+      socialLinks: { web: '', instagram: '', facebook: '' },
+      contact: '',
+      accountManager: ''
     };
     setData(prev => ({ ...prev, brands: [...prev.brands, newBrand] }));
     selectNode('brand', newId);
@@ -668,6 +668,20 @@ function App() {
       }
     };
     reader.readAsText(file);
+  };
+
+  const restoreData = (restoredData) => {
+    try {
+      // Ensure locations exists for older backups
+      if (!restoredData.locations) restoredData.locations = [];
+      // Ensure newRestaurants have categories
+      if (restoredData.newRestaurants) {
+        restoredData.newRestaurants = restoredData.newRestaurants.map(r => ({ ...r, category: r.category || 'new' }));
+      }
+      setData(restoredData);
+    } catch (err) {
+      alert('Chyba při obnovení dat.');
+    }
   };
 
   // Derived state for filtering
@@ -924,6 +938,7 @@ function App() {
             onAddNewRestaurant={addNewRestaurant}
             onAddBrand={addBrand}
             onAddLocation={addLocation}
+            onRestoreBackup={restoreData}
             theme={currentTheme}
           />
 

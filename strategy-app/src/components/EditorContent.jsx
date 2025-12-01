@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, ChevronDown, ChevronRight, Edit2, Trash2, Calendar, MapPin, User, ExternalLink, Zap } from 'lucide-react';
+import { BackupManager } from './BackupManager';
 
 // Šiška Content (Thought System)
 function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddProject, theme }) {
@@ -188,10 +189,10 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                         borderRadius: '4px',
                                                                                         backgroundColor: project.status === 'Hotovo' ? 'rgba(25, 135, 84, 0.2)' :
                                                                                             project.status === 'Běží' ? 'rgba(13, 110, 253, 0.2)' :
-                                                                                            project.status === 'V přípravě' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(108, 117, 125, 0.2)',
+                                                                                                project.status === 'V přípravě' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(108, 117, 125, 0.2)',
                                                                                         color: project.status === 'Hotovo' ? '#198754' :
                                                                                             project.status === 'Běží' ? '#0d6efd' :
-                                                                                            project.status === 'V přípravě' ? '#cc9a00' : textSecondary
+                                                                                                project.status === 'V přípravě' ? '#cc9a00' : textSecondary
                                                                                     }}>
                                                                                         {project.status}
                                                                                     </span>
@@ -735,6 +736,7 @@ export function EditorContent({
     onAddNewRestaurant,
     onAddBrand,
     onAddLocation,
+    onRestoreBackup,
     theme
 }) {
     const isDark = theme === 'dark';
@@ -801,6 +803,14 @@ export function EditorContent({
                         selectedNode={selectedNode}
                         onAddBrand={onAddBrand}
                         onAddLocation={onAddLocation}
+                        theme={theme}
+                    />
+                );
+            case 'backups':
+                return (
+                    <BackupManager
+                        data={data}
+                        onRestore={onRestoreBackup}
                         theme={theme}
                     />
                 );

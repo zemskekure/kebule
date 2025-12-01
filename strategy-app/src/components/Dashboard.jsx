@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PieChart, Activity, CheckCircle, HardHat, Zap, Layers } from 'lucide-react';
+import { PieChart, Activity, CheckCircle, HardHat, Zap, Layers, Calendar, Sparkles, Hammer, Building2 } from 'lucide-react';
 
 export function Dashboard({ data, theme = 'dark' }) {
     const { projects, newRestaurants, themes, brands, influences } = data;
@@ -33,7 +33,12 @@ export function Dashboard({ data, theme = 'dark' }) {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
-                    style={{ color: theme === 'dark' ? '#fff' : '#000' }}
+                    style={{ 
+                        color: textColor,
+                        fontSize: '2rem',
+                        fontWeight: 700,
+                        marginBottom: '2rem'
+                    }}
                 >
                     Přehled strategie
                 </motion.h1>
@@ -149,6 +154,145 @@ export function Dashboard({ data, theme = 'dark' }) {
                         </div>
                     </motion.div>
                 </div>
+
+                {/* Timeline Section */}
+                <motion.div
+                    className="glass-card dashboard-panel"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
+                    style={{ 
+                        background: cardBg, 
+                        border: `1px solid ${cardBorder}`,
+                        marginTop: '1.5rem'
+                    }}
+                >
+                    <h3 style={{ color: textColor, marginBottom: '1.5rem' }}>
+                        <Calendar size={18} style={{ marginRight: '0.5rem' }} />
+                        Klíčové události roku
+                    </h3>
+                    <div style={{ position: 'relative', paddingLeft: '2rem' }}>
+                        {/* Vertical timeline line */}
+                        <div style={{
+                            position: 'absolute',
+                            left: '0.5rem',
+                            top: '0.5rem',
+                            bottom: '0.5rem',
+                            width: '2px',
+                            background: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
+                            borderRadius: '1px'
+                        }} />
+                        
+                        {/* Timeline items */}
+                        {(newRestaurants || []).slice(0, 5).sort((a, b) => {
+                            const dateA = a.openingDate ? new Date(a.openingDate) : new Date('2099-12-31');
+                            const dateB = b.openingDate ? new Date(b.openingDate) : new Date('2099-12-31');
+                            return dateA - dateB;
+                        }).map((item, index) => {
+                            const getCategoryIcon = (category) => {
+                                switch (category) {
+                                    case 'facelift': return <Hammer size={14} />;
+                                    case 'new': return <Sparkles size={14} />;
+                                    default: return <Building2 size={14} />;
+                                }
+                            };
+                            const getCategoryColor = (category) => {
+                                switch (category) {
+                                    case 'facelift': return isDark ? '#f59e0b' : '#d97706';
+                                    case 'new': return isDark ? '#10b981' : '#059669';
+                                    default: return accentColor;
+                                }
+                            };
+                            const formatDate = (dateStr) => {
+                                if (!dateStr) return 'TBD';
+                                const date = new Date(dateStr);
+                                return date.toLocaleDateString('cs-CZ', { month: 'short', year: 'numeric' });
+                            };
+
+                            return (
+                                <motion.div
+                                    key={item.id}
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.8 + index * 0.1 }}
+                                    style={{
+                                        position: 'relative',
+                                        marginBottom: index < 4 ? '1.5rem' : 0,
+                                        paddingLeft: '1rem'
+                                    }}
+                                >
+                                    {/* Timeline dot */}
+                                    <div style={{
+                                        position: 'absolute',
+                                        left: '-1.65rem',
+                                        top: '0.35rem',
+                                        width: '10px',
+                                        height: '10px',
+                                        borderRadius: '50%',
+                                        background: getCategoryColor(item.category),
+                                        border: `2px solid ${isDark ? '#0a0a0a' : '#f8f9fa'}`,
+                                        boxShadow: `0 0 0 3px ${getCategoryColor(item.category)}30`
+                                    }} />
+                                    
+                                    {/* Content */}
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '1rem' }}>
+                                        <div>
+                                            <div style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                gap: '0.5rem',
+                                                marginBottom: '0.25rem'
+                                            }}>
+                                                <span style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.25rem',
+                                                    color: getCategoryColor(item.category),
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 600
+                                                }}>
+                                                    {getCategoryIcon(item.category)}
+                                                </span>
+                                                <span style={{ 
+                                                    color: textColor, 
+                                                    fontWeight: 600,
+                                                    fontSize: '0.95rem'
+                                                }}>
+                                                    {item.title}
+                                                </span>
+                                            </div>
+                                            {item.phase && (
+                                                <span style={{ 
+                                                    fontSize: '0.8rem', 
+                                                    color: textSecondary 
+                                                }}>
+                                                    {item.phase}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span style={{ 
+                                            fontSize: '0.8rem', 
+                                            color: accentColor,
+                                            fontWeight: 500,
+                                            whiteSpace: 'nowrap',
+                                            background: isDark ? 'rgba(0, 243, 255, 0.1)' : 'rgba(13, 110, 253, 0.1)',
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '6px'
+                                        }}>
+                                            {formatDate(item.openingDate)}
+                                        </span>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                        
+                        {(newRestaurants || []).length === 0 && (
+                            <p style={{ color: textSecondary, fontSize: '0.9rem', margin: 0 }}>
+                                Žádné plánované události
+                            </p>
+                        )}
+                    </div>
+                </motion.div>
             </div>
         </div>
     );

@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, X, CheckCircle, Clock, Lightbulb, MapPin, Globe, Instagram } from 'lucide-react';
+import { ArrowLeft, X, CheckCircle, Clock, Lightbulb, MapPin, Globe, Instagram, Calendar, Hammer, Sparkles, Building2 } from 'lucide-react';
 
 // --- Constants & Variants ---
 
 const COLORS = {
     year: { bg: 'rgba(255, 255, 255, 0.05)', border: 'rgba(255, 255, 255, 0.2)', text: '#ffffff' },
-    vision: { bg: 'rgba(0, 243, 255, 0.1)', border: 'rgba(0, 243, 255, 0.3)', text: '#e0fbfc' },
-    theme: { bg: 'rgba(188, 19, 254, 0.1)', border: 'rgba(188, 19, 254, 0.3)', text: '#f3d9fa' },
-    project: { bg: 'rgba(10, 255, 10, 0.1)', border: 'rgba(10, 255, 10, 0.3)', text: '#dcfce7' },
+    vision: { bg: 'rgba(20, 184, 166, 0.15)', border: 'rgba(20, 184, 166, 0.4)', text: '#ccfbf1' },
+    theme: { bg: 'rgba(139, 92, 246, 0.15)', border: 'rgba(139, 92, 246, 0.4)', text: '#ede9fe' },
+    project: { bg: 'rgba(34, 197, 94, 0.15)', border: 'rgba(34, 197, 94, 0.4)', text: '#dcfce7' },
 };
 
 const MORPH_VARIANTS = {
@@ -23,9 +23,10 @@ const MORPH_VARIANTS = {
     }
 };
 
+// Float animation for entire bubble (not just content)
 const FLOAT_VARIANTS = {
     animate: {
-        y: [0, -15, 0],
+        y: [0, -12, 0],
         transition: { duration: 6, repeat: Infinity, ease: "easeInOut" }
     }
 };
@@ -35,81 +36,101 @@ const FLOAT_VARIANTS = {
 const Bubble = ({ title, subtitle, type, onClick, size = 180, delay = 0, theme = 'dark' }) => {
     const style = COLORS[type] || COLORS.year;
 
-    // Light mode colors - vibrant and colorful
+    // Light mode colors - elegant and professional
     const lightModeColors = {
-        year: { bg: 'rgba(255, 255, 255, 0.95)', border: '#667eea', text: '#667eea' },
-        vision: { bg: 'rgba(255, 255, 255, 0.95)', border: '#00d4ff', text: '#00d4ff' },
-        theme: { bg: 'rgba(255, 255, 255, 0.95)', border: '#a855f7', text: '#a855f7' },
-        project: { bg: 'rgba(255, 255, 255, 0.95)', border: '#10b981', text: '#10b981' },
+        year: { bg: 'rgba(255, 255, 255, 0.9)', border: 'rgba(15, 23, 42, 0.2)', text: '#0f172a' },
+        vision: { bg: 'rgba(240, 253, 250, 0.95)', border: 'rgba(20, 184, 166, 0.5)', text: '#0f766e' },
+        theme: { bg: 'rgba(245, 243, 255, 0.95)', border: 'rgba(139, 92, 246, 0.5)', text: '#6d28d9' },
+        project: { bg: 'rgba(240, 253, 244, 0.95)', border: 'rgba(34, 197, 94, 0.5)', text: '#15803d' },
     };
 
     const bubbleStyle = theme === 'dark' ? style : (lightModeColors[type] || lightModeColors.year);
 
     return (
+        // Outer wrapper handles floating animation for the ENTIRE bubble
         <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 15, delay }}
-            style={{ position: 'relative', width: size, height: size, cursor: 'pointer' }}
-            onClick={onClick}
+            variants={FLOAT_VARIANTS}
+            animate="animate"
+            style={{ position: 'relative', width: size, height: size }}
         >
-            {/* Morphing Background Layer */}
+            {/* Inner wrapper handles scale animation on mount + hover */}
             <motion.div
-                variants={MORPH_VARIANTS}
-                initial="initial"
-                animate="animate"
-                style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: bubbleStyle.bg,
-                    border: `2px solid ${bubbleStyle.border}`,
-                    backdropFilter: 'blur(12px)',
-                    boxShadow: theme === 'dark' ? '0 8px 32px 0 rgba(0, 0, 0, 0.3)' : '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
-                    zIndex: 1
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                whileHover={{ 
+                    scale: 1.08,
+                    transition: { duration: 0.25, ease: "easeOut" }
                 }}
-            />
-
-            {/* Content Layer (Stable, floating) */}
-            <motion.div
-                variants={FLOAT_VARIANTS}
-                animate="animate"
-                style={{
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 2,
-                    padding: '1.5rem',
-                    textAlign: 'center',
-                    color: bubbleStyle.text
-                }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 100, damping: 15, delay }}
+                style={{ position: 'relative', width: '100%', height: '100%', cursor: 'pointer' }}
+                onClick={onClick}
             >
-                {subtitle && (
-                    <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.8, marginBottom: '0.5rem' }}>
-                        {subtitle}
-                    </span>
-                )}
-                <h3 style={{ margin: 0, fontSize: size > 200 ? '2rem' : '1.1rem', fontWeight: size > 200 ? 700 : 600, lineHeight: 1.2 }}>
-                    {title}
-                </h3>
+                {/* Morphing Background Layer */}
+                <motion.div
+                    variants={MORPH_VARIANTS}
+                    initial="initial"
+                    animate="animate"
+                    className="bubble-bg"
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: bubbleStyle.bg,
+                        border: `2px solid ${bubbleStyle.border}`,
+                        backdropFilter: 'blur(12px)',
+                        boxShadow: theme === 'dark' ? '0 8px 32px 0 rgba(0, 0, 0, 0.3)' : '0 8px 32px 0 rgba(0, 0, 0, 0.15)',
+                        zIndex: 1,
+                        transition: 'box-shadow 0.3s ease, border-color 0.3s ease'
+                    }}
+                />
+
+                {/* Content Layer (fixed relative to bubble) */}
+                <div
+                    style={{
+                        position: 'absolute',
+                        inset: 0,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 2,
+                        padding: '1.5rem',
+                        textAlign: 'center',
+                        color: bubbleStyle.text
+                    }}
+                >
+                    {subtitle && (
+                        <span style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '1px', opacity: 0.7, marginBottom: '0.25rem' }}>
+                            {subtitle}
+                        </span>
+                    )}
+                    <h3 style={{ margin: 0, fontSize: size > 200 ? '1.75rem' : '1rem', fontWeight: size > 200 ? 700 : 600, lineHeight: 1.2 }}>
+                        {title}
+                    </h3>
+                </div>
             </motion.div>
         </motion.div>
     );
 };
 
 const OrbitLayout = ({ centerItem, orbitItems, onCenterClick, onOrbitClick, centerType, orbitType, theme = 'dark' }) => {
+    // Calculate dynamic radius based on number of items to prevent overlap
+    const baseRadius = 280;
+    const itemCount = orbitItems.length;
+    const minSpacing = 180; // Minimum space between orbit items
+    const circumference = itemCount * minSpacing;
+    const dynamicRadius = Math.max(baseRadius, circumference / (2 * Math.PI));
+    
     return (
-        <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: '5rem' }}>
             {/* Center Node */}
             <div style={{ zIndex: 10 }}>
                 <Bubble
                     title={centerItem.title}
                     subtitle={centerItem.subtitle}
                     type={centerType}
-                    size={260}
+                    size={220}
                     onClick={onCenterClick}
                     theme={theme}
                 />
@@ -119,9 +140,8 @@ const OrbitLayout = ({ centerItem, orbitItems, onCenterClick, onOrbitClick, cent
             {orbitItems.map((item, index) => {
                 const count = orbitItems.length;
                 const angle = (index / count) * 2 * Math.PI - (Math.PI / 2); // Start from top
-                const radius = 320; // Distance from center
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
+                const x = Math.cos(angle) * dynamicRadius;
+                const y = Math.sin(angle) * dynamicRadius;
 
                 return (
                     <div
@@ -138,7 +158,7 @@ const OrbitLayout = ({ centerItem, orbitItems, onCenterClick, onOrbitClick, cent
                             title={item.title}
                             subtitle={orbitType === 'project' ? item.status : `${orbitItems.length} položek`}
                             type={orbitType}
-                            size={160}
+                            size={140}
                             delay={index * 0.1}
                             onClick={() => onOrbitClick(item)}
                             theme={theme}
@@ -152,14 +172,14 @@ const OrbitLayout = ({ centerItem, orbitItems, onCenterClick, onOrbitClick, cent
 
 const YearsLayout = ({ years, onYearClick, theme = 'dark' }) => {
     return (
-        <div style={{ display: 'flex', gap: '3rem', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+        <div style={{ display: 'flex', gap: '3rem', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%', paddingBottom: '5rem' }}>
             {years.map((year, index) => (
                 <Bubble
                     key={year.id}
                     title={year.title}
                     subtitle="Rok"
                     type="year"
-                    size={240}
+                    size={200}
                     delay={index * 0.1}
                     onClick={() => onYearClick(year)}
                     theme={theme}
@@ -169,20 +189,27 @@ const YearsLayout = ({ years, onYearClick, theme = 'dark' }) => {
     );
 };
 
-const BrandCard = ({ brand, locations }) => {
+const BrandCard = ({ brand, locations, theme = 'dark' }) => {
     const brandLocations = locations.filter(l => l.brandId === brand.id);
+    const isDark = theme === 'dark';
+    
+    const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.9)';
+    const cardBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const textColor = isDark ? '#ffffff' : '#0f172a';
+    const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b';
+    const accentColor = isDark ? '#5eead4' : '#0f766e';
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: cardBg,
+                border: `1px solid ${cardBorder}`,
                 borderRadius: '16px',
                 padding: '1.5rem',
                 backdropFilter: 'blur(12px)',
-                color: 'white'
+                color: textColor
             }}
         >
             {/* Header */}
@@ -192,8 +219,8 @@ const BrandCard = ({ brand, locations }) => {
                     {brand.foundationYear && (
                         <span style={{
                             fontSize: '0.85rem',
-                            opacity: 0.6,
-                            background: 'rgba(255, 255, 255, 0.1)',
+                            color: textSecondary,
+                            background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
                             padding: '0.25rem 0.75rem',
                             borderRadius: '12px'
                         }}>
@@ -204,10 +231,9 @@ const BrandCard = ({ brand, locations }) => {
                 {brand.conceptShort && (
                     <p style={{
                         fontSize: '0.9rem',
-                        opacity: 0.8,
                         margin: '0.5rem 0 0 0',
                         fontStyle: 'italic',
-                        color: '#00f3ff'
+                        color: accentColor
                     }}>
                         {brand.conceptShort}
                     </p>
@@ -219,7 +245,7 @@ const BrandCard = ({ brand, locations }) => {
                 <p style={{
                     fontSize: '0.85rem',
                     lineHeight: 1.6,
-                    opacity: 0.7,
+                    color: textSecondary,
                     marginBottom: '1rem'
                 }}>
                     {brand.description}
@@ -233,7 +259,7 @@ const BrandCard = ({ brand, locations }) => {
                         fontSize: '0.75rem',
                         textTransform: 'uppercase',
                         letterSpacing: '1px',
-                        opacity: 0.5,
+                        color: textSecondary,
                         marginBottom: '0.5rem',
                         display: 'flex',
                         alignItems: 'center',
@@ -244,7 +270,7 @@ const BrandCard = ({ brand, locations }) => {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                         {brandLocations.map(loc => (
-                            <div key={loc.id} style={{ fontSize: '0.8rem', opacity: 0.7, paddingLeft: '1.25rem' }}>
+                            <div key={loc.id} style={{ fontSize: '0.8rem', color: textSecondary, paddingLeft: '1.25rem' }}>
                                 • {loc.name}
                             </div>
                         ))}
@@ -253,7 +279,7 @@ const BrandCard = ({ brand, locations }) => {
             )}
 
             {/* Social Links */}
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${cardBorder}` }}>
                 {brand.socialLinks?.web && (
                     <a
                         href={`https://${brand.socialLinks.web}`}
@@ -263,13 +289,13 @@ const BrandCard = ({ brand, locations }) => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem',
-                            color: 'rgba(255, 255, 255, 0.6)',
+                            color: textSecondary,
                             textDecoration: 'none',
                             fontSize: '0.8rem',
                             transition: 'color 0.2s'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#00f3ff'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)'}
+                        onMouseEnter={e => e.currentTarget.style.color = accentColor}
+                        onMouseLeave={e => e.currentTarget.style.color = textSecondary}
                     >
                         <Globe size={14} />
                         Web
@@ -284,13 +310,13 @@ const BrandCard = ({ brand, locations }) => {
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem',
-                            color: 'rgba(255, 255, 255, 0.6)',
+                            color: textSecondary,
                             textDecoration: 'none',
                             fontSize: '0.8rem',
                             transition: 'color 0.2s'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#00f3ff'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255, 255, 255, 0.6)'}
+                        onMouseEnter={e => e.currentTarget.style.color = accentColor}
+                        onMouseLeave={e => e.currentTarget.style.color = textSecondary}
                     >
                         <Instagram size={14} />
                         Instagram
@@ -301,21 +327,262 @@ const BrandCard = ({ brand, locations }) => {
     );
 };
 
-const BrandsGrid = ({ brands, locations }) => {
+const BrandsGrid = ({ brands, locations, theme = 'dark' }) => {
+    const isDark = theme === 'dark';
     return (
         <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
             gap: '1.5rem',
-            padding: '2rem',
+            padding: '6rem 2rem 2rem 2rem',
             maxWidth: '1400px',
             margin: '0 auto',
             overflowY: 'auto',
             height: '100%'
         }}>
             {brands.map((brand, index) => (
-                <BrandCard key={brand.id} brand={brand} locations={locations} />
+                <BrandCard key={brand.id} brand={brand} locations={locations} theme={theme} />
             ))}
+        </div>
+    );
+};
+
+// Timeline component for new restaurants and facelifts
+const TimelineView = ({ newRestaurants = [], locations = [], brands = [], theme = 'dark' }) => {
+    const isDark = theme === 'dark';
+    
+    // Sort by opening date
+    const sortedItems = [...newRestaurants].sort((a, b) => {
+        const dateA = a.openingDate ? new Date(a.openingDate) : new Date('2099-12-31');
+        const dateB = b.openingDate ? new Date(b.openingDate) : new Date('2099-12-31');
+        return dateA - dateB;
+    });
+
+    // Group by year
+    const groupedByYear = sortedItems.reduce((acc, item) => {
+        const year = item.openingDate ? new Date(item.openingDate).getFullYear() : 'Bez data';
+        if (!acc[year]) acc[year] = [];
+        acc[year].push(item);
+        return acc;
+    }, {});
+
+    const getCategoryIcon = (category) => {
+        switch (category) {
+            case 'facelift': return <Hammer size={16} />;
+            case 'new': return <Sparkles size={16} />;
+            default: return <Building2 size={16} />;
+        }
+    };
+
+    const getCategoryColor = (category, isDark) => {
+        switch (category) {
+            case 'facelift': return isDark ? '#f59e0b' : '#d97706';
+            case 'new': return isDark ? '#10b981' : '#059669';
+            default: return isDark ? '#6366f1' : '#4f46e5';
+        }
+    };
+
+    const getCategoryLabel = (category) => {
+        switch (category) {
+            case 'facelift': return 'Rekonstrukce';
+            case 'new': return 'Nové otevření';
+            default: return 'Projekt';
+        }
+    };
+
+    const formatDate = (dateStr) => {
+        if (!dateStr) return 'Datum nespecifikováno';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+    };
+
+    const getBrandName = (brandIds) => {
+        if (!brandIds || brandIds.length === 0) return null;
+        const brand = brands.find(b => b.id === brandIds[0]);
+        return brand?.name;
+    };
+
+    const cardBg = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.9)';
+    const cardBorder = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const textColor = isDark ? '#ffffff' : '#0f172a';
+    const textSecondary = isDark ? 'rgba(255, 255, 255, 0.6)' : '#64748b';
+    const timelineLine = isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.15)';
+
+    return (
+        <div style={{
+            padding: '6rem 2rem 2rem 2rem',
+            maxWidth: '900px',
+            margin: '0 auto',
+            overflowY: 'auto',
+            height: '100%'
+        }}>
+            {Object.entries(groupedByYear).map(([year, items]) => (
+                <div key={year} style={{ marginBottom: '3rem' }}>
+                    {/* Year Header */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        marginBottom: '1.5rem'
+                    }}>
+                        <div style={{
+                            background: isDark ? 'rgba(20, 184, 166, 0.2)' : 'rgba(20, 184, 166, 0.15)',
+                            border: `2px solid ${isDark ? 'rgba(20, 184, 166, 0.5)' : 'rgba(20, 184, 166, 0.4)'}`,
+                            borderRadius: '50%',
+                            width: '60px',
+                            height: '60px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '1.1rem',
+                            color: isDark ? '#5eead4' : '#0f766e'
+                        }}>
+                            {year}
+                        </div>
+                        <div style={{
+                            flex: 1,
+                            height: '2px',
+                            background: timelineLine
+                        }} />
+                    </div>
+
+                    {/* Timeline Items */}
+                    <div style={{ position: 'relative', paddingLeft: '30px' }}>
+                        {/* Vertical Line */}
+                        <div style={{
+                            position: 'absolute',
+                            left: '29px',
+                            top: 0,
+                            bottom: 0,
+                            width: '2px',
+                            background: timelineLine
+                        }} />
+
+                        {items.map((item, index) => (
+                            <motion.div
+                                key={item.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                style={{
+                                    position: 'relative',
+                                    marginBottom: '1.5rem',
+                                    marginLeft: '2rem'
+                                }}
+                            >
+                                {/* Timeline Dot */}
+                                <div style={{
+                                    position: 'absolute',
+                                    left: '-2.5rem',
+                                    top: '1.5rem',
+                                    width: '12px',
+                                    height: '12px',
+                                    borderRadius: '50%',
+                                    background: getCategoryColor(item.category, isDark),
+                                    border: `3px solid ${isDark ? '#0a0a0a' : '#f8fafc'}`
+                                }} />
+
+                                {/* Card */}
+                                <div style={{
+                                    background: cardBg,
+                                    border: `1px solid ${cardBorder}`,
+                                    borderRadius: '16px',
+                                    padding: '1.5rem',
+                                    backdropFilter: 'blur(12px)'
+                                }}>
+                                    {/* Header */}
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
+                                        <div>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                                <span style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.35rem',
+                                                    padding: '0.25rem 0.75rem',
+                                                    borderRadius: '20px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 600,
+                                                    background: `${getCategoryColor(item.category, isDark)}20`,
+                                                    color: getCategoryColor(item.category, isDark)
+                                                }}>
+                                                    {getCategoryIcon(item.category)}
+                                                    {getCategoryLabel(item.category)}
+                                                </span>
+                                                {getBrandName(item.brands) && (
+                                                    <span style={{
+                                                        fontSize: '0.75rem',
+                                                        color: textSecondary
+                                                    }}>
+                                                        {getBrandName(item.brands)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: textColor }}>
+                                                {item.title}
+                                            </h3>
+                                        </div>
+                                        <div style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '0.35rem',
+                                            fontSize: '0.85rem',
+                                            color: textSecondary
+                                        }}>
+                                            <Calendar size={14} />
+                                            {formatDate(item.openingDate)}
+                                        </div>
+                                    </div>
+
+                                    {/* Description */}
+                                    {item.description && (
+                                        <p style={{ margin: '0 0 0.75rem 0', fontSize: '0.9rem', lineHeight: 1.6, color: textSecondary }}>
+                                            {item.description}
+                                        </p>
+                                    )}
+
+                                    {/* Status & Phase */}
+                                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                                        {item.status && (
+                                            <span style={{
+                                                fontSize: '0.75rem',
+                                                padding: '0.25rem 0.5rem',
+                                                borderRadius: '6px',
+                                                background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                                color: textSecondary
+                                            }}>
+                                                {item.status}
+                                            </span>
+                                        )}
+                                        {item.phase && (
+                                            <span style={{
+                                                fontSize: '0.75rem',
+                                                padding: '0.25rem 0.5rem',
+                                                borderRadius: '6px',
+                                                background: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                                color: textSecondary
+                                            }}>
+                                                {item.phase}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            ))}
+
+            {sortedItems.length === 0 && (
+                <div style={{
+                    textAlign: 'center',
+                    padding: '4rem 2rem',
+                    color: textSecondary
+                }}>
+                    <Building2 size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+                    <p style={{ fontSize: '1.1rem', margin: 0 }}>Žádné plánované projekty</p>
+                </div>
+            )}
         </div>
     );
 };
@@ -326,7 +593,7 @@ export function VisionBoard({ data, theme = 'dark' }) {
     // State for Navigation Path
     const [path, setPath] = useState([]); // Array of selected items
     const [selectedDetail, setSelectedDetail] = useState(null);
-    const [viewMode, setViewMode] = useState('vision'); // 'vision' | 'brands'
+    const [viewMode, setViewMode] = useState('vision'); // 'vision' | 'brands' | 'timeline'
 
     // Derived State
     const currentLevel = path.length;
@@ -396,9 +663,10 @@ export function VisionBoard({ data, theme = 'dark' }) {
 
     if (!viewData) return <div className="vision-container"><div style={{ color: 'white' }}>Žádná data k zobrazení</div></div>;
 
+    // Refined background gradients
     const bgGradient = theme === 'dark'
-        ? 'radial-gradient(circle at 50% 50%, #1a1a1a 0%, #000000 100%)'
-        : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        ? 'radial-gradient(ellipse at 20% 80%, rgba(20, 50, 60, 0.4) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(30, 20, 50, 0.3) 0%, transparent 50%), radial-gradient(circle at 50% 50%, #0f0f0f 0%, #050505 100%)'
+        : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%)';
 
     return (
         <div className="vision-container" style={{
@@ -407,82 +675,155 @@ export function VisionBoard({ data, theme = 'dark' }) {
             background: bgGradient,
             overflow: 'hidden', position: 'relative'
         }}>
-            {/* Background Blobs */}
+            {/* Background Blobs - refined colors */}
             {theme === 'dark' && (
                 <div className="vision-background">
-                    <div className="blob blob-1"></div>
-                    <div className="blob blob-2"></div>
-                    <div className="blob blob-3"></div>
+                    <div className="blob blob-1" style={{ background: 'rgba(20, 184, 166, 0.15)' }}></div>
+                    <div className="blob blob-2" style={{ background: 'rgba(139, 92, 246, 0.12)' }}></div>
+                    <div className="blob blob-3" style={{ background: 'rgba(34, 197, 94, 0.1)' }}></div>
                 </div>
             )}
 
-            {/* Tab Navigation */}
-            <div style={{ position: 'absolute', top: '2rem', left: '50%', transform: 'translateX(-50%)', zIndex: 50, display: 'flex', gap: '0.5rem', background: theme === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(255, 255, 255, 0.3)', padding: '0.5rem', borderRadius: '12px', backdropFilter: 'blur(10px)', border: theme === 'dark' ? 'none' : '1px solid rgba(255, 255, 255, 0.4)' }}>
-                <button
-                    onClick={() => setViewMode('vision')}
-                    style={{
-                        background: viewMode === 'vision' ? (theme === 'dark' ? 'rgba(0, 243, 255, 0.2)' : 'rgba(255, 255, 255, 0.9)') : 'transparent',
-                        border: viewMode === 'vision' ? (theme === 'dark' ? '1px solid rgba(0, 243, 255, 0.5)' : '1px solid rgba(255, 255, 255, 0.6)') : '1px solid transparent',
-                        color: theme === 'dark' ? 'white' : '#fff',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        fontWeight: viewMode === 'vision' ? 600 : 400,
-                        transition: 'all 0.2s'
-                    }}
-                >
-                    Mapa vize
-                </button>
-                <button
-                    onClick={() => setViewMode('brands')}
-                    style={{
-                        background: viewMode === 'brands' ? (theme === 'dark' ? 'rgba(0, 243, 255, 0.2)' : 'rgba(255, 255, 255, 0.9)') : 'transparent',
-                        border: viewMode === 'brands' ? (theme === 'dark' ? '1px solid rgba(0, 243, 255, 0.5)' : '1px solid rgba(255, 255, 255, 0.6)') : '1px solid transparent',
-                        color: theme === 'dark' ? 'white' : '#fff',
-                        padding: '0.5rem 1rem',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        fontSize: '0.9rem',
-                        fontWeight: viewMode === 'brands' ? 600 : 400,
-                        transition: 'all 0.2s'
-                    }}
-                >
-                    Značky
-                </button>
+            {/* Light mode subtle pattern */}
+            {theme !== 'dark' && (
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.03) 1px, transparent 0)',
+                    backgroundSize: '40px 40px',
+                    pointerEvents: 'none'
+                }} />
+            )}
+
+            {/* Tab Navigation - moved to BOTTOM to avoid content interference */}
+            <div style={{ 
+                position: 'absolute', 
+                bottom: '2rem', 
+                left: '50%', 
+                transform: 'translateX(-50%)', 
+                zIndex: 50, 
+                display: 'flex', 
+                gap: '0.25rem', 
+                background: theme === 'dark' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.95)', 
+                padding: '0.5rem', 
+                borderRadius: '16px', 
+                backdropFilter: 'blur(16px)', 
+                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+                boxShadow: theme === 'dark' ? '0 8px 32px rgba(0, 0, 0, 0.5)' : '0 8px 32px rgba(0, 0, 0, 0.15)'
+            }}>
+                {[
+                    { id: 'vision', label: 'Mapa vize' },
+                    { id: 'brands', label: 'Značky' },
+                    { id: 'timeline', label: 'Nové restaurace' }
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setViewMode(tab.id)}
+                        style={{
+                            background: viewMode === tab.id 
+                                ? (theme === 'dark' ? 'rgba(20, 184, 166, 0.3)' : '#0f172a') 
+                                : 'transparent',
+                            border: 'none',
+                            color: viewMode === tab.id 
+                                ? (theme === 'dark' ? '#5eead4' : '#ffffff') 
+                                : (theme === 'dark' ? 'rgba(255, 255, 255, 0.6)' : '#64748b'),
+                            padding: '0.6rem 1.25rem',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            fontWeight: viewMode === tab.id ? 600 : 500,
+                            transition: 'all 0.2s',
+                            whiteSpace: 'nowrap'
+                        }}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
-            {/* Navigation Header */}
+            {/* Top Navigation Bar - Back button + Breadcrumbs */}
             {viewMode === 'vision' && (
-                <div style={{ position: 'absolute', top: '5rem', left: '2rem', zIndex: 50 }}>
+                <div style={{ 
+                    position: 'absolute', 
+                    top: '1.5rem', 
+                    left: '2rem',
+                    right: '2rem',
+                    zIndex: 50,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '1rem'
+                }}>
+                    {/* Back Button */}
                     {path.length > 0 && (
                         <button
                             onClick={handleBack}
                             style={{
-                                background: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.3)',
-                                border: theme === 'dark' ? 'none' : '1px solid rgba(255, 255, 255, 0.4)',
-                                color: '#fff',
-                                padding: '0.5rem 1rem', borderRadius: '20px', cursor: 'pointer',
-                                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                                backdropFilter: 'blur(10px)'
+                                background: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0, 0, 0, 0.05)',
+                                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.1)',
+                                color: theme === 'dark' ? '#fff' : '#0f172a',
+                                padding: '0.5rem 1rem', 
+                                borderRadius: '20px', 
+                                cursor: 'pointer',
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '0.5rem',
+                                backdropFilter: 'blur(10px)',
+                                fontSize: '0.85rem',
+                                fontWeight: 500,
+                                flexShrink: 0
                             }}
                         >
                             <ArrowLeft size={16} /> Zpět
                         </button>
                     )}
+
+                    {/* Breadcrumbs */}
+                    <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        fontSize: '0.9rem',
+                        background: theme === 'dark' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.8)',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '20px',
+                        backdropFilter: 'blur(10px)',
+                        border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.08)'
+                    }}>
+                        <span style={{ 
+                            color: path.length === 0 
+                                ? (theme === 'dark' ? '#fff' : '#0f172a') 
+                                : (theme === 'dark' ? 'rgba(255,255,255,0.5)' : '#94a3b8'),
+                            fontWeight: path.length === 0 ? 600 : 400
+                        }}>
+                            Ambiente
+                        </span>
+                        {path.length > 0 && (
+                            <>
+                                <span style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.3)' : '#cbd5e1' }}>/</span>
+                                <span style={{ 
+                                    color: path.length === 1 
+                                        ? (theme === 'dark' ? '#fff' : '#0f172a') 
+                                        : (theme === 'dark' ? 'rgba(255,255,255,0.5)' : '#94a3b8'),
+                                    fontWeight: path.length === 1 ? 600 : 400
+                                }}>
+                                    {path[0].title}
+                                </span>
+                            </>
+                        )}
+                        {path.length > 1 && (
+                            <>
+                                <span style={{ color: theme === 'dark' ? 'rgba(255,255,255,0.3)' : '#cbd5e1' }}>/</span>
+                                <span style={{ 
+                                    color: theme === 'dark' ? '#fff' : '#0f172a',
+                                    fontWeight: 600
+                                }}>
+                                    {path[1].title}
+                                </span>
+                            </>
+                        )}
+                    </div>
                 </div>
             )}
-
-            {/* Breadcrumbs */}
-            {
-                viewMode === 'vision' && (
-                    <div style={{ position: 'absolute', top: '5rem', left: '50%', transform: 'translateX(-50%)', color: theme === 'dark' ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.8)', zIndex: 50, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <span style={{ color: path.length === 0 ? '#fff' : 'inherit' }}>Ambiente</span>
-                        {path.length > 0 && <span style={{ color: '#fff' }}> / {path[0].title}</span>}
-                        {path.length > 1 && <span style={{ color: '#fff' }}> / {path[1].title}</span>}
-                    </div>
-                )
-            }
 
             {/* Main Content Area */}
             {
@@ -497,7 +838,7 @@ export function VisionBoard({ data, theme = 'dark' }) {
                             style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
                             {viewData.type === 'years' ? (
-                                <YearsLayout years={viewData.items} onYearClick={handleItemClick} />
+                                <YearsLayout years={viewData.items} onYearClick={handleItemClick} theme={theme} />
                             ) : (
                                 <OrbitLayout
                                     centerItem={viewData.center}
@@ -506,12 +847,20 @@ export function VisionBoard({ data, theme = 'dark' }) {
                                     orbitType={viewData.orbitType}
                                     onOrbitClick={handleItemClick}
                                     onCenterClick={() => { }}
+                                    theme={theme}
                                 />
                             )}
                         </motion.div>
                     </AnimatePresence>
+                ) : viewMode === 'brands' ? (
+                    <BrandsGrid brands={data.brands} locations={data.locations || []} theme={theme} />
                 ) : (
-                    <BrandsGrid brands={data.brands} locations={data.locations || []} />
+                    <TimelineView 
+                        newRestaurants={data.newRestaurants || []} 
+                        locations={data.locations || []} 
+                        brands={data.brands || []}
+                        theme={theme} 
+                    />
                 )
             }
 
@@ -525,22 +874,47 @@ export function VisionBoard({ data, theme = 'dark' }) {
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
                         style={{
                             position: 'absolute', right: 0, top: 0, bottom: 0, width: '400px',
-                            background: 'rgba(20, 20, 20, 0.95)', borderLeft: '1px solid rgba(255,255,255,0.1)',
-                            backdropFilter: 'blur(20px)', padding: '2rem', zIndex: 100, color: 'white'
+                            background: theme === 'dark' ? 'rgba(15, 15, 15, 0.98)' : 'rgba(255, 255, 255, 0.98)', 
+                            borderLeft: theme === 'dark' ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0, 0, 0, 0.1)',
+                            backdropFilter: 'blur(20px)', padding: '2rem', zIndex: 100, 
+                            color: theme === 'dark' ? 'white' : '#0f172a'
                         }}
                     >
-                        <button onClick={() => setSelectedDetail(null)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', marginBottom: '2rem' }}>
-                            <X size={24} />
-                        </button>
-                        <span style={{
-                            padding: '0.25rem 0.75rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600,
-                            background: selectedDetail.status === 'Hotovo' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                            color: selectedDetail.status === 'Hotovo' ? '#34d399' : 'white'
+                        {/* Header with close button and status aligned */}
+                        <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '1rem',
+                            marginBottom: '2rem'
                         }}>
-                            {selectedDetail.status}
-                        </span>
-                        <h2 style={{ fontSize: '2rem', marginTop: '1rem', marginBottom: '1rem' }}>{selectedDetail.title}</h2>
-                        <p style={{ lineHeight: 1.6, opacity: 0.8 }}>{selectedDetail.description || 'Bez popisu.'}</p>
+                            <button onClick={() => setSelectedDetail(null)} style={{ 
+                                background: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)', 
+                                border: 'none', 
+                                color: theme === 'dark' ? 'white' : '#0f172a', 
+                                cursor: 'pointer',
+                                padding: '0.5rem',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'background 0.2s'
+                            }}>
+                                <X size={20} />
+                            </button>
+                            <span style={{
+                                padding: '0.35rem 0.85rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600,
+                                background: selectedDetail.status === 'Hotovo' 
+                                    ? (theme === 'dark' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(16, 185, 129, 0.15)') 
+                                    : (theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'),
+                                color: selectedDetail.status === 'Hotovo' 
+                                    ? (theme === 'dark' ? '#34d399' : '#059669') 
+                                    : (theme === 'dark' ? 'white' : '#64748b')
+                            }}>
+                                {selectedDetail.status}
+                            </span>
+                        </div>
+                        <h2 style={{ fontSize: '1.75rem', marginTop: 0, marginBottom: '1rem', fontWeight: 700 }}>{selectedDetail.title}</h2>
+                        <p style={{ lineHeight: 1.7, opacity: 0.8, fontSize: '0.95rem' }}>{selectedDetail.description || 'Bez popisu.'}</p>
                     </motion.div>
                 )}
             </AnimatePresence>

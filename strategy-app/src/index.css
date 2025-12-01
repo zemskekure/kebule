@@ -736,51 +736,54 @@ textarea.form-control {
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
-  animation: float 20s infinite ease-in-out;
+  filter: blur(120px);
+  opacity: 0.5;
+  animation: float 25s infinite ease-in-out;
   mix-blend-mode: screen;
 }
 
 .blob-1 {
-  width: 600px;
-  height: 600px;
-  background: var(--neon-blue);
-  top: -200px;
-  left: -200px;
+  width: 700px;
+  height: 700px;
+  background: rgba(20, 184, 166, 0.3);
+  top: -250px;
+  left: -250px;
 }
 
 .blob-2 {
-  width: 500px;
-  height: 500px;
-  background: var(--neon-purple);
-  bottom: -150px;
-  right: -150px;
-  animation-delay: -5s;
+  width: 600px;
+  height: 600px;
+  background: rgba(139, 92, 246, 0.25);
+  bottom: -200px;
+  right: -200px;
+  animation-delay: -8s;
 }
 
 .blob-3 {
-  width: 400px;
-  height: 400px;
-  background: var(--neon-green);
-  top: 40%;
-  left: 60%;
-  animation-delay: -10s;
+  width: 500px;
+  height: 500px;
+  background: rgba(34, 197, 94, 0.2);
+  top: 50%;
+  left: 55%;
+  animation-delay: -16s;
 }
 
 @keyframes float {
-
   0%,
   100% {
     transform: translate(0, 0) scale(1);
   }
 
-  33% {
-    transform: translate(50px, -50px) scale(1.1);
+  25% {
+    transform: translate(30px, -30px) scale(1.05);
   }
 
-  66% {
-    transform: translate(-30px, 30px) scale(0.9);
+  50% {
+    transform: translate(-20px, 40px) scale(0.95);
+  }
+
+  75% {
+    transform: translate(40px, 20px) scale(1.02);
   }
 }
 
@@ -1166,12 +1169,9 @@ textarea.form-control {
 }
 
 .dashboard-content h1 {
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin-bottom: 2rem;
-  background: linear-gradient(90deg, #fff, #888);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  /* Remove gradient - color is now set inline for theme support */
 }
 
 .kpi-grid {

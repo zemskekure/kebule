@@ -53,7 +53,15 @@ const nodeTypeLabels = {
     brand: 'Značka',
     location: 'Pobočka',
     newRestaurant: 'Nová restaurace',
+    newRestaurant: 'Nová restaurace',
     reconstruction: 'Rekonstrukce',
+};
+
+const edgeTypeLabels = {
+    default: 'Výchozí (Šedá)',
+    hierarchy: 'Hierarchie (Modrá)',
+    influence: 'Vliv (Červená přerušovaná)',
+    brand: 'Značka (Růžová)',
 };
 
 function CustomNode({ data, selected }) {
@@ -135,9 +143,9 @@ function CustomNode({ data, selected }) {
             )}
             {/* Show linked location for reconstruction/newRestaurant */}
             {data.linkedLocationName && (
-                <div style={{ 
-                    fontSize: '0.7rem', 
-                    marginTop: '6px', 
+                <div style={{
+                    fontSize: '0.7rem',
+                    marginTop: '6px',
                     padding: '4px 8px',
                     backgroundColor: 'rgba(255,255,255,0.15)',
                     borderRadius: '4px',
@@ -249,43 +257,27 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
             });
         });
 
-        // New Restaurants (strategy items, not physical locations)
+        // New Restaurants and Facelifts (strategy items, not physical locations)
         (data.newRestaurants || []).forEach((nr, i) => {
+            const isFacelift = nr.category === 'facelift';
             const linkedBrandId = (nr.brands && nr.brands[0]) || null;
             const linkedBrand = linkedBrandId ? brandMap[linkedBrandId] : null;
+            const linkedLocation = nr.locationId ? locationMap[nr.locationId] : null;
+
             nodes.push({
-                id: `newRestaurant-${nr.id}`,
+                id: `${isFacelift ? 'reconstruction' : 'newRestaurant'}-${nr.id}`,
                 type: 'custom',
-                position: nr.sandboxPosition || { x: 800 + (i % 3) * 200, y: 50 + Math.floor(i / 3) * 120 },
-                data: { 
-                    label: nr.title, 
-                    nodeType: 'newRestaurant', 
-                    originalId: nr.id, 
-                    subtitle: nr.location || nr.status,
+                position: nr.sandboxPosition || { x: 800 + (i % 3) * 200, y: (isFacelift ? 250 : 50) + Math.floor(i / 3) * 120 },
+                data: {
+                    label: nr.title,
+                    nodeType: isFacelift ? 'reconstruction' : 'newRestaurant',
+                    originalId: nr.id,
+                    subtitle: nr.status || nr.phase,
                     fullData: nr,
                     linkedBrandId,
                     linkedBrandName: linkedBrand?.name || null,
-                },
-            });
-        });
-
-        // Facelifts / Reconstructions (strategy items)
-        (data.facelifts || []).forEach((fl, i) => {
-            const linkedLocation = fl.locationId ? locationMap[fl.locationId] : null;
-            const linkedBrand = linkedLocation ? brandMap[linkedLocation.brandId] : null;
-            nodes.push({
-                id: `reconstruction-${fl.id}`,
-                type: 'custom',
-                position: fl.sandboxPosition || { x: 800 + (i % 3) * 200, y: 250 + Math.floor(i / 3) * 120 },
-                data: { 
-                    label: fl.title, 
-                    nodeType: 'reconstruction', 
-                    originalId: fl.id, 
-                    subtitle: fl.status,
-                    fullData: fl,
-                    linkedLocationId: fl.locationId || null,
-                    linkedLocationName: linkedLocation?.name || null,
-                    linkedBrandName: linkedBrand?.name || null,
+                    linkedLocationId: isFacelift ? nr.locationId : null,
+                    linkedLocationName: isFacelift && linkedLocation ? linkedLocation.name : null,
                 },
             });
         });
@@ -360,6 +352,7 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
     const [selectedNodes, setSelectedNodes] = useState([]);
+    const [selectedEdges, setSelectedEdges] = useState([]);
     const [isAddingNode, setIsAddingNode] = useState(null);
     const [editingNode, setEditingNode] = useState(null);
     const [editLabel, setEditLabel] = useState('');
@@ -375,8 +368,9 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
         [setEdges]
     );
 
-    const onSelectionChange = useCallback(({ nodes }) => {
+    const onSelectionChange = useCallback(({ nodes, edges }) => {
         setSelectedNodes(nodes);
+        setSelectedEdges(edges);
     }, []);
 
     // Handle node click to open edit sidebar
@@ -438,6 +432,13 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
     };
 
     const handleDeleteSelected = () => {
+        // Delete selected edges
+        if (selectedEdges.length > 0) {
+            const selectedEdgeIds = selectedEdges.map(e => e.id);
+            setEdges((eds) => eds.filter(e => !selectedEdgeIds.includes(e.id)));
+        }
+
+        // Delete selected nodes
         if (selectedNodes.length === 0) return;
 
         // For strategy nodes with originalId, delete from main data as well
@@ -465,6 +466,26 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
         setEdges((eds) => eds.filter(e => !selectedIds.includes(e.source) && !selectedIds.includes(e.target)));
     };
 
+    const handleChangeEdgeType = (type) => {
+        if (selectedEdges.length === 0) return;
+
+        const style = edgeStyles[type];
+        const markerColor = style.stroke;
+
+        setEdges((eds) => eds.map(e => {
+            if (selectedEdges.some(sel => sel.id === e.id)) {
+                return {
+                    ...e,
+                    style: style,
+                    markerEnd: { type: MarkerType.ArrowClosed, color: markerColor },
+                    animated: type === 'influence', // Animate influence edges
+                    data: { ...e.data, type: type } // Store type in data for potential persistence
+                };
+            }
+            return e;
+        }));
+    };
+
     const handleSavePositions = () => {
         const positions = {};
         nodes.forEach(node => {
@@ -489,207 +510,115 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
     return (
         <div style={{ width: '100%', height: '100%', position: 'relative', display: 'flex' }} ref={reactFlowWrapper}>
             <div style={{ flex: 1, height: '100%' }}>
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onSelectionChange={onSelectionChange}
-                onNodeClick={onNodeClick}
-                nodeTypes={nodeTypes}
-                fitView
-                snapToGrid
-                snapGrid={[15, 15]}
-                connectionMode="loose"
-                defaultEdgeOptions={{
-                    type: 'smoothstep',
-                }}
-                style={{ backgroundColor: bgColor }}
-            >
-                <Background color={gridColor} gap={20} />
-                <Controls
-                    style={{
-                        backgroundColor: isDark ? '#1e293b' : '#fff',
-                        borderRadius: '8px',
-                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                <ReactFlow
+                    nodes={nodes}
+                    edges={edges}
+                    onNodesChange={onNodesChange}
+                    onEdgesChange={onEdgesChange}
+                    onConnect={onConnect}
+                    onSelectionChange={onSelectionChange}
+                    onNodeClick={onNodeClick}
+                    nodeTypes={nodeTypes}
+                    fitView
+                    snapToGrid
+                    snapGrid={[15, 15]}
+                    connectionMode="loose"
+                    edgesReconnectable={true}
+                    elementsSelectable={true}
+                    defaultEdgeOptions={{
+                        type: 'smoothstep',
                     }}
-                />
-                <MiniMap
-                    style={{
-                        backgroundColor: isDark ? '#1e293b' : '#fff',
-                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-                    }}
-                    nodeColor={(node) => nodeColors[node.data?.nodeType]?.bg || '#64748b'}
-                    maskColor={isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)'}
-                />
+                    style={{ backgroundColor: bgColor }}
+                >
+                    <Background color={gridColor} gap={20} />
+                    <Controls
+                        style={{
+                            backgroundColor: isDark ? '#1e293b' : '#fff',
+                            borderRadius: '8px',
+                            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                        }}
+                    />
+                    <MiniMap
+                        style={{
+                            backgroundColor: isDark ? '#1e293b' : '#fff',
+                            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                        }}
+                        nodeColor={(node) => nodeColors[node.data?.nodeType]?.bg || '#64748b'}
+                        maskColor={isDark ? 'rgba(0,0,0,0.8)' : 'rgba(255,255,255,0.8)'}
+                    />
 
-                {/* Toolbar Panel */}
-                <Panel position="top-left">
-                    <div style={{
-                        display: 'flex',
-                        gap: '8px',
-                        padding: '12px',
-                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                        borderRadius: '12px',
-                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-                        backdropFilter: 'blur(8px)',
-                        alignItems: 'center',
-                    }}>
-                        {/* Sandbox Mode Label */}
+                    {/* Toolbar Panel */}
+                    <Panel position="top-left">
                         <div style={{
                             display: 'flex',
+                            gap: '8px',
+                            padding: '12px',
+                            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            borderRadius: '12px',
+                            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                            backdropFilter: 'blur(8px)',
                             alignItems: 'center',
-                            gap: '6px',
-                            padding: '8px 12px',
-                            backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)',
-                            border: '1px solid rgba(139, 92, 246, 0.3)',
-                            borderRadius: '8px',
-                            color: isDark ? '#c4b5fd' : '#7c3aed',
-                            fontWeight: 600,
-                            fontSize: '0.85rem',
                         }}>
-                            <GitBranch size={16} /> Strategická mapa
-                        </div>
+                            {/* Sandbox Mode Label */}
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                padding: '8px 12px',
+                                backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)',
+                                border: '1px solid rgba(139, 92, 246, 0.3)',
+                                borderRadius: '8px',
+                                color: isDark ? '#c4b5fd' : '#7c3aed',
+                                fontWeight: 600,
+                                fontSize: '0.85rem',
+                            }}>
+                                <GitBranch size={16} /> Strategická mapa
+                            </div>
 
-                        <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? '#334155' : '#e2e8f0' }} />
+                            <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? '#334155' : '#e2e8f0' }} />
 
-                        {/* Add Node Dropdown - only strategy elements, not brands/locations */}
-                        <div style={{ position: 'relative' }}>
-                            <button
-                                onClick={() => setIsAddingNode(isAddingNode ? null : 'menu')}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    padding: '8px 12px',
-                                    backgroundColor: '#22c55e',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontWeight: 500,
-                                    fontSize: '0.85rem',
-                                }}
-                            >
-                                <Plus size={16} /> Přidat prvek
-                            </button>
-                            {isAddingNode === 'menu' && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '100%',
-                                    left: 0,
-                                    marginTop: '4px',
-                                    backgroundColor: isDark ? '#1e293b' : '#fff',
-                                    border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-                                    borderRadius: '8px',
-                                    padding: '8px',
-                                    zIndex: 100,
-                                    minWidth: '180px',
-                                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                                }}>
-                                    {/* Only show editable node types - NOT brand/location */}
-                                    {['year', 'vision', 'theme', 'project', 'influence', 'newRestaurant', 'reconstruction'].map(type => {
-                                        const Icon = nodeIcons[type];
-                                        const colors = nodeColors[type];
-                                        return (
-                                            <button
-                                                key={type}
-                                                onClick={() => handleAddNode(type)}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '8px',
-                                                    width: '100%',
-                                                    padding: '8px 12px',
-                                                    backgroundColor: 'transparent',
-                                                    color: isDark ? '#fff' : '#1e293b',
-                                                    border: 'none',
-                                                    borderRadius: '6px',
-                                                    cursor: 'pointer',
-                                                    fontSize: '0.85rem',
-                                                    textAlign: 'left',
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9'}
-                                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                            >
-                                                <div style={{
-                                                    width: '24px',
-                                                    height: '24px',
-                                                    borderRadius: '6px',
-                                                    backgroundColor: colors.bg,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                }}>
-                                                    <Icon size={14} color="#fff" />
-                                                </div>
-                                                <span>{nodeTypeLabels[type] || type}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Add Brand/Location from existing data */}
-                        <div style={{ position: 'relative' }}>
-                            <button
-                                onClick={() => setIsAddingNode(isAddingNode === 'brands' ? null : 'brands')}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    padding: '8px 12px',
-                                    backgroundColor: '#ec4899',
-                                    color: '#fff',
-                                    border: 'none',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    fontWeight: 500,
-                                    fontSize: '0.85rem',
-                                }}
-                            >
-                                <Store size={16} /> Značka / Pobočka
-                            </button>
-                            {isAddingNode === 'brands' && (
-                                <div style={{
-                                    position: 'absolute',
-                                    top: '100%',
-                                    left: 0,
-                                    marginTop: '4px',
-                                    backgroundColor: isDark ? '#1e293b' : '#fff',
-                                    border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-                                    borderRadius: '8px',
-                                    padding: '8px',
-                                    zIndex: 100,
-                                    minWidth: '220px',
-                                    maxHeight: '300px',
-                                    overflowY: 'auto',
-                                    boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-                                }}>
-                                    <div style={{ fontSize: '0.75rem', color: textSecondary, padding: '4px 8px', marginBottom: '4px' }}>
-                                        Vyberte značku nebo pobočku:
-                                    </div>
-                                    {data.brands.map(brand => {
-                                        const brandLocations = (data.locations || []).filter(l => l.brandId === brand.id);
-                                        const isBrandOnCanvas = nodes.some(n => n.id === `brand-${brand.id}`);
-                                        return (
-                                            <div key={brand.id}>
+                            {/* Add Node Dropdown - only strategy elements, not brands/locations */}
+                            <div style={{ position: 'relative' }}>
+                                <button
+                                    onClick={() => setIsAddingNode(isAddingNode ? null : 'menu')}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '8px 12px',
+                                        backgroundColor: '#22c55e',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: 500,
+                                        fontSize: '0.85rem',
+                                    }}
+                                >
+                                    <Plus size={16} /> Přidat prvek
+                                </button>
+                                {isAddingNode === 'menu' && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        left: 0,
+                                        marginTop: '4px',
+                                        backgroundColor: isDark ? '#1e293b' : '#fff',
+                                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                                        borderRadius: '8px',
+                                        padding: '8px',
+                                        zIndex: 100,
+                                        minWidth: '180px',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                                    }}>
+                                        {/* Only show editable node types - NOT brand/location */}
+                                        {['year', 'vision', 'theme', 'project', 'influence', 'newRestaurant', 'reconstruction'].map(type => {
+                                            const Icon = nodeIcons[type];
+                                            const colors = nodeColors[type];
+                                            return (
                                                 <button
-                                                    onClick={() => {
-                                                        if (!isBrandOnCanvas) {
-                                                            const newNode = {
-                                                                id: `brand-${brand.id}`,
-                                                                type: 'custom',
-                                                                position: { x: 600, y: 400 },
-                                                                data: { label: brand.name, nodeType: 'brand', originalId: brand.id, subtitle: brand.conceptShort },
-                                                            };
-                                                            setNodes((nds) => [...nds, newNode]);
-                                                        }
-                                                        setIsAddingNode(null);
-                                                    }}
-                                                    disabled={isBrandOnCanvas}
+                                                    key={type}
+                                                    onClick={() => handleAddNode(type)}
                                                     style={{
                                                         display: 'flex',
                                                         alignItems: 'center',
@@ -697,205 +626,390 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
                                                         width: '100%',
                                                         padding: '8px 12px',
                                                         backgroundColor: 'transparent',
-                                                        color: isBrandOnCanvas ? (isDark ? '#475569' : '#cbd5e1') : (isDark ? '#fff' : '#1e293b'),
+                                                        color: isDark ? '#fff' : '#1e293b',
                                                         border: 'none',
                                                         borderRadius: '6px',
-                                                        cursor: isBrandOnCanvas ? 'not-allowed' : 'pointer',
+                                                        cursor: 'pointer',
                                                         fontSize: '0.85rem',
                                                         textAlign: 'left',
-                                                        fontWeight: 600,
                                                     }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                                 >
-                                                    <Store size={14} color={nodeColors.brand.bg} />
-                                                    {brand.name}
-                                                    {isBrandOnCanvas && <span style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>✓</span>}
+                                                    <div style={{
+                                                        width: '24px',
+                                                        height: '24px',
+                                                        borderRadius: '6px',
+                                                        backgroundColor: colors.bg,
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                    }}>
+                                                        <Icon size={14} color="#fff" />
+                                                    </div>
+                                                    <span>{nodeTypeLabels[type] || type}</span>
                                                 </button>
-                                                {brandLocations.map(loc => {
-                                                    const isLocOnCanvas = nodes.some(n => n.id === `location-${loc.id}`);
-                                                    return (
-                                                        <button
-                                                            key={loc.id}
-                                                            onClick={() => {
-                                                                if (!isLocOnCanvas) {
-                                                                    const newNode = {
-                                                                        id: `location-${loc.id}`,
-                                                                        type: 'custom',
-                                                                        position: { x: 650, y: 450 },
-                                                                        data: { label: loc.name, nodeType: 'location', originalId: loc.id, subtitle: loc.address },
-                                                                    };
-                                                                    setNodes((nds) => [...nds, newNode]);
-                                                                }
-                                                                setIsAddingNode(null);
-                                                            }}
-                                                            disabled={isLocOnCanvas}
-                                                            style={{
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                gap: '8px',
-                                                                width: '100%',
-                                                                padding: '6px 12px 6px 28px',
-                                                                backgroundColor: 'transparent',
-                                                                color: isLocOnCanvas ? (isDark ? '#475569' : '#cbd5e1') : (isDark ? '#94a3b8' : '#64748b'),
-                                                                border: 'none',
-                                                                borderRadius: '6px',
-                                                                cursor: isLocOnCanvas ? 'not-allowed' : 'pointer',
-                                                                fontSize: '0.8rem',
-                                                                textAlign: 'left',
-                                                            }}
-                                                        >
-                                                            <MapPin size={12} color={nodeColors.location.bg} />
-                                                            {loc.name}
-                                                            {isLocOnCanvas && <span style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>✓</span>}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Delete/Remove Selected */}
-                        <button
-                            onClick={handleDeleteSelected}
-                            disabled={selectedNodes.length === 0}
-                            title={selectedNodes.some(n => ['brand', 'location'].includes(n.data?.nodeType)) 
-                                ? 'Odebrat z mapy (data zůstanou)' 
-                                : 'Smazat prvek'}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '8px 12px',
-                                backgroundColor: selectedNodes.length > 0
-                                    ? (selectedNodes.some(n => ['brand', 'location'].includes(n.data?.nodeType)) ? '#f59e0b' : '#ef4444')
-                                    : (isDark ? '#334155' : '#e2e8f0'),
-                                color: selectedNodes.length > 0
-                                    ? '#fff' 
-                                    : (isDark ? '#64748b' : '#94a3b8'),
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: selectedNodes.length > 0 ? 'pointer' : 'not-allowed',
-                                fontWeight: 500,
-                                fontSize: '0.85rem',
-                            }}
-                        >
-                            <Trash2 size={16} />
-                            {selectedNodes.some(n => ['brand', 'location'].includes(n.data?.nodeType)) && selectedNodes.length > 0 && (
-                                <span style={{ fontSize: '0.75rem' }}>Odebrat</span>
-                            )}
-                        </button>
-
-                        <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? '#334155' : '#e2e8f0' }} />
-
-                        {/* Save Positions */}
-                        <button
-                            onClick={handleSavePositions}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '8px 12px',
-                                backgroundColor: '#0ea5e9',
-                                color: '#fff',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: 500,
-                                fontSize: '0.85rem',
-                            }}
-                        >
-                            <Save size={16} /> Uložit
-                        </button>
-
-                        {/* Reset Layout */}
-                        <button
-                            onClick={handleResetLayout}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                padding: '8px 12px',
-                                backgroundColor: isDark ? '#334155' : '#e2e8f0',
-                                color: isDark ? '#fff' : '#1e293b',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: 500,
-                                fontSize: '0.85rem',
-                            }}
-                        >
-                            <RotateCcw size={16} />
-                        </button>
-                    </div>
-                </Panel>
-
-                {/* Legend Panel */}
-                <Panel position="bottom-left">
-                    <div style={{
-                        padding: '12px',
-                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                        borderRadius: '12px',
-                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-                        backdropFilter: 'blur(8px)',
-                        fontSize: '0.75rem',
-                    }}>
-                        <div style={{ fontWeight: 600, marginBottom: '8px', color: isDark ? '#fff' : '#1e293b' }}>Legenda</div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                            {Object.entries(nodeColors).map(([type, colors]) => {
-                                const Icon = nodeIcons[type];
-                                return (
-                                    <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                        <div style={{
-                                            width: '16px',
-                                            height: '16px',
-                                            borderRadius: '4px',
-                                            backgroundColor: colors.bg,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}>
-                                            <Icon size={10} color="#fff" />
-                                        </div>
-                                        <span style={{ color: isDark ? '#94a3b8' : '#64748b' }}>{nodeTypeLabels[type] || type}</span>
+                                            );
+                                        })}
                                     </div>
-                                );
-                            })}
+                                )}
+                            </div>
+
+                            {/* Add Brand/Location from existing data */}
+                            <div style={{ position: 'relative' }}>
+                                <button
+                                    onClick={() => setIsAddingNode(isAddingNode === 'brands' ? null : 'brands')}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '8px 12px',
+                                        backgroundColor: '#ec4899',
+                                        color: '#fff',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: 500,
+                                        fontSize: '0.85rem',
+                                    }}
+                                >
+                                    <Store size={16} /> Značka / Pobočka
+                                </button>
+                                {isAddingNode === 'brands' && (
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        left: 0,
+                                        marginTop: '4px',
+                                        backgroundColor: isDark ? '#1e293b' : '#fff',
+                                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                                        borderRadius: '8px',
+                                        padding: '8px',
+                                        zIndex: 100,
+                                        minWidth: '220px',
+                                        maxHeight: '300px',
+                                        overflowY: 'auto',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                                    }}>
+                                        <div style={{ fontSize: '0.75rem', color: textSecondary, padding: '4px 8px', marginBottom: '4px' }}>
+                                            Vyberte značku nebo pobočku:
+                                        </div>
+                                        {data.brands.map(brand => {
+                                            const brandLocations = (data.locations || []).filter(l => l.brandId === brand.id);
+                                            const isBrandOnCanvas = nodes.some(n => n.id === `brand-${brand.id}`);
+                                            return (
+                                                <div key={brand.id}>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (!isBrandOnCanvas) {
+                                                                const newNode = {
+                                                                    id: `brand-${brand.id}`,
+                                                                    type: 'custom',
+                                                                    position: { x: 600, y: 400 },
+                                                                    data: { label: brand.name, nodeType: 'brand', originalId: brand.id, subtitle: brand.conceptShort },
+                                                                };
+                                                                setNodes((nds) => [...nds, newNode]);
+                                                            }
+                                                            setIsAddingNode(null);
+                                                        }}
+                                                        disabled={isBrandOnCanvas}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '8px',
+                                                            width: '100%',
+                                                            padding: '8px 12px',
+                                                            backgroundColor: 'transparent',
+                                                            color: isBrandOnCanvas ? (isDark ? '#475569' : '#cbd5e1') : (isDark ? '#fff' : '#1e293b'),
+                                                            border: 'none',
+                                                            borderRadius: '6px',
+                                                            cursor: isBrandOnCanvas ? 'not-allowed' : 'pointer',
+                                                            fontSize: '0.85rem',
+                                                            textAlign: 'left',
+                                                            fontWeight: 600,
+                                                        }}
+                                                    >
+                                                        <Store size={14} color={nodeColors.brand.bg} />
+                                                        {brand.name}
+                                                        {isBrandOnCanvas && <span style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>✓</span>}
+                                                    </button>
+                                                    {brandLocations.map(loc => {
+                                                        const isLocOnCanvas = nodes.some(n => n.id === `location-${loc.id}`);
+                                                        return (
+                                                            <button
+                                                                key={loc.id}
+                                                                onClick={() => {
+                                                                    if (!isLocOnCanvas) {
+                                                                        const newNode = {
+                                                                            id: `location-${loc.id}`,
+                                                                            type: 'custom',
+                                                                            position: { x: 650, y: 450 },
+                                                                            data: { label: loc.name, nodeType: 'location', originalId: loc.id, subtitle: loc.address },
+                                                                        };
+                                                                        setNodes((nds) => [...nds, newNode]);
+                                                                    }
+                                                                    setIsAddingNode(null);
+                                                                }}
+                                                                disabled={isLocOnCanvas}
+                                                                style={{
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '8px',
+                                                                    width: '100%',
+                                                                    padding: '6px 12px 6px 28px',
+                                                                    backgroundColor: 'transparent',
+                                                                    color: isLocOnCanvas ? (isDark ? '#475569' : '#cbd5e1') : (isDark ? '#94a3b8' : '#64748b'),
+                                                                    border: 'none',
+                                                                    borderRadius: '6px',
+                                                                    cursor: isLocOnCanvas ? 'not-allowed' : 'pointer',
+                                                                    fontSize: '0.8rem',
+                                                                    textAlign: 'left',
+                                                                }}
+                                                            >
+                                                                <MapPin size={12} color={nodeColors.location.bg} />
+                                                                {loc.name}
+                                                                {isLocOnCanvas && <span style={{ marginLeft: 'auto', fontSize: '0.7rem' }}>✓</span>}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Delete/Remove Selected */}
+                            <button
+                                onClick={handleDeleteSelected}
+                                disabled={selectedNodes.length === 0 && selectedEdges.length === 0}
+                                title={
+                                    selectedEdges.length > 0
+                                        ? 'Smazat propojení'
+                                        : selectedNodes.some(n => ['brand', 'location'].includes(n.data?.nodeType))
+                                            ? 'Odebrat z mapy (data zůstanou)'
+                                            : 'Smazat prvek'
+                                }
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    backgroundColor: (selectedNodes.length > 0 || selectedEdges.length > 0)
+                                        ? (selectedEdges.length > 0
+                                            ? '#f59e0b'
+                                            : selectedNodes.some(n => ['brand', 'location'].includes(n.data?.nodeType))
+                                                ? '#f59e0b'
+                                                : '#ef4444')
+                                        : (isDark ? '#334155' : '#e2e8f0'),
+                                    color: (selectedNodes.length > 0 || selectedEdges.length > 0)
+                                        ? '#fff'
+                                        : (isDark ? '#64748b' : '#94a3b8'),
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: (selectedNodes.length > 0 || selectedEdges.length > 0) ? 'pointer' : 'not-allowed',
+                                    fontWeight: 500,
+                                    fontSize: '0.85rem',
+                                }}
+                            >
+                                <Trash2 size={16} />
+                                {selectedEdges.length > 0 && (
+                                    <span style={{ fontSize: '0.75rem' }}>Propojení ({selectedEdges.length})</span>
+                                )}
+                                {selectedNodes.some(n => ['brand', 'location'].includes(n.data?.nodeType)) && selectedNodes.length > 0 && selectedEdges.length === 0 && (
+                                    <span style={{ fontSize: '0.75rem' }}>Odebrat</span>
+                                )}
+                            </button>
+
+                            <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? '#334155' : '#e2e8f0' }} />
+
+                            {/* Edge Type Selector */}
+                            {selectedEdges.length > 0 && (
+                                <>
+                                    <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? '#334155' : '#e2e8f0' }} />
+                                    <div style={{ position: 'relative' }}>
+                                        <button
+                                            onClick={() => setIsAddingNode(isAddingNode === 'edgeType' ? null : 'edgeType')}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                padding: '8px 12px',
+                                                backgroundColor: isDark ? '#334155' : '#e2e8f0',
+                                                color: isDark ? '#fff' : '#1e293b',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                fontWeight: 500,
+                                                fontSize: '0.85rem',
+                                            }}
+                                            title="Změnit typ propojení"
+                                        >
+                                            <Link2 size={16} /> Typ propojení
+                                        </button>
+                                        {isAddingNode === 'edgeType' && (
+                                            <div style={{
+                                                position: 'absolute',
+                                                top: '100%',
+                                                left: 0,
+                                                marginTop: '4px',
+                                                backgroundColor: isDark ? '#1e293b' : '#fff',
+                                                border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                                                borderRadius: '8px',
+                                                padding: '8px',
+                                                zIndex: 100,
+                                                minWidth: '180px',
+                                                boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+                                            }}>
+                                                {Object.entries(edgeTypeLabels).map(([type, label]) => (
+                                                    <button
+                                                        key={type}
+                                                        onClick={() => {
+                                                            handleChangeEdgeType(type);
+                                                            setIsAddingNode(null);
+                                                        }}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: '8px',
+                                                            width: '100%',
+                                                            padding: '8px 12px',
+                                                            backgroundColor: 'transparent',
+                                                            color: isDark ? '#fff' : '#1e293b',
+                                                            border: 'none',
+                                                            borderRadius: '6px',
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.85rem',
+                                                            textAlign: 'left',
+                                                        }}
+                                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(255,255,255,0.1)' : '#f1f5f9'}
+                                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                                    >
+                                                        <div style={{
+                                                            width: '20px',
+                                                            height: '2px',
+                                                            backgroundColor: edgeStyles[type].stroke,
+                                                            borderTop: type === 'influence' ? '2px dashed ' + edgeStyles[type].stroke : 'none',
+                                                            background: type === 'influence' ? 'transparent' : edgeStyles[type].stroke,
+                                                        }} />
+                                                        <span>{label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+
+                            <div style={{ width: '1px', height: '24px', backgroundColor: isDark ? '#334155' : '#e2e8f0' }} />
+
+                            {/* Save Positions */}
+                            <button
+                                onClick={handleSavePositions}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    backgroundColor: '#0ea5e9',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: 500,
+                                    fontSize: '0.85rem',
+                                }}
+                            >
+                                <Save size={16} /> Uložit
+                            </button>
+
+                            {/* Reset Layout */}
+                            <button
+                                onClick={handleResetLayout}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '6px',
+                                    padding: '8px 12px',
+                                    backgroundColor: isDark ? '#334155' : '#e2e8f0',
+                                    color: isDark ? '#fff' : '#1e293b',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: 500,
+                                    fontSize: '0.85rem',
+                                }}
+                            >
+                                <RotateCcw size={16} />
+                            </button>
                         </div>
-                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: isDark ? '1px solid #334155' : '1px solid #e2e8f0' }}>
-                            <div style={{ display: 'flex', gap: '12px', color: isDark ? '#94a3b8' : '#64748b' }}>
-                                <span>─── Hierarchie</span>
-                                <span style={{ color: '#ef4444' }}>- - - Vliv</span>
-                                <span style={{ color: '#ec4899' }}>─── Značka</span>
+                    </Panel>
+
+                    {/* Legend Panel */}
+                    <Panel position="bottom-left">
+                        <div style={{
+                            padding: '12px',
+                            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            borderRadius: '12px',
+                            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                            backdropFilter: 'blur(8px)',
+                            fontSize: '0.75rem',
+                        }}>
+                            <div style={{ fontWeight: 600, marginBottom: '8px', color: isDark ? '#fff' : '#1e293b' }}>Legenda</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {Object.entries(nodeColors).map(([type, colors]) => {
+                                    const Icon = nodeIcons[type];
+                                    return (
+                                        <div key={type} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <div style={{
+                                                width: '16px',
+                                                height: '16px',
+                                                borderRadius: '4px',
+                                                backgroundColor: colors.bg,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}>
+                                                <Icon size={10} color="#fff" />
+                                            </div>
+                                            <span style={{ color: isDark ? '#94a3b8' : '#64748b' }}>{nodeTypeLabels[type] || type}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: isDark ? '1px solid #334155' : '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'flex', gap: '12px', color: isDark ? '#94a3b8' : '#64748b' }}>
+                                    <span>─── Hierarchie</span>
+                                    <span style={{ color: '#ef4444' }}>- - - Vliv</span>
+                                    <span style={{ color: '#ec4899' }}>─── Značka</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </Panel>
+                    </Panel>
 
-                {/* Instructions Panel */}
-                <Panel position="top-right">
-                    <div style={{
-                        padding: '12px',
-                        backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                        borderRadius: '12px',
-                        border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
-                        backdropFilter: 'blur(8px)',
-                        fontSize: '0.8rem',
-                        maxWidth: '260px',
-                        color: isDark ? '#94a3b8' : '#64748b',
-                    }}>
-                        <div style={{ fontWeight: 600, marginBottom: '6px', color: isDark ? '#fff' : '#1e293b' }}>Příprava strategie</div>
-                        <div>• Přidávejte vize, témata, projekty</div>
-                        <div>• Přidejte značku/pobočku jako cíl</div>
-                        <div>• Propojte strategii se značkami</div>
-                        <div>• Táhněte z teček pro spojení</div>
-                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: isDark ? '1px solid #334155' : '1px solid #e2e8f0', fontSize: '0.75rem' }}>
-                            <span style={{ color: '#ec4899' }}>●</span> Značky = cíle strategie
+                    {/* Instructions Panel */}
+                    <Panel position="top-right">
+                        <div style={{
+                            padding: '12px',
+                            backgroundColor: isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+                            borderRadius: '12px',
+                            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                            backdropFilter: 'blur(8px)',
+                            fontSize: '0.8rem',
+                            maxWidth: '260px',
+                            color: isDark ? '#94a3b8' : '#64748b',
+                        }}>
+                            <div style={{ fontWeight: 600, marginBottom: '6px', color: isDark ? '#fff' : '#1e293b' }}>Příprava strategie</div>
+                            <div>• Přidávejte vize, témata, projekty</div>
+                            <div>• Přidejte značku/pobočku jako cíl</div>
+                            <div>• Propojte strategii se značkami</div>
+                            <div>• Táhněte z teček pro spojení</div>
+                            <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: isDark ? '1px solid #334155' : '1px solid #e2e8f0', fontSize: '0.75rem' }}>
+                                <span style={{ color: '#ec4899' }}>●</span> Značky = cíle strategie
+                            </div>
                         </div>
-                    </div>
-                </Panel>
-            </ReactFlow>
+                    </Panel>
+                </ReactFlow>
             </div>
 
             {/* Edit Sidebar */}

@@ -203,12 +203,26 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
         const nodes = [];
         let yOffset = 0;
 
+        // Load saved positions
+        let savedPositions = {};
+        try {
+            const saved = localStorage.getItem('sandbox_positions');
+            if (saved) {
+                savedPositions = JSON.parse(saved);
+            }
+        } catch (e) {
+            console.error('Failed to load sandbox positions', e);
+        }
+
+        const getPos = (id, defaultPos) => savedPositions[id] || defaultPos;
+
         // Years
         data.years.forEach((year, i) => {
+            const id = `year-${year.id}`;
             nodes.push({
-                id: `year-${year.id}`,
+                id: id,
                 type: 'custom',
-                position: year.sandboxPosition || { x: 100, y: yOffset },
+                position: getPos(id, year.sandboxPosition || { x: 100, y: yOffset }),
                 data: { label: year.title, nodeType: 'year', originalId: year.id },
             });
         });
@@ -216,10 +230,11 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
 
         // Visions
         data.visions.forEach((vision, i) => {
+            const id = `vision-${vision.id}`;
             nodes.push({
-                id: `vision-${vision.id}`,
+                id: id,
                 type: 'custom',
-                position: vision.sandboxPosition || { x: 100 + i * 250, y: yOffset },
+                position: getPos(id, vision.sandboxPosition || { x: 100 + i * 250, y: yOffset }),
                 data: { label: vision.title, nodeType: 'vision', originalId: vision.id, subtitle: vision.description?.slice(0, 40) + '...' },
             });
         });
@@ -227,10 +242,11 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
 
         // Themes
         data.themes.forEach((themeItem, i) => {
+            const id = `theme-${themeItem.id}`;
             nodes.push({
-                id: `theme-${themeItem.id}`,
+                id: id,
                 type: 'custom',
-                position: themeItem.sandboxPosition || { x: 50 + i * 220, y: yOffset },
+                position: getPos(id, themeItem.sandboxPosition || { x: 50 + i * 220, y: yOffset }),
                 data: { label: themeItem.title, nodeType: 'theme', originalId: themeItem.id, subtitle: `Priorita: ${themeItem.priority}` },
             });
         });
@@ -238,10 +254,11 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
 
         // Projects
         data.projects.forEach((project, i) => {
+            const id = `project-${project.id}`;
             nodes.push({
-                id: `project-${project.id}`,
+                id: id,
                 type: 'custom',
-                position: project.sandboxPosition || { x: 50 + (i % 5) * 200, y: yOffset + Math.floor(i / 5) * 120 },
+                position: getPos(id, project.sandboxPosition || { x: 50 + (i % 5) * 200, y: yOffset + Math.floor(i / 5) * 120 }),
                 data: { label: project.title, nodeType: 'project', originalId: project.id, subtitle: project.status },
             });
         });
@@ -249,10 +266,11 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
 
         // Influences
         (data.influences || []).forEach((inf, i) => {
+            const id = `influence-${inf.id}`;
             nodes.push({
-                id: `influence-${inf.id}`,
+                id: id,
                 type: 'custom',
-                position: inf.sandboxPosition || { x: 600 + (i % 3) * 180, y: 50 + Math.floor(i / 3) * 120 },
+                position: getPos(id, inf.sandboxPosition || { x: 600 + (i % 3) * 180, y: 50 + Math.floor(i / 3) * 120 }),
                 data: { label: inf.title, nodeType: 'influence', originalId: inf.id, subtitle: inf.type === 'external' ? 'Externí' : 'Interní' },
             });
         });
@@ -260,14 +278,15 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
         // New Restaurants and Facelifts (strategy items, not physical locations)
         (data.newRestaurants || []).forEach((nr, i) => {
             const isFacelift = nr.category === 'facelift';
+            const id = `${isFacelift ? 'reconstruction' : 'newRestaurant'}-${nr.id}`;
             const linkedBrandId = (nr.brands && nr.brands[0]) || null;
             const linkedBrand = linkedBrandId ? brandMap[linkedBrandId] : null;
             const linkedLocation = nr.locationId ? locationMap[nr.locationId] : null;
 
             nodes.push({
-                id: `${isFacelift ? 'reconstruction' : 'newRestaurant'}-${nr.id}`,
+                id: id,
                 type: 'custom',
-                position: nr.sandboxPosition || { x: 800 + (i % 3) * 200, y: (isFacelift ? 250 : 50) + Math.floor(i / 3) * 120 },
+                position: getPos(id, nr.sandboxPosition || { x: 800 + (i % 3) * 200, y: (isFacelift ? 250 : 50) + Math.floor(i / 3) * 120 }),
                 data: {
                     label: nr.title,
                     nodeType: isFacelift ? 'reconstruction' : 'newRestaurant',
@@ -282,11 +301,38 @@ function SandboxFlow({ data, theme, onSavePositions, onUpdateNode, onDeleteNode 
             });
         });
 
-        // NOTE: Brands and Locations are NOT shown by default
-        // They are available in the sidebar to be added as connection targets when needed
+        // Restore manually added Brands and Locations from saved positions
+        Object.keys(savedPositions).forEach(key => {
+            // Check if already added (to avoid duplicates if we ever add them to default list)
+            if (nodes.some(n => n.id === key)) return;
+
+            if (key.startsWith('brand-')) {
+                const brandId = key.replace('brand-', '');
+                const brand = brandMap[brandId];
+                if (brand) {
+                    nodes.push({
+                        id: key,
+                        type: 'custom',
+                        position: savedPositions[key],
+                        data: { label: brand.name, nodeType: 'brand', originalId: brand.id, subtitle: brand.conceptShort },
+                    });
+                }
+            } else if (key.startsWith('location-')) {
+                const locId = key.replace('location-', '');
+                const loc = locationMap[locId];
+                if (loc) {
+                    nodes.push({
+                        id: key,
+                        type: 'custom',
+                        position: savedPositions[key],
+                        data: { label: loc.name, nodeType: 'location', originalId: loc.id, subtitle: loc.address },
+                    });
+                }
+            }
+        });
 
         return nodes;
-    }, [data]);
+    }, [data, brandMap, locationMap]);
 
     // Convert relationships to edges
     const initialEdges = useMemo(() => {

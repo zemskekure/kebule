@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 // --- Initial Data ---
 
@@ -363,6 +364,9 @@ const INITIAL_INFLUENCES = [
   { id: 'i3', title: 'Vlastní pekárna', type: 'internal', description: 'Možnost zásobovat všechny pobočky.', connectedThemeIds: ['t2'] },
 ];
 
+// Signals: raw observations before they become themes/projects
+const INITIAL_SIGNALS = [];
+
 const STORAGE_KEY = 'strategieAmbiente_v8';
 
 // --- Helper: localStorage hook ---
@@ -404,13 +408,35 @@ function getCollectionName(type) {
     brand: 'brands',
     location: 'locations',
     influence: 'influences',
+    signal: 'signals',
   };
   return mapping[type] || 'influences';
+}
+
+// --- Helper to create audit fields ---
+function createAuditFields(userId) {
+  const now = new Date().toISOString();
+  return {
+    createdBy: userId || null,
+    createdAt: now,
+    updatedBy: userId || null,
+    updatedAt: now
+  };
+}
+
+function updateAuditFields(userId) {
+  return {
+    updatedBy: userId || null,
+    updatedAt: new Date().toISOString()
+  };
 }
 
 // --- Main Hook ---
 
 export function useStrategyData() {
+  const { currentUser } = useAuth();
+  const userId = currentUser?.id || null;
+
   const [data, setData] = useLocalStorage(STORAGE_KEY, {
     brands: INITIAL_BRANDS,
     locations: INITIAL_LOCATIONS,
@@ -419,8 +445,15 @@ export function useStrategyData() {
     themes: INITIAL_THEMES,
     projects: INITIAL_PROJECTS,
     newRestaurants: INITIAL_NEW_RESTAURANTS,
-    influences: INITIAL_INFLUENCES
+    influences: INITIAL_INFLUENCES,
+    signals: INITIAL_SIGNALS
   });
+
+  // Ensure signals array exists for backward compatibility
+  const safeData = {
+    ...data,
+    signals: data.signals ?? []
+  };
 
   // --- CRUD Operations ---
 
@@ -436,28 +469,29 @@ export function useStrategyData() {
       foundationYear: '',
       socialLinks: { web: '', instagram: '', facebook: '' },
       contact: '',
-      accountManager: ''
+      accountManager: '',
+      ...createAuditFields(userId)
     };
     setData(prev => ({ ...prev, brands: [...prev.brands, newBrand] }));
     return newId;
-  }, [setData]);
+  }, [setData, userId]);
 
   const addLocation = useCallback((brandId, name, address) => {
     const newId = Date.now().toString();
     const locationName = name && name.trim() ? name : 'Nová pobočka';
-    const newLocation = { id: newId, brandId, name: locationName, address: address || '' };
+    const newLocation = { id: newId, brandId, name: locationName, address: address || '', ...createAuditFields(userId) };
     setData(prev => ({ ...prev, locations: [...(prev.locations || []), newLocation] }));
     return newId;
-  }, [setData]);
+  }, [setData, userId]);
 
   const addInfluence = useCallback((title, type) => {
     const newId = Date.now().toString();
     const influenceTitle = title && title.trim() ? title : 'Nový vliv';
     const influenceType = type || 'external';
-    const newInfluence = { id: newId, title: influenceTitle, type: influenceType, description: '', connectedThemeIds: [], connectedProjectIds: [] };
+    const newInfluence = { id: newId, title: influenceTitle, type: influenceType, description: '', connectedThemeIds: [], connectedProjectIds: [], ...createAuditFields(userId) };
     setData(prev => ({ ...prev, influences: [...(prev.influences || []), newInfluence] }));
     return newId;
-  }, [setData]);
+  }, [setData, userId]);
 
   const addNewRestaurant = useCallback((category = 'new') => {
     const newId = Date.now().toString();
@@ -474,32 +508,33 @@ export function useStrategyData() {
       conceptSummary: '',
       socialLinks: { web: '', instagram: '', facebook: '' },
       contact: '',
-      accountManager: ''
+      accountManager: '',
+      ...createAuditFields(userId)
     };
     setData(prev => ({ ...prev, newRestaurants: [...(prev.newRestaurants || []), newRest] }));
     return newId;
-  }, [setData]);
+  }, [setData, userId]);
 
   const addYear = useCallback(() => {
     const newId = Date.now().toString();
-    const newYear = { id: newId, title: '202X' };
+    const newYear = { id: newId, title: '202X', ...createAuditFields(userId) };
     setData(prev => ({ ...prev, years: [...prev.years, newYear] }));
     return newId;
-  }, [setData]);
+  }, [setData, userId]);
 
   const addVision = useCallback((yearId) => {
     const newId = Date.now().toString();
-    const newVision = { id: newId, yearId, title: 'Nová vize', description: '' };
+    const newVision = { id: newId, yearId, title: 'Nová vize', description: '', ...createAuditFields(userId) };
     setData(prev => ({ ...prev, visions: [...prev.visions, newVision] }));
     return newId;
-  }, [setData]);
+  }, [setData, userId]);
 
   const addTheme = useCallback((visionId) => {
     const newId = Date.now().toString();
-    const newTheme = { id: newId, visionId, title: 'Nové hlavní téma', description: '', priority: 'Střední' };
+    const newTheme = { id: newId, visionId, title: 'Nové hlavní téma', description: '', priority: 'Střední', ...createAuditFields(userId) };
     setData(prev => ({ ...prev, themes: [...prev.themes, newTheme] }));
     return newId;
-  }, [setData]);
+  }, [setData, userId]);
 
   const addProject = useCallback((themeId) => {
     const newId = Date.now().toString();
@@ -510,24 +545,30 @@ export function useStrategyData() {
       description: '',
       status: 'Nápad',
       brands: [],
-      type: 'standard'
+      type: 'standard',
+      ...createAuditFields(userId)
     };
     setData(prev => ({ ...prev, projects: [...prev.projects, newProject] }));
     return newId;
-  }, [setData]);
+  }, [setData, userId]);
 
   const updateNode = useCallback((type, id, updates) => {
     setData(prev => {
       const collectionName = getCollectionName(type);
       const collection = prev[collectionName] || [];
-      const updatedCollection = collection.map(item => item.id === id ? { ...item, ...updates } : item);
+      const updatedCollection = collection.map(item => 
+        item.id === id ? { ...item, ...updates, ...updateAuditFields(userId) } : item
+      );
       return { ...prev, [collectionName]: updatedCollection };
     });
-  }, [setData]);
+  }, [setData, userId]);
 
   const deleteNode = useCallback((type, id, options = {}) => {
-    const { skipConfirm = false } = options;
-    if (!skipConfirm && !window.confirm('Opravdu chcete smazat tento záznam?')) return false;
+    const { skipConfirm = false, confirmFn } = options;
+    
+    // If confirmFn is provided, it's expected to be called before this function
+    // This allows async confirmation modals to work
+    if (!skipConfirm && !confirmFn && !window.confirm('Opravdu chcete smazat tento záznam?')) return false;
 
     setData(prev => {
       let newState = { ...prev };
@@ -561,11 +602,89 @@ export function useStrategyData() {
         newState.locations = (prev.locations || []).filter(l => l.brandId !== id);
       } else if (type === 'location') {
         newState.locations = (prev.locations || []).filter(l => l.id !== id);
+      } else if (type === 'signal') {
+        newState.signals = (prev.signals || []).filter(s => s.id !== id);
       }
       return newState;
     });
     return true;
   }, [setData]);
+
+  // --- Signal CRUD Operations ---
+
+  const addSignal = useCallback((signalPartial) => {
+    const newId = Date.now().toString();
+    const newSignal = {
+      id: newId,
+      title: signalPartial.title || 'Nový signál',
+      body: signalPartial.body || '',
+      date: new Date().toISOString(),
+      source: signalPartial.source || 'me',
+      restaurantIds: signalPartial.restaurantIds || [],
+      influenceIds: signalPartial.influenceIds || [],
+      themeIds: signalPartial.themeIds || [],
+      projectId: signalPartial.projectId || null,
+      status: 'inbox',
+      priority: signalPartial.priority || null,
+      tags: signalPartial.tags || [],
+      attachments: signalPartial.attachments || [],
+      ...createAuditFields(userId)
+    };
+    // Keep newest signals first
+    setData(prev => ({ ...prev, signals: [newSignal, ...(prev.signals || [])] }));
+    return newId;
+  }, [setData, userId]);
+
+  const updateSignal = useCallback((id, updates) => {
+    setData(prev => ({
+      ...prev,
+      signals: (prev.signals || []).map(s => s.id === id ? { ...s, ...updates, ...updateAuditFields(userId) } : s)
+    }));
+  }, [setData, userId]);
+
+  const deleteSignal = useCallback((id, skipConfirm = false, confirmFn = null) => {
+    if (!skipConfirm && !confirmFn && !window.confirm('Opravdu chcete smazat tento signál?')) return false;
+    setData(prev => ({
+      ...prev,
+      signals: (prev.signals || []).filter(s => s.id !== id)
+    }));
+    return true;
+  }, [setData]);
+
+  const convertSignalToProject = useCallback((signalId, themeId) => {
+    const signal = (data.signals || []).find(s => s.id === signalId);
+    if (!signal) return null;
+
+    const newProjectId = Date.now().toString();
+    const newProject = {
+      id: newProjectId,
+      themeId,
+      title: signal.title,
+      description: signal.body || '',
+      status: 'Nápad',
+      brands: [],
+      type: 'standard',
+      ...createAuditFields(userId)
+    };
+
+    setData(prev => {
+      // Add project
+      const updatedProjects = [...prev.projects, newProject];
+      // Update signal
+      const updatedSignals = (prev.signals || []).map(s => {
+        if (s.id === signalId) {
+          const newThemeIds = s.themeIds?.includes(themeId) 
+            ? s.themeIds 
+            : [...(s.themeIds || []), themeId];
+          return { ...s, status: 'converted', projectId: newProjectId, themeIds: newThemeIds, ...updateAuditFields(userId) };
+        }
+        return s;
+      });
+      return { ...prev, projects: updatedProjects, signals: updatedSignals };
+    });
+
+    return newProjectId;
+  }, [data.signals, setData, userId]);
 
   const moveItem = useCallback((itemType, itemId, newParentId, newIndex = null) => {
     setData(prev => {
@@ -622,20 +741,21 @@ export function useStrategyData() {
   const addSandboxNode = useCallback((type, position) => {
     const newId = Date.now().toString();
     const sandboxPosition = position;
+    const audit = createAuditFields(userId);
 
     setData(prev => {
       let newState = { ...prev };
 
       if (type === 'year') {
-        const newYear = { id: newId, title: '202X', sandboxPosition };
+        const newYear = { id: newId, title: '202X', sandboxPosition, ...audit };
         newState.years = [...prev.years, newYear];
       } else if (type === 'vision') {
         const yearId = prev.years.length > 0 ? prev.years[0].id : 'y1';
-        const newVision = { id: newId, yearId, title: 'Nová vize', description: '', sandboxPosition };
+        const newVision = { id: newId, yearId, title: 'Nová vize', description: '', sandboxPosition, ...audit };
         newState.visions = [...prev.visions, newVision];
       } else if (type === 'theme') {
         const visionId = prev.visions.length > 0 ? prev.visions[0].id : 'v1';
-        const newTheme = { id: newId, visionId, title: 'Nové téma', description: '', priority: 'Střední', sandboxPosition };
+        const newTheme = { id: newId, visionId, title: 'Nové téma', description: '', priority: 'Střední', sandboxPosition, ...audit };
         newState.themes = [...prev.themes, newTheme];
       } else if (type === 'project') {
         const themeId = prev.themes.length > 0 ? prev.themes[0].id : 't1';
@@ -647,7 +767,8 @@ export function useStrategyData() {
           status: 'Nápad',
           brands: [],
           type: 'standard',
-          sandboxPosition
+          sandboxPosition,
+          ...audit
         };
         newState.projects = [...prev.projects, newProject];
       } else if (type === 'influence') {
@@ -658,7 +779,8 @@ export function useStrategyData() {
           description: '',
           connectedThemeIds: [],
           connectedProjectIds: [],
-          sandboxPosition
+          sandboxPosition,
+          ...audit
         };
         newState.influences = [...(prev.influences || []), newInfluence];
       } else if (type === 'newRestaurant') {
@@ -676,7 +798,8 @@ export function useStrategyData() {
           socialLinks: { web: '', instagram: '', facebook: '' },
           contact: '',
           accountManager: '',
-          sandboxPosition
+          sandboxPosition,
+          ...audit
         };
         newState.newRestaurants = [...(prev.newRestaurants || []), newRest];
       } else if (type === 'reconstruction') {
@@ -694,7 +817,8 @@ export function useStrategyData() {
           socialLinks: { web: '', instagram: '', facebook: '' },
           contact: '',
           accountManager: '',
-          sandboxPosition
+          sandboxPosition,
+          ...audit
         };
         newState.newRestaurants = [...(prev.newRestaurants || []), newRest];
       }
@@ -703,7 +827,7 @@ export function useStrategyData() {
     });
 
     return newId;
-  }, [setData]);
+  }, [setData, userId]);
 
   // --- Import/Export ---
 
@@ -758,7 +882,7 @@ export function useStrategyData() {
   }, [setData]);
 
   return {
-    data,
+    data: safeData,
     // CRUD operations
     addBrand,
     addLocation,
@@ -772,6 +896,11 @@ export function useStrategyData() {
     deleteNode,
     moveItem,
     addSandboxNode,
+    // Signal operations
+    addSignal,
+    updateSignal,
+    deleteSignal,
+    convertSignalToProject,
     // Import/Export
     exportData,
     importData,

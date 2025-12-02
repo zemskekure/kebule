@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Plus, ChevronDown, ChevronRight, Edit2, Trash2, Calendar, MapPin, User, ExternalLink, Zap, GripVertical } from 'lucide-react';
+import { Plus, ChevronDown, ChevronRight, Edit2, Trash2, Calendar, MapPin, User, ExternalLink, Zap, GripVertical, Radio, Search, Filter, Inbox, CheckCircle, Archive, ArrowRight } from 'lucide-react';
 import { BackupManager } from './BackupManager';
 import { buildStrategyTree, getVisionsForYear, getThemesForVision, getProjectsForTheme } from '../utils/buildStrategyTree';
 
@@ -142,12 +142,22 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                         alignItems: 'center',
                         gap: '0.5rem',
                         padding: '0.5rem 1rem',
-                        backgroundColor: isDark ? '#ffffff' : '#000000',
-                        color: isDark ? '#000000' : '#ffffff',
+                        background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                        color: '#ffffff',
                         border: 'none',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 88, 12, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(234, 88, 12, 0.3)';
                     }}
                 >
                     <Plus size={16} /> Přidat rok
@@ -162,6 +172,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                     return (
                         <div
                             key={year.id}
+                            className="interactive-card"
                             style={{
                                 border: `1px solid ${borderColor}`,
                                 borderRadius: '12px',
@@ -223,6 +234,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                 onDrop={(e) => handleDrop(e, 'vision', vision.id, year.id)}
                                             >
                                                 <div
+                                                    className="interactive-card"
                                                     style={{
                                                         display: 'flex',
                                                         alignItems: 'center',
@@ -280,6 +292,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                     onDrop={(e) => handleDrop(e, 'theme', themeItem.id, vision.id)}
                                                                 >
                                                                     <div
+                                                                        className="interactive-card"
                                                                         style={{
                                                                             display: 'flex',
                                                                             alignItems: 'center',
@@ -368,6 +381,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                     onDragLeave={handleDragLeave}
                                                                                     onDrop={(e) => handleDrop(e, 'project', project.id, themeItem.id)}
                                                                                     onClick={() => onSelectNode('project', project.id)}
+                                                                                    className="interactive-card"
                                                                                     style={{
                                                                                         display: 'flex',
                                                                                         alignItems: 'center',
@@ -500,6 +514,7 @@ function InfluencesContent({ data, onSelectNode, selectedNode, onAddInfluence, t
         <div
             key={influence.id}
             onClick={() => onSelectNode('influence', influence.id)}
+            className="interactive-card"
             style={{
                 padding: '1rem',
                 borderRadius: '8px',
@@ -507,8 +522,7 @@ function InfluencesContent({ data, onSelectNode, selectedNode, onAddInfluence, t
                 backgroundColor: selectedNode?.id === influence.id
                     ? (isDark ? 'rgba(0, 180, 216, 0.1)' : 'rgba(0, 180, 216, 0.05)')
                     : cardBg,
-                cursor: 'pointer',
-                transition: 'all 0.2s'
+                cursor: 'pointer'
             }}
         >
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
@@ -551,12 +565,22 @@ function InfluencesContent({ data, onSelectNode, selectedNode, onAddInfluence, t
                         alignItems: 'center',
                         gap: '0.5rem',
                         padding: '0.5rem 1rem',
-                        backgroundColor: isDark ? '#ffffff' : '#000000',
-                        color: isDark ? '#000000' : '#ffffff',
+                        background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                        color: '#ffffff',
                         border: 'none',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 88, 12, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(234, 88, 12, 0.3)';
                     }}
                 >
                     <Plus size={16} /> Přidat vliv
@@ -611,12 +635,22 @@ function ReconstructionsContent({ data, onSelectNode, selectedNode, onAddNewRest
                         alignItems: 'center',
                         gap: '0.5rem',
                         padding: '0.5rem 1rem',
-                        backgroundColor: '#eab308',
-                        color: '#000000',
+                        background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                        color: '#ffffff',
                         border: 'none',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 88, 12, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(234, 88, 12, 0.3)';
                     }}
                 >
                     <Plus size={16} /> Přidat rekonstrukci
@@ -632,6 +666,7 @@ function ReconstructionsContent({ data, onSelectNode, selectedNode, onAddNewRest
                         <div
                             key={item.id}
                             onClick={() => onSelectNode('newRestaurant', item.id)}
+                            className="interactive-card"
                             style={{
                                 padding: '1.25rem',
                                 borderRadius: '12px',
@@ -710,12 +745,22 @@ function NewRestaurantsContent({ data, onSelectNode, selectedNode, onAddNewResta
                         alignItems: 'center',
                         gap: '0.5rem',
                         padding: '0.5rem 1rem',
-                        backgroundColor: '#00b4d8',
+                        background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                         color: '#ffffff',
                         border: 'none',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 88, 12, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(234, 88, 12, 0.3)';
                     }}
                 >
                     <Plus size={16} /> Přidat novou restauraci
@@ -727,6 +772,7 @@ function NewRestaurantsContent({ data, onSelectNode, selectedNode, onAddNewResta
                     <div
                         key={item.id}
                         onClick={() => onSelectNode('newRestaurant', item.id)}
+                        className="interactive-card"
                         style={{
                             padding: '1.25rem',
                             borderRadius: '12px',
@@ -778,6 +824,360 @@ function NewRestaurantsContent({ data, onSelectNode, selectedNode, onAddNewResta
     );
 }
 
+// Signals Content (Inbox)
+function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }) {
+    const isDark = theme === 'dark';
+    const textColor = isDark ? '#ffffff' : '#212529';
+    const textSecondary = isDark ? '#adb5bd' : '#6c757d';
+    const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e9ecef';
+    const cardBg = isDark ? 'rgba(255, 255, 255, 0.03)' : '#ffffff';
+    const inputBg = isDark ? 'rgba(255, 255, 255, 0.05)' : '#f8f9fa';
+
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [quickAddTitle, setQuickAddTitle] = useState('');
+
+    const signals = data.signals || [];
+
+    // Filter signals
+    const filteredSignals = useMemo(() => {
+        let result = signals;
+        if (statusFilter !== 'all') {
+            result = result.filter(s => s.status === statusFilter);
+        }
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            result = result.filter(s => 
+                s.title.toLowerCase().includes(q) || 
+                (s.body || '').toLowerCase().includes(q)
+            );
+        }
+        return result;
+    }, [signals, statusFilter, searchQuery]);
+
+    // Stats
+    const inboxCount = signals.filter(s => s.status === 'inbox').length;
+    const triagedCount = signals.filter(s => s.status === 'triaged').length;
+    const convertedCount = signals.filter(s => s.status === 'converted').length;
+    const archivedCount = signals.filter(s => s.status === 'archived').length;
+
+    const handleQuickAdd = () => {
+        if (!quickAddTitle.trim()) return;
+        onAddSignal({ title: quickAddTitle.trim() });
+        setQuickAddTitle('');
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'inbox': return '#6366f1';
+            case 'triaged': return '#f59e0b';
+            case 'converted': return '#10b981';
+            case 'archived': return '#6b7280';
+            default: return textSecondary;
+        }
+    };
+
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'inbox': return 'Inbox';
+            case 'triaged': return 'Tříděno';
+            case 'converted': return 'Převedeno';
+            case 'archived': return 'Archiv';
+            default: return status;
+        }
+    };
+
+    const formatRelativeDate = (dateStr) => {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 0) return 'Dnes';
+        if (diffDays === 1) return 'Včera';
+        if (diffDays < 7) return `Před ${diffDays} dny`;
+        if (diffDays < 30) return `Před ${Math.floor(diffDays / 7)} týdny`;
+        return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+    };
+
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'high': return '#ef4444';
+            case 'med': return '#f59e0b';
+            case 'low': return '#22c55e';
+            default: return 'transparent';
+        }
+    };
+
+    return (
+        <div style={{ padding: '1.5rem' }}>
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h2 style={{ margin: 0, color: textColor, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Radio size={24} style={{ color: '#ea580c' }} /> Signály
+                </h2>
+            </div>
+
+            {/* Quick Add */}
+            <div style={{ 
+                display: 'flex', 
+                gap: '0.5rem', 
+                marginBottom: '1.5rem',
+                padding: '1rem',
+                backgroundColor: isDark ? cardBg : '#f8f9fa',
+                borderRadius: '12px',
+                border: 'none'
+            }}>
+                <input
+                    type="text"
+                    placeholder="Rychle přidat signál..."
+                    value={quickAddTitle}
+                    onChange={(e) => setQuickAddTitle(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
+                    style={{
+                        flex: 1,
+                        padding: '0.75rem 1rem',
+                        backgroundColor: inputBg,
+                        color: textColor,
+                        border: `1px solid ${borderColor}`,
+                        borderRadius: '8px',
+                        fontSize: '0.95rem'
+                    }}
+                />
+                <button
+                    onClick={handleQuickAdd}
+                    disabled={!quickAddTitle.trim()}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.75rem 1.25rem',
+                        background: quickAddTitle.trim() ? 'linear-gradient(135deg, #ea580c, #c2410c)' : (isDark ? 'rgba(255,255,255,0.1)' : '#e9ecef'),
+                        color: quickAddTitle.trim() ? '#ffffff' : textSecondary,
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: quickAddTitle.trim() ? 'pointer' : 'not-allowed',
+                        fontWeight: 500,
+                        transition: 'all 0.2s ease',
+                        boxShadow: quickAddTitle.trim() ? '0 2px 8px rgba(234, 88, 12, 0.3)' : 'none'
+                    }}
+                >
+                    <Plus size={18} /> Přidat
+                </button>
+            </div>
+
+            {/* Stats Row */}
+            <div style={{ 
+                display: 'flex', 
+                gap: '0.75rem', 
+                marginBottom: '1.5rem',
+                flexWrap: 'wrap'
+            }}>
+                {[
+                    { key: 'all', label: 'Vše', count: signals.length, color: textSecondary },
+                    { key: 'inbox', label: 'Inbox', count: inboxCount, color: '#6366f1' },
+                    { key: 'triaged', label: 'Tříděno', count: triagedCount, color: '#f59e0b' },
+                    { key: 'converted', label: 'Převedeno', count: convertedCount, color: '#10b981' },
+                    { key: 'archived', label: 'Archiv', count: archivedCount, color: '#6b7280' },
+                ].map(item => (
+                    <button
+                        key={item.key}
+                        onClick={() => setStatusFilter(item.key)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            backgroundColor: statusFilter === item.key 
+                                ? (isDark ? 'rgba(99, 102, 241, 0.2)' : 'rgba(99, 102, 241, 0.1)')
+                                : 'transparent',
+                            color: statusFilter === item.key ? item.color : textSecondary,
+                            border: `1px solid ${statusFilter === item.key ? item.color : borderColor}`,
+                            borderRadius: '20px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            fontWeight: statusFilter === item.key ? 600 : 400
+                        }}
+                    >
+                        {item.label}
+                        <span style={{
+                            backgroundColor: `${item.color}20`,
+                            color: item.color,
+                            padding: '0.1rem 0.5rem',
+                            borderRadius: '10px',
+                            fontSize: '0.75rem',
+                            fontWeight: 600
+                        }}>
+                            {item.count}
+                        </span>
+                    </button>
+                ))}
+            </div>
+
+            {/* Search */}
+            <div style={{ 
+                position: 'relative', 
+                marginBottom: '1rem'
+            }}>
+                <Search size={16} style={{ 
+                    position: 'absolute', 
+                    left: '1rem', 
+                    top: '50%', 
+                    transform: 'translateY(-50%)',
+                    color: textSecondary 
+                }} />
+                <input
+                    type="text"
+                    placeholder="Hledat v signálech..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '0.75rem 1rem 0.75rem 2.5rem',
+                        backgroundColor: inputBg,
+                        color: textColor,
+                        border: `1px solid ${borderColor}`,
+                        borderRadius: '8px',
+                        fontSize: '0.9rem'
+                    }}
+                />
+            </div>
+
+            {/* Signals List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {filteredSignals.length === 0 ? (
+                    <div style={{ 
+                        textAlign: 'center', 
+                        padding: '3rem', 
+                        color: textSecondary,
+                        backgroundColor: cardBg,
+                        borderRadius: '12px',
+                        border: `1px solid ${borderColor}`
+                    }}>
+                        <Radio size={48} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+                        <p style={{ margin: 0 }}>
+                            {signals.length === 0 
+                                ? 'Zatím žádné signály. Přidejte první postřeh výše.'
+                                : 'Žádné signály neodpovídají filtru.'}
+                        </p>
+                    </div>
+                ) : (
+                    filteredSignals.map(signal => {
+                        const restaurants = (signal.restaurantIds || [])
+                            .map(id => (data.locations || []).find(l => l.id === id))
+                            .filter(Boolean);
+
+                        return (
+                            <div
+                                key={signal.id}
+                                onClick={() => onSelectNode('signal', signal.id)}
+                                className="interactive-card"
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'flex-start',
+                                    gap: '0.75rem',
+                                    padding: '1rem',
+                                    borderRadius: '10px',
+                                    border: `1px solid ${selectedNode?.id === signal.id ? '#6366f1' : borderColor}`,
+                                    backgroundColor: selectedNode?.id === signal.id
+                                        ? (isDark ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)')
+                                        : cardBg,
+                                    cursor: 'pointer',
+                                    borderLeft: signal.priority 
+                                        ? `4px solid ${getPriorityColor(signal.priority)}`
+                                        : `4px solid transparent`
+                                }}
+                            >
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '0.5rem',
+                                        marginBottom: '0.25rem'
+                                    }}>
+                                        <span style={{ 
+                                            fontWeight: 600, 
+                                            color: textColor,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}>
+                                            {signal.title}
+                                        </span>
+                                    </div>
+                                    {signal.body && (
+                                        <p style={{ 
+                                            margin: '0 0 0.5rem 0', 
+                                            fontSize: '0.85rem', 
+                                            color: textSecondary,
+                                            overflow: 'hidden',
+                                            textOverflow: 'ellipsis',
+                                            whiteSpace: 'nowrap'
+                                        }}>
+                                            {signal.body}
+                                        </p>
+                                    )}
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        gap: '0.5rem',
+                                        flexWrap: 'wrap'
+                                    }}>
+                                        {restaurants.slice(0, 2).map(loc => (
+                                            <span
+                                                key={loc.id}
+                                                style={{
+                                                    fontSize: '0.7rem',
+                                                    padding: '0.15rem 0.5rem',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#f1f3f5',
+                                                    color: textSecondary
+                                                }}
+                                            >
+                                                {loc.name}
+                                            </span>
+                                        ))}
+                                        {restaurants.length > 2 && (
+                                            <span style={{ fontSize: '0.7rem', color: textSecondary }}>
+                                                +{restaurants.length - 2}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <div style={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    alignItems: 'flex-end',
+                                    gap: '0.5rem',
+                                    flexShrink: 0
+                                }}>
+                                    <span style={{ 
+                                        fontSize: '0.75rem', 
+                                        color: textSecondary 
+                                    }}>
+                                        {formatRelativeDate(signal.date)}
+                                    </span>
+                                    <span style={{
+                                        fontSize: '0.7rem',
+                                        padding: '0.2rem 0.6rem',
+                                        borderRadius: '12px',
+                                        backgroundColor: `${getStatusColor(signal.status)}20`,
+                                        color: getStatusColor(signal.status),
+                                        fontWeight: 600
+                                    }}>
+                                        {getStatusLabel(signal.status)}
+                                    </span>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </div>
+        </div>
+    );
+}
+
 // Brands Content
 function BrandsContent({ data, onSelectNode, selectedNode, onAddBrand, onAddLocation, theme }) {
     const isDark = theme === 'dark';
@@ -803,12 +1203,22 @@ function BrandsContent({ data, onSelectNode, selectedNode, onAddBrand, onAddLoca
                         alignItems: 'center',
                         gap: '0.5rem',
                         padding: '0.5rem 1rem',
-                        backgroundColor: isDark ? '#ffffff' : '#000000',
-                        color: isDark ? '#000000' : '#ffffff',
+                        background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                        color: '#ffffff',
                         border: 'none',
                         borderRadius: '6px',
                         cursor: 'pointer',
-                        fontWeight: 500
+                        fontWeight: 500,
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 88, 12, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(234, 88, 12, 0.3)';
                     }}
                 >
                     <Plus size={16} /> Přidat značku
@@ -823,6 +1233,7 @@ function BrandsContent({ data, onSelectNode, selectedNode, onAddBrand, onAddLoca
                     return (
                         <div
                             key={brand.id}
+                            className="interactive-card"
                             style={{
                                 borderRadius: '12px',
                                 border: `1px solid ${borderColor}`,
@@ -871,6 +1282,7 @@ function BrandsContent({ data, onSelectNode, selectedNode, onAddBrand, onAddLoca
                                         <div
                                             key={location.id}
                                             onClick={() => onSelectNode('location', location.id)}
+                                            className="interactive-card"
                                             style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
@@ -944,6 +1356,7 @@ export function EditorContent({
     onAddNewRestaurant,
     onAddBrand,
     onAddLocation,
+    onAddSignal,
     onMoveItem,
     onRestoreBackup,
     theme
@@ -972,6 +1385,16 @@ export function EditorContent({
                         onAddTheme={onAddTheme}
                         onAddProject={onAddProject}
                         onMoveItem={onMoveItem}
+                        theme={theme}
+                    />
+                );
+            case 'signals':
+                return (
+                    <SignalsContent
+                        data={data}
+                        onSelectNode={onSelectNode}
+                        selectedNode={selectedNode}
+                        onAddSignal={onAddSignal}
                         theme={theme}
                     />
                 );

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Archive, Download, Upload, Trash2, RotateCcw, Clock, Save, AlertCircle } from 'lucide-react';
+import { useConfirm } from '../contexts/ConfirmContext';
 
 const BACKUP_STORAGE_KEY = 'strategieAmbiente_backups';
 const MAX_AUTO_BACKUPS = 10;
 
 export function BackupManager({ data, onRestore, theme = 'light' }) {
     const isDark = theme === 'dark';
+    const confirm = useConfirm();
     const [backups, setBackups] = useState([]);
     const [backupName, setBackupName] = useState('');
     const [showNameInput, setShowNameInput] = useState(false);
@@ -90,16 +92,29 @@ export function BackupManager({ data, onRestore, theme = 'light' }) {
         setShowNameInput(false);
     };
 
-    const deleteBackup = (id) => {
-        if (window.confirm('Opravdu chcete smazat tuto zálohu?')) {
+    const deleteBackup = async (id) => {
+        const confirmed = await confirm({
+            title: 'Smazat zálohu',
+            message: 'Opravdu chcete smazat tuto zálohu?',
+            confirmText: 'Smazat',
+            cancelText: 'Zrušit',
+            type: 'danger'
+        });
+        if (confirmed) {
             saveBackups(backups.filter(b => b.id !== id));
         }
     };
 
-    const restoreBackup = (backup) => {
-        if (window.confirm('Opravdu chcete obnovit tato data? Současná data budou přepsána.')) {
+    const restoreBackup = async (backup) => {
+        const confirmed = await confirm({
+            title: 'Obnovit zálohu',
+            message: 'Opravdu chcete obnovit tato data? Současná data budou přepsána.',
+            confirmText: 'Obnovit',
+            cancelText: 'Zrušit',
+            type: 'warning'
+        });
+        if (confirmed) {
             onRestore(backup.data);
-            alert('Data byla úspěšně obnovena.');
         }
     };
 
@@ -172,12 +187,21 @@ export function BackupManager({ data, onRestore, theme = 'light' }) {
                                 alignItems: 'center',
                                 gap: '0.5rem',
                                 padding: '0.5rem 1rem',
-                                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#fff',
+                                backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#fff',
                                 color: textColor,
                                 border: `1px solid ${borderColor}`,
                                 borderRadius: '6px',
                                 cursor: 'pointer',
-                                fontWeight: 500
+                                fontWeight: 500,
+                                transition: 'all 0.2s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#f8f9fa';
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.05)' : '#fff';
+                                e.currentTarget.style.transform = 'translateY(0)';
                             }}
                         >
                             <Upload size={16} />
@@ -191,12 +215,22 @@ export function BackupManager({ data, onRestore, theme = 'light' }) {
                                 alignItems: 'center',
                                 gap: '0.5rem',
                                 padding: '0.5rem 1rem',
-                                backgroundColor: '#00b4d8',
+                                background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                                 color: '#ffffff',
                                 border: 'none',
                                 borderRadius: '6px',
                                 cursor: 'pointer',
-                                fontWeight: 500
+                                fontWeight: 500,
+                                transition: 'all 0.2s ease',
+                                boxShadow: '0 2px 8px rgba(234, 88, 12, 0.3)'
+                            }}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-1px)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(234, 88, 12, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 2px 8px rgba(234, 88, 12, 0.3)';
                             }}
                         >
                             <Save size={16} />

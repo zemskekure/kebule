@@ -1,8 +1,9 @@
 import React from 'react';
-import { Brain, Zap, HardHat, Building2, Store, Database, ChevronRight } from 'lucide-react';
+import { Brain, Zap, HardHat, Building2, Store, Database, ChevronRight, Radio } from 'lucide-react';
 
 const EDITOR_SECTIONS = [
     { id: 'thought-system', label: 'Šiška', icon: Brain, description: 'Vize, témata a projekty' },
+    { id: 'signals', label: 'Signály', icon: Radio, description: 'Surové postřehy a pozorování' },
     { id: 'influences', label: 'Vlivy', icon: Zap, description: 'Externí a interní vlivy' },
     { id: 'reconstructions', label: 'Rekonstrukce & Facelifty', icon: HardHat, description: 'Plánované rekonstrukce' },
     { id: 'new-restaurants', label: 'Nové restaurace', icon: Building2, description: 'Nové koncepty a pobočky' },
@@ -40,13 +41,13 @@ export function EditorSidebar({ activeSection, onSectionChange, theme = 'light' 
         cursor: 'pointer',
         transition: 'all 0.2s ease',
         backgroundColor: isActive
-            ? (isDark ? 'rgba(0, 180, 216, 0.15)' : 'rgba(0, 180, 216, 0.1)')
+            ? (isDark ? 'rgba(234, 88, 12, 0.15)' : 'rgba(234, 88, 12, 0.1)')
             : 'transparent',
         borderLeft: isActive
-            ? '3px solid #00b4d8'
+            ? '3px solid #ea580c'
             : '3px solid transparent',
         color: isActive
-            ? (isDark ? '#00b4d8' : '#0077b6')
+            ? (isDark ? '#fb923c' : '#ea580c')
             : (isDark ? '#adb5bd' : '#495057')
     });
 
@@ -58,10 +59,10 @@ export function EditorSidebar({ activeSection, onSectionChange, theme = 'light' 
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: isActive
-            ? (isDark ? 'rgba(0, 180, 216, 0.2)' : 'rgba(0, 180, 216, 0.15)')
+            ? (isDark ? 'rgba(234, 88, 12, 0.2)' : 'rgba(234, 88, 12, 0.15)')
             : (isDark ? 'rgba(255, 255, 255, 0.05)' : '#f1f3f5'),
         color: isActive
-            ? '#00b4d8'
+            ? '#ea580c'
             : (isDark ? '#adb5bd' : '#868e96')
     });
 
@@ -119,7 +120,7 @@ export function EditorSidebar({ activeSection, onSectionChange, theme = 'light' 
                                 size={16}
                                 style={{
                                     opacity: isActive ? 1 : 0.3,
-                                    color: isActive ? '#00b4d8' : 'inherit'
+                                    color: isActive ? '#ea580c' : 'inherit'
                                 }}
                             />
                         </div>

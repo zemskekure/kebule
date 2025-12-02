@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 export function Dashboard({ data, theme = 'dark' }) {
-    const { projects, newRestaurants, themes, visions, years, influences } = data;
+    const { projects, newRestaurants, themes, visions, years, influences, signals } = data;
 
     // Year filter state - default to current year or first available
     const currentYear = new Date().getFullYear();
@@ -671,7 +671,7 @@ export function Dashboard({ data, theme = 'dark' }) {
                         </div>
                     </motion.div>
 
-                    {/* Signals Placeholder */}
+                    {/* Signals Block */}
                     <motion.div
                         className="glass-card dashboard-panel"
                         initial={{ opacity: 0, y: 20 }}
@@ -680,24 +680,166 @@ export function Dashboard({ data, theme = 'dark' }) {
                         style={{ background: cardBg, border: `1px solid ${cardBorder}`, maxWidth: '320px' }}
                     >
                         <h3 style={{ color: textColor, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Radio size={18} /> Signály
+                            <Radio size={18} style={{ color: '#6366f1' }} /> Signály
                         </h3>
-                        <div style={{ 
-                            marginTop: '1rem',
-                            padding: '2rem 1rem',
-                            textAlign: 'center',
-                            background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-                            borderRadius: '8px',
-                            border: `1px dashed ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
-                        }}>
-                            <Radio size={32} style={{ color: textSecondary, marginBottom: '0.75rem', opacity: 0.5 }} />
-                            <p style={{ color: textSecondary, fontSize: '0.85rem', margin: 0 }}>
-                                Modul signálů zatím není aktivní
-                            </p>
-                            <p style={{ color: textSecondary, fontSize: '0.75rem', margin: '0.5rem 0 0 0', opacity: 0.7 }}>
-                                Zde se budou zobrazovat signály z trhu a provozu
-                            </p>
-                        </div>
+                        {(() => {
+                            const allSignals = signals || [];
+                            const now = new Date();
+                            const thisMonth = now.getMonth();
+                            const thisYear = now.getFullYear();
+                            
+                            // Signals this month
+                            const signalsThisMonth = allSignals.filter(s => {
+                                if (!s.date) return false;
+                                const d = new Date(s.date);
+                                return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+                            });
+                            
+                            // Untriaged count
+                            const untriagedCount = allSignals.filter(s => s.status === 'inbox').length;
+                            
+                            // Top restaurants by signal count
+                            const restaurantCounts = {};
+                            allSignals.forEach(s => {
+                                (s.restaurantIds || []).forEach(rid => {
+                                    restaurantCounts[rid] = (restaurantCounts[rid] || 0) + 1;
+                                });
+                            });
+                            const topRestaurants = Object.entries(restaurantCounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 3)
+                                .map(([id, count]) => {
+                                    const loc = (data.locations || []).find(l => l.id === id);
+                                    const brand = loc ? data.brands.find(b => b.id === loc.brandId) : null;
+                                    return { id, count, name: loc ? `${brand?.name || ''} ${loc.name}` : id };
+                                });
+                            
+                            // Top influences by signal count
+                            const influenceCounts = {};
+                            allSignals.forEach(s => {
+                                (s.influenceIds || []).forEach(iid => {
+                                    influenceCounts[iid] = (influenceCounts[iid] || 0) + 1;
+                                });
+                            });
+                            const topInfluences = Object.entries(influenceCounts)
+                                .sort((a, b) => b[1] - a[1])
+                                .slice(0, 3)
+                                .map(([id, count]) => {
+                                    const inf = (influences || []).find(i => i.id === id);
+                                    return { id, count, name: inf?.title || id, type: inf?.type };
+                                });
+                            
+                            if (allSignals.length === 0) {
+                                return (
+                                    <div style={{ 
+                                        marginTop: '1rem',
+                                        padding: '2rem 1rem',
+                                        textAlign: 'center',
+                                        background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+                                        borderRadius: '8px',
+                                        border: `1px dashed ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`
+                                    }}>
+                                        <Radio size={32} style={{ color: textSecondary, marginBottom: '0.75rem', opacity: 0.5 }} />
+                                        <p style={{ color: textSecondary, fontSize: '0.85rem', margin: 0 }}>
+                                            Zatím žádné signály
+                                        </p>
+                                        <p style={{ color: textSecondary, fontSize: '0.75rem', margin: '0.5rem 0 0 0', opacity: 0.7 }}>
+                                            Přidejte signály v sekci Editor → Signály
+                                        </p>
+                                    </div>
+                                );
+                            }
+                            
+                            return (
+                                <div style={{ marginTop: '1rem' }}>
+                                    {/* Stats row */}
+                                    <div style={{ 
+                                        display: 'flex', 
+                                        gap: '1rem', 
+                                        marginBottom: '1rem',
+                                        padding: '0.75rem',
+                                        background: isDark ? 'rgba(99, 102, 241, 0.1)' : 'rgba(99, 102, 241, 0.05)',
+                                        borderRadius: '8px'
+                                    }}>
+                                        <div style={{ flex: 1, textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#6366f1' }}>
+                                                {signalsThisMonth.length}
+                                            </div>
+                                            <div style={{ fontSize: '0.7rem', color: textSecondary }}>Tento měsíc</div>
+                                        </div>
+                                        <div style={{ flex: 1, textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: untriagedCount > 0 ? '#f59e0b' : '#10b981' }}>
+                                                {untriagedCount}
+                                            </div>
+                                            <div style={{ fontSize: '0.7rem', color: textSecondary }}>Netříděno</div>
+                                        </div>
+                                        <div style={{ flex: 1, textAlign: 'center' }}>
+                                            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: textColor }}>
+                                                {allSignals.length}
+                                            </div>
+                                            <div style={{ fontSize: '0.7rem', color: textSecondary }}>Celkem</div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Top restaurants */}
+                                    {topRestaurants.length > 0 && (
+                                        <div style={{ marginBottom: '0.75rem' }}>
+                                            <div style={{ fontSize: '0.75rem', color: textSecondary, marginBottom: '0.4rem', fontWeight: 600 }}>
+                                                Top pobočky
+                                            </div>
+                                            {topRestaurants.map((r, i) => (
+                                                <div key={r.id} style={{ 
+                                                    display: 'flex', 
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '0.3rem 0.5rem',
+                                                    marginBottom: '0.2rem',
+                                                    background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                                                    borderRadius: '4px',
+                                                    fontSize: '0.8rem'
+                                                }}>
+                                                    <span style={{ color: textColor }}>{r.name}</span>
+                                                    <span style={{ 
+                                                        color: '#6366f1', 
+                                                        fontWeight: 600,
+                                                        fontSize: '0.75rem'
+                                                    }}>{r.count}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    
+                                    {/* Top influences */}
+                                    {topInfluences.length > 0 && (
+                                        <div>
+                                            <div style={{ fontSize: '0.75rem', color: textSecondary, marginBottom: '0.4rem', fontWeight: 600 }}>
+                                                Top vlivy
+                                            </div>
+                                            {topInfluences.map((inf, i) => (
+                                                <div key={inf.id} style={{ 
+                                                    display: 'flex', 
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    padding: '0.3rem 0.5rem',
+                                                    marginBottom: '0.2rem',
+                                                    background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                                                    borderRadius: '4px',
+                                                    fontSize: '0.8rem',
+                                                    borderLeft: `3px solid ${inf.type === 'external' ? '#dc3545' : '#198754'}`
+                                                }}>
+                                                    <span style={{ color: textColor }}>{inf.name}</span>
+                                                    <span style={{ 
+                                                        color: '#6366f1', 
+                                                        fontWeight: 600,
+                                                        fontSize: '0.75rem'
+                                                    }}>{inf.count}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </motion.div>
                 </div>
 

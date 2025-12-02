@@ -1,5 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Download, Upload, LayoutGrid, List, BarChart3, Search, Moon, Sun, GitBranch } from 'lucide-react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { Download, Upload, LayoutGrid, List, BarChart3, Search, Moon, Sun, GitBranch, LogOut, User } from 'lucide-react';
+import { useAuth } from './contexts/AuthContext';
+import { useConfirm } from './contexts/ConfirmContext';
+import { LoginModal } from './components/LoginModal';
 import { DetailPanel } from './components/DetailPanel';
 import { VisionBoard } from './components/VisionBoard';
 import { Dashboard } from './components/Dashboard';
@@ -36,6 +39,11 @@ function useLocalStorage(key, initialValue) {
 }
 
 function App() {
+  // Auth
+  const { currentUser, isAdmin, login, logout, isLoading } = useAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const confirm = useConfirm();
+
   // Use the strategy data hook for all CRUD operations
   const {
     data,
@@ -51,13 +59,17 @@ function App() {
     deleteNode,
     moveItem,
     addSandboxNode,
+    addSignal,
+    updateSignal,
+    deleteSignal,
+    convertSignalToProject,
     exportData,
     importData,
     restoreData,
   } = useStrategyData();
 
-  // UI State
-  const [viewMode, setViewMode] = useState('admin'); // 'admin' | 'dashboard' | 'vision' | 'sandbox'
+  // UI State - default to vision for non-logged-in users
+  const [viewMode, setViewMode] = useState('vision'); // 'admin' | 'dashboard' | 'vision' | 'sandbox'
   const [editorSection, setEditorSection] = useState('thought-system');
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
@@ -81,6 +93,11 @@ function App() {
   };
 
   const currentTheme = themes[viewMode];
+
+  // Apply theme to document for CSS variables
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', currentTheme);
+  }, [currentTheme]);
 
   // --- UI Actions (wrappers that also update UI state) ---
 
@@ -128,12 +145,31 @@ function App() {
     selectNode('project', newId);
   };
 
-  const handleDeleteNode = (type, id, options = {}) => {
-    const deleted = deleteNode(type, id, options);
+  const handleAddSignal = (signalPartial) => {
+    const newId = addSignal(signalPartial);
+    selectNode('signal', newId);
+    return newId;
+  };
+
+  const handleDeleteNode = useCallback(async (type, id, options = {}) => {
+    const { skipConfirm = false } = options;
+    
+    if (!skipConfirm) {
+      const confirmed = await confirm({
+        title: 'Smazat záznam',
+        message: 'Opravdu chcete smazat tento záznam? Tato akce je nevratná.',
+        confirmText: 'Smazat',
+        cancelText: 'Zrušit',
+        type: 'danger'
+      });
+      if (!confirmed) return;
+    }
+    
+    const deleted = deleteNode(type, id, { skipConfirm: true, confirmFn: true });
     if (deleted) {
       setSelectedNode(null);
     }
-  };
+  }, [confirm, deleteNode]);
 
   // --- Filter/Selection Actions ---
 
@@ -258,11 +294,16 @@ function App() {
   return (
     <div className="app-container" style={{ flexDirection: 'column' }}>
       <header style={{
-        backgroundColor: currentTheme === 'dark' ? 'rgba(20, 20, 20, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+        backgroundColor: currentTheme === 'dark' ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: currentTheme === 'dark' ? 'blur(20px)' : 'blur(20px) saturate(180%)',
+        WebkitBackdropFilter: currentTheme === 'dark' ? 'blur(20px)' : 'blur(20px) saturate(180%)',
         color: currentTheme === 'dark' ? '#ffffff' : '#212529'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <h1 style={{ color: currentTheme === 'dark' ? '#ffffff' : '#212529' }}>Šiška: Ambiente</h1>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+            <h1 style={{ color: currentTheme === 'dark' ? '#ffffff' : '#212529', margin: 0, lineHeight: 1.2 }}>šiška</h1>
+            <span style={{ fontSize: '0.65rem', color: currentTheme === 'dark' ? '#6b7280' : '#9ca3af', fontWeight: 400, letterSpacing: '0.5px' }}>build 0.1.0</span>
+          </div>
         </div>
 
         {/* Global Search */}
@@ -287,7 +328,7 @@ function App() {
           }}>
             <button
               className={`toggle-btn ${viewMode === 'admin' ? 'active' : ''}`}
-              onClick={() => setViewMode('admin')}
+              onClick={() => isAdmin ? setViewMode('admin') : setShowLoginModal(true)}
               style={{
                 color: currentTheme === 'dark' ? (viewMode === 'admin' ? '#000' : '#fff') : (viewMode === 'admin' ? '#212529' : '#868e96'),
                 backgroundColor: viewMode === 'admin' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
@@ -297,7 +338,7 @@ function App() {
             </button>
             <button
               className={`toggle-btn ${viewMode === 'dashboard' ? 'active' : ''}`}
-              onClick={() => setViewMode('dashboard')}
+              onClick={() => isAdmin ? setViewMode('dashboard') : setShowLoginModal(true)}
               style={{
                 color: currentTheme === 'dark' ? (viewMode === 'dashboard' ? '#000' : '#fff') : (viewMode === 'dashboard' ? '#212529' : '#868e96'),
                 backgroundColor: viewMode === 'dashboard' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
@@ -317,7 +358,7 @@ function App() {
             </button>
             <button
               className={`toggle-btn ${viewMode === 'sandbox' ? 'active' : ''}`}
-              onClick={() => setViewMode('sandbox')}
+              onClick={() => isAdmin ? setViewMode('sandbox') : setShowLoginModal(true)}
               style={{
                 color: currentTheme === 'dark' ? (viewMode === 'sandbox' ? '#000' : '#fff') : (viewMode === 'sandbox' ? '#212529' : '#868e96'),
                 backgroundColor: viewMode === 'sandbox' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
@@ -327,15 +368,82 @@ function App() {
             </button>
           </div>
 
+          {/* User indicator / Login button */}
+          {currentUser ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.4rem 0.75rem',
+                borderRadius: '20px',
+                backgroundColor: currentTheme === 'dark' ? 'rgba(234, 88, 12, 0.15)' : 'rgba(234, 88, 12, 0.08)',
+                border: currentTheme === 'dark' ? '1px solid rgba(234, 88, 12, 0.3)' : '1px solid rgba(234, 88, 12, 0.2)'
+              }}>
+                <div style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.7rem',
+                  fontWeight: 600,
+                  color: 'white'
+                }}>
+                  {currentUser.initials}
+                </div>
+                <span style={{
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                  color: currentTheme === 'dark' ? '#fff' : '#374151'
+                }}>
+                  {currentUser.name.split(' ')[0]}
+                </span>
+              </div>
+              <button
+                className="btn btn-sm"
+                onClick={logout}
+                title="Odhlásit se"
+                style={{
+                  backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                  color: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+                  border: 'none',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          ) : (
+            <button
+              className="btn btn-sm"
+              onClick={() => setShowLoginModal(true)}
+              style={{
+                backgroundColor: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                background: 'linear-gradient(135deg, #ea580c, #c2410c)',
+                color: 'white',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              <User size={16} /> Přihlásit
+            </button>
+          )}
+
           {/* Theme Toggle Button */}
           <button
             className="btn btn-sm"
             onClick={() => toggleTheme(viewMode)}
             title={currentTheme === 'dark' ? 'Přepnout na světlý režim' : 'Přepnout na tmavý režim'}
             style={{
-              backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#fff',
-              color: currentTheme === 'dark' ? '#fff' : '#212529',
-              border: currentTheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef'
+              backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+              color: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+              border: 'none',
+              transition: 'all 0.2s ease'
             }}
           >
             {currentTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
@@ -348,9 +456,10 @@ function App() {
                 onClick={exportData}
                 title="Exportovat JSON"
                 style={{
-                  backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#fff',
-                  color: currentTheme === 'dark' ? '#fff' : '#212529',
-                  border: currentTheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef'
+                  backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                  color: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+                  border: 'none',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 <Download size={16} />
@@ -360,9 +469,10 @@ function App() {
                 title="Importovat JSON"
                 style={{
                   cursor: 'pointer',
-                  backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : '#fff',
-                  color: currentTheme === 'dark' ? '#fff' : '#212529',
-                  border: currentTheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef'
+                  backgroundColor: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)',
+                  color: currentTheme === 'dark' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.6)',
+                  border: 'none',
+                  transition: 'all 0.2s ease'
                 }}
               >
                 <Upload size={16} />
@@ -415,6 +525,7 @@ function App() {
             onAddNewRestaurant={handleAddNewRestaurant}
             onAddBrand={handleAddBrand}
             onAddLocation={handleAddLocation}
+            onAddSignal={handleAddSignal}
             onMoveItem={moveItem}
             onRestoreBackup={restoreData}
             theme={currentTheme}
@@ -426,12 +537,28 @@ function App() {
             data={data}
             onUpdate={updateNode}
             onDelete={handleDeleteNode}
+            onConvertSignalToProject={convertSignalToProject}
             theme={currentTheme}
           />
 
           {/* AI Chat Window */}
           <AIChatWindow onCommand={handleAICommand} data={data} />
         </div>
+      )}
+
+      {/* Login Modal */}
+      {showLoginModal && (
+        <LoginModal
+          onLogin={(email, password) => {
+            const result = login(email, password);
+            if (result.success) {
+              setShowLoginModal(false);
+            }
+            return result;
+          }}
+          onClose={() => setShowLoginModal(false)}
+          theme={currentTheme}
+        />
       )}
     </div>
   );

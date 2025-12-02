@@ -167,9 +167,9 @@ export function AIChatWindow({ onCommand, data }) {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                                 <div style={{
                                     width: '32px', height: '32px', borderRadius: '12px',
-                                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                                    background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    boxShadow: '0 0 15px rgba(168, 85, 247, 0.4)'
+                                    boxShadow: '0 0 15px rgba(234, 88, 12, 0.4)'
                                 }}>
                                     <Sparkles size={18} color="#fff" />
                                 </div>
@@ -279,7 +279,7 @@ export function AIChatWindow({ onCommand, data }) {
                                     onClick={handleSend}
                                     disabled={!inputValue.trim() || isLoading}
                                     style={{
-                                        background: inputValue.trim() ? 'linear-gradient(135deg, #6366f1, #a855f7)' : 'rgba(255,255,255,0.1)',
+                                        background: inputValue.trim() ? 'linear-gradient(135deg, #ea580c, #c2410c)' : 'rgba(255,255,255,0.1)',
                                         border: 'none',
                                         width: '40px',
                                         height: '40px',
@@ -310,9 +310,9 @@ export function AIChatWindow({ onCommand, data }) {
                     width: '60px',
                     height: '60px',
                     borderRadius: '30px',
-                    background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                    background: 'linear-gradient(135deg, #ea580c, #c2410c)',
                     border: 'none',
-                    boxShadow: '0 10px 25px rgba(99, 102, 241, 0.4)',
+                    boxShadow: '0 10px 25px rgba(234, 88, 12, 0.4)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

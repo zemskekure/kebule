@@ -1,7 +1,417 @@
-import React from 'react';
-import { Save, Trash2, Globe, Instagram } from 'lucide-react';
+import React, { useState } from 'react';
+import { Save, Trash2, Globe, Instagram, Radio, Archive, CheckCircle, ArrowRight, User, Clock } from 'lucide-react';
+import { getUserById } from '../contexts/AuthContext';
 
-export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'light' }) {
+// Helper to format date in Czech
+function formatDate(isoString) {
+    if (!isoString) return null;
+    const date = new Date(isoString);
+    return date.toLocaleDateString('cs-CZ', { 
+        day: 'numeric', 
+        month: 'numeric', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// Audit info display component
+function AuditInfo({ item, isDark }) {
+    const createdBy = item?.createdBy ? getUserById(item.createdBy) : null;
+    const updatedBy = item?.updatedBy ? getUserById(item.updatedBy) : null;
+    
+    if (!createdBy && !updatedBy) return null;
+    
+    const textColor = isDark ? 'rgba(255,255,255,0.5)' : '#9ca3af';
+    
+    return (
+        <div style={{
+            marginTop: '1.5rem',
+            paddingTop: '1rem',
+            borderTop: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #e5e7eb',
+            fontSize: '0.75rem',
+            color: textColor
+        }}>
+            {createdBy && item.createdAt && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                    <User size={12} />
+                    <span>Vytvořil/a: <strong style={{ color: isDark ? 'rgba(255,255,255,0.7)' : '#6b7280' }}>{createdBy.name}</strong></span>
+                    <Clock size={12} style={{ marginLeft: '0.5rem' }} />
+                    <span>{formatDate(item.createdAt)}</span>
+                </div>
+            )}
+            {updatedBy && item.updatedAt && item.updatedAt !== item.createdAt && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <User size={12} />
+                    <span>Upravil/a: <strong style={{ color: isDark ? 'rgba(255,255,255,0.7)' : '#6b7280' }}>{updatedBy.name}</strong></span>
+                    <Clock size={12} style={{ marginLeft: '0.5rem' }} />
+                    <span>{formatDate(item.updatedAt)}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Signal Editor Component
+function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, isDark, inputStyle, labelStyle }) {
+    const [showConvertModal, setShowConvertModal] = useState(false);
+    const [selectedThemeId, setSelectedThemeId] = useState('');
+
+    const textColor = isDark ? '#ffffff' : '#212529';
+    const textSecondary = isDark ? '#adb5bd' : '#6c757d';
+    const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e9ecef';
+
+    const handleArrayToggle = (field, itemId) => {
+        const currentArray = signal[field] || [];
+        const newArray = currentArray.includes(itemId)
+            ? currentArray.filter(id => id !== itemId)
+            : [...currentArray, itemId];
+        onUpdate({ [field]: newArray });
+    };
+
+    const handleConvert = () => {
+        if (!selectedThemeId) return;
+        onConvertToProject(signal.id, selectedThemeId);
+        setShowConvertModal(false);
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'inbox': return '#6366f1';
+            case 'triaged': return '#f59e0b';
+            case 'converted': return '#10b981';
+            case 'archived': return '#6b7280';
+            default: return textSecondary;
+        }
+    };
+
+    return (
+        <>
+            {/* Body/Description */}
+            <div className="form-group">
+                <label className="form-label" style={labelStyle}>Popis</label>
+                <textarea
+                    className="form-control"
+                    style={{ ...inputStyle, minHeight: '100px' }}
+                    value={signal.body || ''}
+                    onChange={e => onUpdate({ body: e.target.value })}
+                    placeholder="Detailní popis signálu..."
+                />
+            </div>
+
+            {/* Source */}
+            <div className="form-group">
+                <label className="form-label" style={labelStyle}>Zdroj</label>
+                <select
+                    className="form-control"
+                    style={inputStyle}
+                    value={signal.source || 'me'}
+                    onChange={e => onUpdate({ source: e.target.value })}
+                >
+                    <option value="me">Já</option>
+                    <option value="restaurant">Restaurace</option>
+                    <option value="amanual">Manuál Ambiente</option>
+                    <option value="external">Externí</option>
+                </select>
+            </div>
+
+            {/* Status */}
+            <div className="form-group">
+                <label className="form-label" style={labelStyle}>Stav</label>
+                <select
+                    className="form-control"
+                    style={inputStyle}
+                    value={signal.status || 'inbox'}
+                    onChange={e => onUpdate({ status: e.target.value })}
+                >
+                    <option value="inbox">Inbox</option>
+                    <option value="triaged">Tříděno</option>
+                    <option value="converted">Převedeno na projekt</option>
+                    <option value="archived">Archivováno</option>
+                </select>
+            </div>
+
+            {/* Priority */}
+            <div className="form-group">
+                <label className="form-label" style={labelStyle}>Priorita</label>
+                <select
+                    className="form-control"
+                    style={inputStyle}
+                    value={signal.priority || ''}
+                    onChange={e => onUpdate({ priority: e.target.value || null })}
+                >
+                    <option value="">Bez priority</option>
+                    <option value="low">Nízká</option>
+                    <option value="med">Střední</option>
+                    <option value="high">Vysoká</option>
+                </select>
+            </div>
+
+            {/* Restaurants (Locations) */}
+            <div className="form-group">
+                <label className="form-label" style={labelStyle}>Pobočky</label>
+                <div style={{ maxHeight: '150px', overflowY: 'auto', border: `1px solid ${borderColor}`, padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#fff' }}>
+                    {(data.locations || []).length === 0 && (
+                        <p style={{ color: textSecondary, fontSize: '0.85rem', margin: 0 }}>Žádné pobočky</p>
+                    )}
+                    {(data.locations || []).map(loc => {
+                        const brand = data.brands.find(b => b.id === loc.brandId);
+                        return (
+                            <div key={loc.id} style={{ marginBottom: '0.25rem' }}>
+                                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: textColor, fontSize: '0.9rem' }}>
+                                    <input
+                                        type="checkbox"
+                                        style={{ marginRight: '0.5rem' }}
+                                        checked={(signal.restaurantIds || []).includes(loc.id)}
+                                        onChange={() => handleArrayToggle('restaurantIds', loc.id)}
+                                    />
+                                    {brand?.name} - {loc.name}
+                                </label>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Influences */}
+            <div className="form-group">
+                <label className="form-label" style={labelStyle}>Vlivy</label>
+                <div style={{ maxHeight: '150px', overflowY: 'auto', border: `1px solid ${borderColor}`, padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#fff' }}>
+                    {(data.influences || []).length === 0 && (
+                        <p style={{ color: textSecondary, fontSize: '0.85rem', margin: 0 }}>Žádné vlivy</p>
+                    )}
+                    {(data.influences || []).map(inf => (
+                        <div key={inf.id} style={{ marginBottom: '0.25rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: textColor, fontSize: '0.9rem' }}>
+                                <input
+                                    type="checkbox"
+                                    style={{ marginRight: '0.5rem' }}
+                                    checked={(signal.influenceIds || []).includes(inf.id)}
+                                    onChange={() => handleArrayToggle('influenceIds', inf.id)}
+                                />
+                                <span style={{
+                                    display: 'inline-block',
+                                    width: '8px',
+                                    height: '8px',
+                                    borderRadius: '50%',
+                                    backgroundColor: inf.type === 'external' ? '#dc3545' : '#198754',
+                                    marginRight: '0.5rem'
+                                }} />
+                                {inf.title}
+                            </label>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Themes */}
+            <div className="form-group">
+                <label className="form-label" style={labelStyle}>Témata</label>
+                <div style={{ maxHeight: '150px', overflowY: 'auto', border: `1px solid ${borderColor}`, padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#fff' }}>
+                    {data.themes.length === 0 && (
+                        <p style={{ color: textSecondary, fontSize: '0.85rem', margin: 0 }}>Žádná témata</p>
+                    )}
+                    {data.themes.map(theme => (
+                        <div key={theme.id} style={{ marginBottom: '0.25rem' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: textColor, fontSize: '0.9rem' }}>
+                                <input
+                                    type="checkbox"
+                                    style={{ marginRight: '0.5rem' }}
+                                    checked={(signal.themeIds || []).includes(theme.id)}
+                                    onChange={() => handleArrayToggle('themeIds', theme.id)}
+                                />
+                                {theme.title}
+                            </label>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Linked Project Info */}
+            {signal.projectId && (
+                <div style={{ 
+                    marginTop: '1rem', 
+                    padding: '0.75rem', 
+                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.1)' : 'rgba(16, 185, 129, 0.05)', 
+                    borderRadius: '0.5rem',
+                    border: '1px solid rgba(16, 185, 129, 0.3)'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#10b981', fontSize: '0.85rem', fontWeight: 600 }}>
+                        <CheckCircle size={16} />
+                        Převedeno na projekt
+                    </div>
+                    {(() => {
+                        const project = data.projects.find(p => p.id === signal.projectId);
+                        return project ? (
+                            <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: textSecondary }}>
+                                {project.title}
+                            </div>
+                        ) : null;
+                    })()}
+                </div>
+            )}
+
+            {/* Quick Actions */}
+            <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {signal.status === 'inbox' && (
+                        <button
+                            className="btn"
+                            onClick={() => onUpdate({ status: 'triaged' })}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem 1rem',
+                                backgroundColor: '#f59e0b',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem'
+                            }}
+                        >
+                            <CheckCircle size={14} /> Třídit
+                        </button>
+                    )}
+                    {signal.status !== 'archived' && (
+                        <button
+                            className="btn"
+                            onClick={() => onUpdate({ status: 'archived' })}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem 1rem',
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#e9ecef',
+                                color: textSecondary,
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.85rem'
+                            }}
+                        >
+                            <Archive size={14} /> Archivovat
+                        </button>
+                    )}
+                </div>
+
+                {signal.status !== 'converted' && (
+                    <button
+                        className="btn"
+                        onClick={() => setShowConvertModal(true)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            padding: '0.75rem 1rem',
+                            backgroundColor: '#10b981',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontSize: '0.9rem',
+                            fontWeight: 500
+                        }}
+                    >
+                        <ArrowRight size={16} /> Převést na projekt
+                    </button>
+                )}
+
+                <button
+                    className="btn btn-danger"
+                    onClick={onDelete}
+                    style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        padding: '0.5rem 1rem',
+                        backgroundColor: '#dc3545',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '0.85rem'
+                    }}
+                >
+                    <Trash2 size={14} /> Smazat signál
+                </button>
+            </div>
+
+            {/* Convert to Project Modal */}
+            {showConvertModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: isDark ? '#1a1a1a' : '#fff',
+                        padding: '1.5rem',
+                        borderRadius: '12px',
+                        width: '400px',
+                        maxWidth: '90vw',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
+                    }}>
+                        <h3 style={{ margin: '0 0 1rem 0', color: textColor }}>Převést na projekt</h3>
+                        <p style={{ color: textSecondary, fontSize: '0.9rem', marginBottom: '1rem' }}>
+                            Vyberte téma, pod které bude projekt vytvořen:
+                        </p>
+                        <select
+                            className="form-control"
+                            style={{ ...inputStyle, marginBottom: '1rem' }}
+                            value={selectedThemeId}
+                            onChange={e => setSelectedThemeId(e.target.value)}
+                        >
+                            <option value="">-- Vyberte téma --</option>
+                            {data.themes.map(theme => (
+                                <option key={theme.id} value={theme.id}>{theme.title}</option>
+                            ))}
+                        </select>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => setShowConvertModal(false)}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#e9ecef',
+                                    color: textSecondary,
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Zrušit
+                            </button>
+                            <button
+                                onClick={handleConvert}
+                                disabled={!selectedThemeId}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    backgroundColor: selectedThemeId ? '#10b981' : (isDark ? 'rgba(255,255,255,0.1)' : '#e9ecef'),
+                                    color: selectedThemeId ? '#fff' : textSecondary,
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor: selectedThemeId ? 'pointer' : 'not-allowed'
+                                }}
+                            >
+                                Převést
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+}
+
+export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertSignalToProject, theme = 'light' }) {
     const isDark = theme === 'dark';
     const panelStyle = {
         backgroundColor: isDark ? '#0a0a0a' : '#fcfcfc',
@@ -59,6 +469,8 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
     } else if (type === 'location') {
         item = (data.locations || []).find(i => i.id === id);
         parentItem = data.brands.find(b => b.id === item?.brandId);
+    } else if (type === 'signal') {
+        item = (data.signals || []).find(i => i.id === id);
     }
 
     if (!item) return null;
@@ -125,6 +537,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                 {type === 'influence' && 'Editace vlivu'}
                 {type === 'brand' && 'Editace značky'}
                 {type === 'location' && 'Editace pobočky'}
+                {type === 'signal' && 'Editace signálu'}
             </div>
             <div className="panel-content" style={contentStyle}>
                 <div className="form-group">
@@ -396,6 +809,57 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                                 })}
                             </div>
                         </div>
+                        {/* Signals behind this theme */}
+                        {(() => {
+                            const linkedSignals = (data.signals || []).filter(s => 
+                                (s.themeIds || []).includes(id)
+                            );
+                            if (linkedSignals.length === 0) return null;
+                            return (
+                                <div className="form-group">
+                                    <label className="form-label" style={labelStyle}>
+                                        <Radio size={14} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
+                                        Signály za tímto tématem ({linkedSignals.length})
+                                    </label>
+                                    <div style={{ 
+                                        border: isDark ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(99, 102, 241, 0.2)', 
+                                        padding: '0.5rem', 
+                                        borderRadius: '0.5rem', 
+                                        backgroundColor: isDark ? 'rgba(99, 102, 241, 0.05)' : 'rgba(99, 102, 241, 0.02)',
+                                        maxHeight: '150px',
+                                        overflowY: 'auto'
+                                    }}>
+                                        {linkedSignals.map(signal => (
+                                            <div key={signal.id} style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'space-between',
+                                                padding: '0.4rem 0.5rem',
+                                                marginBottom: '0.25rem',
+                                                backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#fff',
+                                                borderRadius: '4px',
+                                                fontSize: '0.85rem'
+                                            }}>
+                                                <span style={{ color: isDark ? '#fff' : '#212529' }}>{signal.title}</span>
+                                                <span style={{
+                                                    fontSize: '0.7rem',
+                                                    padding: '0.15rem 0.4rem',
+                                                    borderRadius: '8px',
+                                                    backgroundColor: signal.status === 'converted' ? 'rgba(16, 185, 129, 0.2)' : 
+                                                                    signal.status === 'triaged' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(99, 102, 241, 0.2)',
+                                                    color: signal.status === 'converted' ? '#10b981' : 
+                                                           signal.status === 'triaged' ? '#f59e0b' : '#6366f1'
+                                                }}>
+                                                    {signal.status === 'inbox' ? 'Inbox' : 
+                                                     signal.status === 'triaged' ? 'Tříděno' : 
+                                                     signal.status === 'converted' ? 'Převedeno' : 'Archiv'}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </>
                 )}
 
@@ -507,7 +971,71 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                                 ))}
                             </div>
                         </div>
+                        {/* Signals feeding this influence */}
+                        {(() => {
+                            const linkedSignals = (data.signals || []).filter(s => 
+                                (s.influenceIds || []).includes(id)
+                            );
+                            if (linkedSignals.length === 0) return null;
+                            return (
+                                <div className="form-group">
+                                    <label className="form-label" style={labelStyle}>
+                                        <Radio size={14} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
+                                        Signály živící tento vliv ({linkedSignals.length})
+                                    </label>
+                                    <div style={{ 
+                                        border: isDark ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(99, 102, 241, 0.2)', 
+                                        padding: '0.5rem', 
+                                        borderRadius: '0.5rem', 
+                                        backgroundColor: isDark ? 'rgba(99, 102, 241, 0.05)' : 'rgba(99, 102, 241, 0.02)',
+                                        maxHeight: '150px',
+                                        overflowY: 'auto'
+                                    }}>
+                                        {linkedSignals.map(signal => (
+                                            <div key={signal.id} style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'space-between',
+                                                padding: '0.4rem 0.5rem',
+                                                marginBottom: '0.25rem',
+                                                backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#fff',
+                                                borderRadius: '4px',
+                                                fontSize: '0.85rem'
+                                            }}>
+                                                <span style={{ color: isDark ? '#fff' : '#212529' }}>{signal.title}</span>
+                                                <span style={{
+                                                    fontSize: '0.7rem',
+                                                    padding: '0.15rem 0.4rem',
+                                                    borderRadius: '8px',
+                                                    backgroundColor: signal.status === 'converted' ? 'rgba(16, 185, 129, 0.2)' : 
+                                                                    signal.status === 'triaged' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(99, 102, 241, 0.2)',
+                                                    color: signal.status === 'converted' ? '#10b981' : 
+                                                           signal.status === 'triaged' ? '#f59e0b' : '#6366f1'
+                                                }}>
+                                                    {signal.status === 'inbox' ? 'Inbox' : 
+                                                     signal.status === 'triaged' ? 'Tříděno' : 
+                                                     signal.status === 'converted' ? 'Převedeno' : 'Archiv'}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </>
+                )}
+
+                {type === 'signal' && (
+                    <SignalEditor 
+                        signal={item} 
+                        data={data} 
+                        onUpdate={(updates) => onUpdate('signal', id, updates)}
+                        onDelete={() => onDelete('signal', id)}
+                        onConvertToProject={onConvertSignalToProject}
+                        isDark={isDark}
+                        inputStyle={inputStyle}
+                        labelStyle={labelStyle}
+                    />
                 )}
 
                 {type === 'brand' && (
@@ -620,6 +1148,9 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                         <strong>Patří pod:</strong> {parentItem.title}
                     </div>
                 )}
+
+                {/* Audit trail info */}
+                <AuditInfo item={item} isDark={isDark} />
 
                 <div style={{ marginTop: '2rem', display: 'flex', gap: '0.5rem' }}>
                     <button className="btn btn-primary" onClick={() => { }}>

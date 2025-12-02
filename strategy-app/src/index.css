@@ -1,3 +1,53 @@
+/* GT America Font Family */
+@font-face {
+  font-family: 'GT America';
+  src: url('./assets/fonts/GTAmerica-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT America';
+  src: url('./assets/fonts/GTAmerica-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT America';
+  src: url('./assets/fonts/GT-America-Standard-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT America';
+  src: url('./assets/fonts/GT-America-Standard-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT America Extended';
+  src: url('./assets/fonts/GTAmerica-ExtendedLight.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT America Extended';
+  src: url('./assets/fonts/GTAmerica-ExtendedRegular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT America Expanded';
+  src: url('./assets/fonts/GT-America-Expanded-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
 :root {
   /* Admin / Light Mode Variables (Default) */
   --bg-color: #f8f9fa;
@@ -51,8 +101,12 @@
   box-sizing: border-box;
 }
 
+html {
+  background-color: var(--bg-color);
+}
+
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: 'GT America', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
   margin: 0;
@@ -81,10 +135,8 @@ body {
 
 /* Header */
 header {
-  background-color: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-color);
+  background-color: transparent;
+  border-bottom: none;
   padding: 0.75rem 2rem;
   display: flex;
   justify-content: space-between;
@@ -187,6 +239,21 @@ h1 {
 }
 
 
+.interactive-card {
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 1;
+}
+
+[data-theme="dark"] .interactive-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
 /* Panels (Admin View) */
 .panel {
   background-color: var(--white);
@@ -261,6 +328,10 @@ h1 {
   background-color: #f8f9fa;
   transform: translateY(-1px);
   box-shadow: var(--shadow);
+}
+
+[data-theme="dark"] .btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .btn:active {

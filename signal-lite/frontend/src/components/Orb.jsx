@@ -151,10 +151,14 @@ function Orb({ token, onLogout }) {
             className="signal-input"
             placeholder="Co se děje?"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => setInputValue(e.target.value.slice(0, 300))}
             onKeyPress={handleKeyPress}
             rows={3}
+            maxLength={300}
           />
+          <div className="character-counter">
+            {inputValue.length}/300
+          </div>
         </div>
       )}
 

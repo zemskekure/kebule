@@ -1155,6 +1155,53 @@ function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }
                                         gap: '0.5rem',
                                         flexWrap: 'wrap'
                                     }}>
+                                        {/* Timestamp */}
+                                        {(signal.date || signal.createdAt) && (
+                                            <span style={{ 
+                                                fontSize: '0.7rem', 
+                                                color: textSecondary,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.25rem'
+                                            }}>
+                                                <Calendar size={12} />
+                                                {new Date(signal.date || signal.createdAt).toLocaleString('cs-CZ', {
+                                                    day: 'numeric',
+                                                    month: 'short',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </span>
+                                        )}
+                                        
+                                        {/* Author (for live signals) */}
+                                        {signal.authorName && (
+                                            <span style={{ 
+                                                fontSize: '0.7rem', 
+                                                color: textSecondary,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.25rem'
+                                            }}>
+                                                <User size={12} />
+                                                {signal.authorName}
+                                            </span>
+                                        )}
+                                        
+                                        {/* Source badge for live signals */}
+                                        {signal.isLive && (
+                                            <span style={{
+                                                fontSize: '0.65rem',
+                                                padding: '0.15rem 0.4rem',
+                                                borderRadius: '4px',
+                                                backgroundColor: '#f97316',
+                                                color: '#fff',
+                                                fontWeight: 600
+                                            }}>
+                                                LIVE
+                                            </span>
+                                        )}
+                                        
                                         {restaurants.slice(0, 2).map(loc => (
                                             <span
                                                 key={loc.id}

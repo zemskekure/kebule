@@ -24,7 +24,10 @@ export function useSignals(googleToken, refreshInterval = 30000) {
           headers['Authorization'] = `Bearer ${googleToken}`;
         }
 
-        const response = await fetch('https://signal-lite-backend.onrender.com/signals', {
+        // Use environment variable for backend URL, fallback to default
+        const API_URL = import.meta.env.VITE_SIGNAL_API_URL || 'https://signal-lite-backend.onrender.com';
+        
+        const response = await fetch(`${API_URL}/signals`, {
           headers
         });
 

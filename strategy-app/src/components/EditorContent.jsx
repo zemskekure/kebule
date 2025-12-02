@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Plus, ChevronDown, ChevronRight, Edit2, Trash2, Calendar, MapPin, User, ExternalLink, Zap, GripVertical, Radio, Search, Filter, Inbox, CheckCircle, Archive, ArrowRight } from 'lucide-react';
 import { BackupManager } from './BackupManager';
 import { buildStrategyTree, getVisionsForYear, getThemesForVision, getProjectsForTheme } from '../utils/buildStrategyTree';
+import { useSignals } from '../hooks/useSignals';
 
 // Šiška Content (Thought System) with Drag & Drop
 function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddProject, onMoveItem, theme }) {
@@ -837,7 +838,37 @@ function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }
     const [searchQuery, setSearchQuery] = useState('');
     const [quickAddTitle, setQuickAddTitle] = useState('');
 
-    const signals = data.signals || [];
+    // Fetch live signals from Signal Lite backend
+    const { signals: liveSignals, loading: liveLoading } = useSignals(null);
+    
+    // Merge local signals with live signals from Signal Lite
+    const localSignals = data.signals || [];
+    const signals = useMemo(() => {
+        // Convert live signals to local format and merge
+        const convertedLiveSignals = liveSignals.map(ls => ({
+            id: ls.id,
+            title: ls.title,
+            body: ls.body,
+            date: ls.createdAt,
+            status: 'inbox', // New signals from Signal Lite start as inbox
+            source: ls.source || 'signal-lite',
+            authorName: ls.authorName,
+            authorEmail: ls.authorEmail,
+            restaurantIds: [],
+            isLive: true // Mark as coming from Signal Lite
+        }));
+        
+        // Combine and deduplicate by ID
+        const allSignals = [...localSignals, ...convertedLiveSignals];
+        const uniqueSignals = Array.from(
+            new Map(allSignals.map(s => [s.id, s])).values()
+        );
+        
+        // Sort by date, newest first
+        return uniqueSignals.sort((a, b) => 
+            new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
+        );
+    }, [localSignals, liveSignals]);
 
     // Filter signals
     const filteredSignals = useMemo(() => {

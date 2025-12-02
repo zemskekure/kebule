@@ -8,7 +8,14 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+
+// Ensure PORT is always a valid number
+let PORT = parseInt(process.env.PORT);
+if (isNaN(PORT) || PORT < 1 || PORT > 65535) {
+  console.error('Invalid PORT environment variable. Using default 3001');
+  PORT = 3001;
+}
+
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS?.split(',') || [];
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';

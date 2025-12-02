@@ -96,6 +96,92 @@ export function Dashboard({ data, theme = 'dark' }) {
 
                 {/* Charts / Lists Row */}
                 <div className="dashboard-row">
+                    {/* Influences Overview */}
+                    <motion.div
+                        className="glass-card dashboard-panel"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.45 }}
+                        style={{ background: cardBg, border: `1px solid ${cardBorder}`, maxWidth: '320px' }}
+                    >
+                        <h3 style={{ color: textColor, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Zap size={18} /> Vlivy ({totalInfluences})
+                        </h3>
+                        <div style={{ marginTop: '1rem' }}>
+                            {(() => {
+                                // Sort influences by total connections (themes + projects)
+                                const sortedInfluences = [...(influences || [])].sort((a, b) => {
+                                    const aCount = (a.connectedThemeIds?.length || 0) + (a.connectedProjectIds?.length || 0);
+                                    const bCount = (b.connectedThemeIds?.length || 0) + (b.connectedProjectIds?.length || 0);
+                                    return bCount - aCount;
+                                }).slice(0, 3);
+
+                                if (sortedInfluences.length === 0) {
+                                    return (
+                                        <p style={{ color: textSecondary, fontSize: '0.9rem', margin: 0 }}>
+                                            Žádné vlivy
+                                        </p>
+                                    );
+                                }
+
+                                return sortedInfluences.map((inf, index) => {
+                                    const themeCount = inf.connectedThemeIds?.length || 0;
+                                    const projectCount = inf.connectedProjectIds?.length || 0;
+                                    const totalCount = themeCount + projectCount;
+                                    const isExternal = inf.type === 'external';
+
+                                    return (
+                                        <div
+                                            key={inf.id}
+                                            style={{
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '0.75rem',
+                                                padding: '0.75rem',
+                                                marginBottom: index < 2 ? '0.5rem' : 0,
+                                                borderRadius: '8px',
+                                                background: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
+                                                borderLeft: `3px solid ${isExternal ? '#dc3545' : '#198754'}`
+                                            }}
+                                        >
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ 
+                                                    color: textColor, 
+                                                    fontWeight: 500, 
+                                                    fontSize: '0.9rem',
+                                                    marginBottom: '0.25rem'
+                                                }}>
+                                                    {inf.title}
+                                                </div>
+                                                <div style={{ 
+                                                    display: 'flex', 
+                                                    gap: '0.75rem', 
+                                                    fontSize: '0.75rem', 
+                                                    color: textSecondary 
+                                                }}>
+                                                    <span>{themeCount} témat</span>
+                                                    <span>{projectCount} projektů</span>
+                                                </div>
+                                            </div>
+                                            <span style={{
+                                                fontSize: '0.65rem',
+                                                padding: '0.2rem 0.5rem',
+                                                borderRadius: '4px',
+                                                backgroundColor: isExternal 
+                                                    ? (isDark ? 'rgba(220, 53, 69, 0.2)' : 'rgba(220, 53, 69, 0.1)')
+                                                    : (isDark ? 'rgba(25, 135, 84, 0.2)' : 'rgba(25, 135, 84, 0.1)'),
+                                                color: isExternal ? '#dc3545' : '#198754',
+                                                fontWeight: 600
+                                            }}>
+                                                {isExternal ? 'EXT' : 'INT'}
+                                            </span>
+                                        </div>
+                                    );
+                                });
+                            })()}
+                        </div>
+                    </motion.div>
+
                     {/* Themes Progress */}
                     <motion.div
                         className="glass-card dashboard-panel"

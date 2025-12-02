@@ -454,7 +454,7 @@ export function useStrategyData() {
     const newId = Date.now().toString();
     const influenceTitle = title && title.trim() ? title : 'Nový vliv';
     const influenceType = type || 'external';
-    const newInfluence = { id: newId, title: influenceTitle, type: influenceType, description: '', connectedThemeIds: [] };
+    const newInfluence = { id: newId, title: influenceTitle, type: influenceType, description: '', connectedThemeIds: [], connectedProjectIds: [] };
     setData(prev => ({ ...prev, influences: [...(prev.influences || []), newInfluence] }));
     return newId;
   }, [setData]);
@@ -657,6 +657,7 @@ export function useStrategyData() {
           type: 'external',
           description: '',
           connectedThemeIds: [],
+          connectedProjectIds: [],
           sandboxPosition
         };
         newState.influences = [...(prev.influences || []), newInfluence];

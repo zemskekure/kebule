@@ -310,7 +310,43 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                         >
                                                                             {isThemeExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                                                         </button>
-                                                                        <span style={{ color: textColor, fontWeight: 500, flex: 1 }}>{themeItem.title}</span>
+                                                                        <div style={{ flex: 1 }}>
+                                                                            <span style={{ color: textColor, fontWeight: 500 }}>{themeItem.title}</span>
+                                                                            {/* Influence badges */}
+                                                                            {(() => {
+                                                                                const linkedInfluences = (data.influences || []).filter(inf => 
+                                                                                    (inf.connectedThemeIds || []).includes(themeItem.id)
+                                                                                );
+                                                                                if (linkedInfluences.length === 0) return null;
+                                                                                return (
+                                                                                    <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                                                                                        {linkedInfluences.slice(0, 3).map(inf => (
+                                                                                            <span
+                                                                                                key={inf.id}
+                                                                                                style={{
+                                                                                                    fontSize: '0.65rem',
+                                                                                                    padding: '0.1rem 0.4rem',
+                                                                                                    borderRadius: '3px',
+                                                                                                    border: `1px solid ${inf.type === 'external' ? '#dc3545' : '#198754'}`,
+                                                                                                    color: inf.type === 'external' ? '#dc3545' : '#198754',
+                                                                                                    backgroundColor: inf.type === 'external' 
+                                                                                                        ? (isDark ? 'rgba(220, 53, 69, 0.1)' : 'rgba(220, 53, 69, 0.05)')
+                                                                                                        : (isDark ? 'rgba(25, 135, 84, 0.1)' : 'rgba(25, 135, 84, 0.05)'),
+                                                                                                    whiteSpace: 'nowrap'
+                                                                                                }}
+                                                                                            >
+                                                                                                {inf.title}
+                                                                                            </span>
+                                                                                        ))}
+                                                                                        {linkedInfluences.length > 3 && (
+                                                                                            <span style={{ fontSize: '0.65rem', color: textSecondary }}>
+                                                                                                +{linkedInfluences.length - 3}
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                );
+                                                                            })()}
+                                                                        </div>
                                                                         <span style={{ fontSize: '0.75rem', color: textSecondary }}>{themeProjects.length} projektů</span>
                                                                     </div>
 

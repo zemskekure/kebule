@@ -90,6 +90,30 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
         handleChange('connectedThemeIds', newThemes);
     };
 
+    // Toggle influence connection from Theme side (reverse linking)
+    const handleThemeInfluenceToggle = (influenceId) => {
+        if (type !== 'theme') return;
+        const influence = data.influences.find(i => i.id === influenceId);
+        if (!influence) return;
+        const currentThemes = influence.connectedThemeIds || [];
+        const newThemes = currentThemes.includes(id)
+            ? currentThemes.filter(t => t !== id)
+            : [...currentThemes, id];
+        onUpdate('influence', influenceId, { connectedThemeIds: newThemes });
+    };
+
+    // Toggle influence connection from Project side
+    const handleProjectInfluenceToggle = (influenceId) => {
+        if (type !== 'project') return;
+        const influence = data.influences.find(i => i.id === influenceId);
+        if (!influence) return;
+        const currentProjects = influence.connectedProjectIds || [];
+        const newProjects = currentProjects.includes(id)
+            ? currentProjects.filter(p => p !== id)
+            : [...currentProjects, id];
+        onUpdate('influence', influenceId, { connectedProjectIds: newProjects });
+    };
+
     return (
         <div className="panel panel-right" style={panelStyle}>
             <div className="panel-header" style={headerStyle}>
@@ -322,19 +346,57 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                 )}
 
                 {type === 'theme' && (
-                    <div className="form-group">
-                        <label className="form-label" style={labelStyle}>Priorita</label>
-                        <select
-                            className="form-control"
-                            style={inputStyle}
-                            value={item.priority}
-                            onChange={e => handleChange('priority', e.target.value)}
-                        >
-                            <option value="Nízká">Nízká</option>
-                            <option value="Střední">Střední</option>
-                            <option value="Vysoká">Vysoká</option>
-                        </select>
-                    </div>
+                    <>
+                        <div className="form-group">
+                            <label className="form-label" style={labelStyle}>Priorita</label>
+                            <select
+                                className="form-control"
+                                style={inputStyle}
+                                value={item.priority}
+                                onChange={e => handleChange('priority', e.target.value)}
+                            >
+                                <option value="Nízká">Nízká</option>
+                                <option value="Střední">Střední</option>
+                                <option value="Vysoká">Vysoká</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={labelStyle}>Vlivy (proč téma existuje):</label>
+                            <div style={{ maxHeight: '200px', overflowY: 'auto', border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef', padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#fff' }}>
+                                {(data.influences || []).length === 0 && (
+                                    <p style={{ color: isDark ? '#adb5bd' : '#868e96', fontSize: '0.85rem', margin: 0 }}>Žádné vlivy k dispozici</p>
+                                )}
+                                {(data.influences || []).map(influence => {
+                                    const isConnected = (influence.connectedThemeIds || []).includes(id);
+                                    const isExternal = influence.type === 'external';
+                                    return (
+                                        <div key={influence.id} style={{ marginBottom: '0.25rem' }}>
+                                            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: isDark ? '#fff' : '#212529' }}>
+                                                <input
+                                                    type="checkbox"
+                                                    style={{ marginRight: '0.5rem' }}
+                                                    checked={isConnected}
+                                                    onChange={() => handleThemeInfluenceToggle(influence.id)}
+                                                />
+                                                <span style={{
+                                                    display: 'inline-block',
+                                                    width: '8px',
+                                                    height: '8px',
+                                                    borderRadius: '50%',
+                                                    backgroundColor: isExternal ? '#dc3545' : '#198754',
+                                                    marginRight: '0.5rem'
+                                                }} />
+                                                {influence.title}
+                                                <span style={{ fontSize: '0.75rem', color: isDark ? '#adb5bd' : '#868e96', marginLeft: '0.5rem' }}>
+                                                    ({isExternal ? 'externí' : 'interní'})
+                                                </span>
+                                            </label>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </>
                 )}
 
                 {(type === 'project' || type === 'newRestaurant') && (
@@ -372,6 +434,45 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, theme = 'l
                             </div>
                         </div>
                     </>
+                )}
+
+                {type === 'project' && (
+                    <div className="form-group">
+                        <label className="form-label" style={labelStyle}>Vlivy (tlaky na tento projekt):</label>
+                        <div style={{ maxHeight: '200px', overflowY: 'auto', border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef', padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#fff' }}>
+                            {(data.influences || []).length === 0 && (
+                                <p style={{ color: isDark ? '#adb5bd' : '#868e96', fontSize: '0.85rem', margin: 0 }}>Žádné vlivy k dispozici</p>
+                            )}
+                            {(data.influences || []).map(influence => {
+                                const isConnected = (influence.connectedProjectIds || []).includes(id);
+                                const isExternal = influence.type === 'external';
+                                return (
+                                    <div key={influence.id} style={{ marginBottom: '0.25rem' }}>
+                                        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: isDark ? '#fff' : '#212529' }}>
+                                            <input
+                                                type="checkbox"
+                                                style={{ marginRight: '0.5rem' }}
+                                                checked={isConnected}
+                                                onChange={() => handleProjectInfluenceToggle(influence.id)}
+                                            />
+                                            <span style={{
+                                                display: 'inline-block',
+                                                width: '8px',
+                                                height: '8px',
+                                                borderRadius: '50%',
+                                                backgroundColor: isExternal ? '#dc3545' : '#198754',
+                                                marginRight: '0.5rem'
+                                            }} />
+                                            {influence.title}
+                                            <span style={{ fontSize: '0.75rem', color: isDark ? '#adb5bd' : '#868e96', marginLeft: '0.5rem' }}>
+                                                ({isExternal ? 'externí' : 'interní'})
+                                            </span>
+                                        </label>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 )}
 
                 {type === 'influence' && (

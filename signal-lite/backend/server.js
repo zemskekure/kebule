@@ -9,6 +9,14 @@ dotenv.config();
 
 const app = express();
 
+// Middleware to log ALL requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  console.log('Origin:', req.headers.origin);
+  console.log('Configured FRONTEND_URL:', FRONTEND_URL);
+  next();
+});
+
 // Ensure PORT is always a valid number
 let PORT = parseInt(process.env.PORT);
 if (isNaN(PORT) || PORT < 1 || PORT > 65535) {
@@ -67,6 +75,8 @@ async function verifyToken(req, res, next) {
     const email = payload.email;
     const domain = email.split('@')[1];
     console.log('Token verified for:', email);
+    console.log('Domain:', domain);
+    console.log('Allowed domains:', ALLOWED_DOMAINS);
 
     // Check if domain is allowed
     if (ALLOWED_DOMAINS.length > 0 && !ALLOWED_DOMAINS.includes(domain)) {

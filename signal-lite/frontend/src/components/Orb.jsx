@@ -16,7 +16,20 @@ function Orb({ token, onLogout }) {
   const [inputValue, setInputValue] = useState('');
   const [showSpark, setShowSpark] = useState(false);
   const [sparkStyle, setSparkStyle] = useState({});
+  const [userName, setUserName] = useState('');
   const inputRef = useRef(null);
+
+  // Decode token to get user name
+  useEffect(() => {
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUserName(payload.name || payload.email);
+      } catch (e) {
+        console.error('Failed to decode token', e);
+      }
+    }
+  }, [token]);
 
   useEffect(() => {
     if (state === OrbState.CAPTURE && inputRef.current) {
@@ -172,9 +185,12 @@ function Orb({ token, onLogout }) {
       {showSpark && <div className="spark" style={sparkStyle} />}
 
       {/* Logout button */}
-      <button className="logout-button" onClick={onLogout}>
-        Logout
-      </button>
+      <div className="user-info">
+        {userName && <span className="user-name">{userName}</span>}
+        <button className="logout-button" onClick={onLogout}>
+          Odhlásit
+        </button>
+      </div>
 
       {/* Offline indicator */}
       {!navigator.onLine && (

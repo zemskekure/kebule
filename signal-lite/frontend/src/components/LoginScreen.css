@@ -24,9 +24,35 @@
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #ffffff, #888888);
-  box-shadow: 0 8px 32px rgba(255, 255, 255, 0.2);
+  background: radial-gradient(circle at 30% 30%, #fbbf24, #f97316, #ea580c);
+  box-shadow: 
+    0 0 40px rgba(249, 115, 22, 0.4),
+    0 0 80px rgba(249, 115, 22, 0.2);
   animation: logoPulse 3s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.logo-orb::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: 
+    radial-gradient(ellipse at 30% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 75% 65%, rgba(254, 215, 170, 0.4) 0%, transparent 60%);
+  animation: cloudMove 10s ease-in-out infinite;
+}
+
+@keyframes cloudMove {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translate(-2px, 2px) rotate(180deg);
+    opacity: 0.8;
+  }
 }
 
 @keyframes logoPulse {

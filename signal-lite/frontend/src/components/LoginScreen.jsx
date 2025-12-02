@@ -7,7 +7,7 @@ function LoginScreen({ onLogin }) {
   };
 
   const handleError = () => {
-    alert('Login failed. Please try again.');
+    alert('Přihlášení selhalo. Zkuste to znovu.');
   };
 
   return (
@@ -17,7 +17,7 @@ function LoginScreen({ onLogin }) {
           <div className="logo-orb"></div>
         </div>
         <h1>Signal Lite</h1>
-        <p className="tagline">Quick restaurant signals</p>
+        <p className="tagline">Rychlé signály z terénu</p>
         <div className="login-button-wrapper">
           <GoogleLogin
             onSuccess={handleSuccess}

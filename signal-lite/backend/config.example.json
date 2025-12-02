@@ -1,0 +1,15 @@
+{
+  "brandMapping": {
+    "user@ambiente.cz": ["brand-ambiente-1", "brand-ambiente-2"],
+    "manager@amanual.cz": ["brand-amanual-1"],
+    "admin@ambiente.cz": ["brand-ambiente-1", "brand-ambiente-2", "brand-ambiente-3"]
+  },
+  "allowedDomains": [
+    "ambiente.cz",
+    "amanual.cz"
+  ],
+  "notes": {
+    "brandMapping": "Maps user emails to brand IDs. Signals from these users will automatically include authorBrandIds.",
+    "allowedDomains": "Only users with these email domains can log in. Leave empty to allow all domains."
+  }
+}

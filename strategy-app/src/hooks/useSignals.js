@@ -11,17 +11,21 @@ export function useSignals(googleToken, refreshInterval = 30000) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!googleToken) {
-      setLoading(false);
-      return;
-    }
+    // Allow fetching without token for public feed
+    // if (!googleToken) {
+    //   setLoading(false);
+    //   return;
+    // }
 
     async function fetchSignals() {
       try {
+        const headers = {};
+        if (googleToken) {
+          headers['Authorization'] = `Bearer ${googleToken}`;
+        }
+
         const response = await fetch('https://signal-lite-backend.onrender.com/signals', {
-          headers: {
-            'Authorization': `Bearer ${googleToken}`
-          }
+          headers
         });
 
         if (!response.ok) {

@@ -18,7 +18,8 @@ if (isNaN(PORT) || PORT < 1 || PORT > 65535) {
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS?.split(',') || [];
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+// Remove trailing slash if present to prevent CORS errors
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
 const BRAND_MAPPING = process.env.BRAND_MAPPING ? JSON.parse(process.env.BRAND_MAPPING) : {};
 
 // Initialize Google OAuth client
@@ -165,7 +166,7 @@ app.post('/signals', verifyToken, async (req, res) => {
 });
 
 // GET /signals - Retrieve signals (for main app integration)
-app.get('/signals', verifyToken, (req, res) => {
+app.get('/signals', (req, res) => {
   try {
     const { limit = 100, offset = 0, authorEmail } = req.query;
     

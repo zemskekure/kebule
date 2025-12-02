@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Download, Upload, LayoutGrid, List, BarChart3, Search, Moon, Sun, GitBranch, LogOut, User } from 'lucide-react';
+import { Download, Upload, LayoutGrid, List, BarChart3, Search, Moon, Sun, GitBranch, LogOut, User, Radio } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import { useConfirm } from './contexts/ConfirmContext';
 import { LoginModal } from './components/LoginModal';
 import { DetailPanel } from './components/DetailPanel';
 import { VisionBoard } from './components/VisionBoard';
 import { Dashboard } from './components/Dashboard';
+import { SignalsFeed } from './components/SignalsFeed';
 import { AIChatWindow } from './components/AIChatWindow';
 import { EditorSidebar } from './components/EditorSidebar';
 import { EditorContent } from './components/EditorContent';
@@ -82,7 +83,8 @@ function App() {
     admin: 'light',
     dashboard: 'dark',
     vision: 'dark',
-    sandbox: 'dark'
+    sandbox: 'dark',
+    signals: 'light'
   });
 
   const toggleTheme = (view) => {
@@ -366,6 +368,16 @@ function App() {
             >
               <GitBranch size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Sandbox
             </button>
+            <button
+              className={`toggle-btn ${viewMode === 'signals' ? 'active' : ''}`}
+              onClick={() => setViewMode('signals')}
+              style={{
+                color: currentTheme === 'dark' ? (viewMode === 'signals' ? '#000' : '#fff') : (viewMode === 'signals' ? '#212529' : '#868e96'),
+                backgroundColor: viewMode === 'signals' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
+              }}
+            >
+              <Radio size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Signály
+            </button>
           </div>
 
           {/* User indicator / Login button */}
@@ -495,6 +507,8 @@ function App() {
           onDeleteNode={handleDeleteNode}
           onAddNode={addSandboxNode}
         />
+      ) : viewMode === 'signals' ? (
+        <SignalsFeed googleToken={null} />
       ) : (
         <div style={{
           display: 'flex',

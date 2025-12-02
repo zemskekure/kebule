@@ -1,5 +1,6 @@
 import React from 'react';
 import { Plus, ChevronRight, ChevronDown, Lightbulb, Calendar, Target } from 'lucide-react';
+import { getThemesForVision, getProjectsForTheme } from '../utils/buildStrategyTree';
 
 export function YearNode({ data, visions, allThemes, allProjects, expanded, onToggle, selected, onSelect, onAddVision, onToggleNode, expandedNodes, selectedNode, onSelectNode, onAddTheme, onAddProject }) {
     return (
@@ -22,7 +23,7 @@ export function YearNode({ data, visions, allThemes, allProjects, expanded, onTo
                         <VisionNode
                             key={vision.id}
                             data={vision}
-                            themes={allThemes.filter(t => t.visionId === vision.id)}
+                            themes={getThemesForVision({ themes: allThemes }, vision.id)}
                             allProjects={allProjects}
                             expanded={!!expandedNodes[vision.id]}
                             onToggle={() => onToggleNode(vision.id)}
@@ -69,7 +70,7 @@ export function VisionNode({ data, themes, allProjects, expanded, onToggle, sele
                         <ThemeNode
                             key={theme.id}
                             data={theme}
-                            projects={allProjects.filter(p => p.themeId === theme.id)}
+                            projects={getProjectsForTheme({ projects: allProjects }, theme.id)}
                             expanded={!!expandedNodes[theme.id]}
                             onToggle={() => onToggleNode(theme.id)}
                             selected={selectedNode?.id === theme.id}

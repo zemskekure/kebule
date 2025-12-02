@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, X, CheckCircle, Clock, Lightbulb, MapPin, Globe, Instagram, Calendar, Hammer, Sparkles, Building2 } from 'lucide-react';
+import { getVisionsForYear, getThemesForVision, getProjectsForTheme } from '../utils/buildStrategyTree';
 
 // --- Constants & Variants ---
 
@@ -622,7 +623,7 @@ export function VisionBoard({ data, theme = 'dark' }) {
             // Level 1: Year Center + Visions Orbit
             // Show all visions for this year as orbiting items
             const year = path[0];
-            const visions = data.visions.filter(v => v.yearId === year.id);
+            const visions = getVisionsForYear(data, year.id);
 
             return {
                 type: 'orbit',
@@ -635,7 +636,7 @@ export function VisionBoard({ data, theme = 'dark' }) {
         else if (currentLevel === 2) {
             // Level 2: Vision Center + Themes Orbit
             const vision = path[1];
-            const themes = data.themes.filter(t => t.visionId === vision.id);
+            const themes = getThemesForVision(data, vision.id);
 
             return {
                 type: 'orbit',
@@ -648,7 +649,7 @@ export function VisionBoard({ data, theme = 'dark' }) {
         else if (currentLevel === 3) {
             // Level 3: Theme Center + Projects Orbit
             const theme = path[2];
-            const projects = data.projects.filter(p => p.themeId === theme.id);
+            const projects = getProjectsForTheme(data, theme.id);
             return {
                 type: 'orbit',
                 center: { ...theme, subtitle: 'Hlavní téma' },

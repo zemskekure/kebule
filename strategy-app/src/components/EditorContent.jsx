@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, ChevronDown, ChevronRight, Edit2, Trash2, Calendar, MapPin, User, ExternalLink, Zap, GripVertical } from 'lucide-react';
 import { BackupManager } from './BackupManager';
+import { buildStrategyTree, getVisionsForYear, getThemesForVision, getProjectsForTheme } from '../utils/buildStrategyTree';
 
 // Šiška Content (Thought System) with Drag & Drop
 function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddProject, onMoveItem, theme }) {
@@ -155,7 +156,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {data.years.map(year => {
-                    const yearVisions = data.visions.filter(v => v.yearId === year.id);
+                    const yearVisions = getVisionsForYear(data, year.id);
                     const isExpanded = expandedNodes[year.id];
 
                     return (
@@ -207,7 +208,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                     onDrop={(e) => handleDrop(e, 'year', year.id, null)}
                                 >
                                     {yearVisions.map(vision => {
-                                        const visionThemes = data.themes.filter(t => t.visionId === vision.id);
+                                        const visionThemes = getThemesForVision(data, vision.id);
                                         const isVisionExpanded = expandedNodes[vision.id];
 
                                         return (
@@ -264,7 +265,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                         onDrop={(e) => handleDrop(e, 'vision', vision.id, year.id)}
                                                     >
                                                         {visionThemes.map(themeItem => {
-                                                            const themeProjects = data.projects.filter(p => p.themeId === themeItem.id);
+                                                            const themeProjects = getProjectsForTheme(data, themeItem.id);
                                                             const isThemeExpanded = expandedNodes[themeItem.id];
 
                                                             return (

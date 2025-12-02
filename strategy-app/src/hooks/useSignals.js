@@ -26,13 +26,18 @@ export function useSignals(googleToken, refreshInterval = 30000) {
 
         // Use environment variable for backend URL, fallback to default
         const API_URL = import.meta.env.VITE_SIGNAL_API_URL || 'https://signal-lite-backend.onrender.com';
+        const fullURL = `${API_URL}/signals`;
         
-        const response = await fetch(`${API_URL}/signals`, {
+        console.log('Fetching signals from:', fullURL);
+        
+        const response = await fetch(fullURL, {
           headers
         });
 
+        console.log('Response status:', response.status);
+        
         if (!response.ok) {
-          throw new Error(`Failed to fetch signals: ${response.status}`);
+          throw new Error(`Failed to fetch signals: ${response.status} from ${fullURL}`);
         }
 
         const data = await response.json();

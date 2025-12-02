@@ -73,43 +73,43 @@ function Orb({ token, onLogout }) {
     };
     setSparkStyle(newSparkStyle);
 
+    // Start sending immediately in background
+    const sendPromise = (async () => {
+      if (!navigator.onLine) {
+        throw new Error('Offline');
+      }
+      return sendSignal(signalData, token);
+    })();
+
     // Wait for spark animation (4s)
     setTimeout(async () => {
       try {
-        if (!navigator.onLine) {
-          queueSignal(signalData);
-          setState(OrbState.SUCCESS);
-        } else {
-          await sendSignal(signalData, token);
-          setState(OrbState.SUCCESS);
-          
-          if (navigator.vibrate) {
-            navigator.vibrate([10, 50, 10]);
-          }
-        }
-
-        setShowSpark(false);
+        // Wait for the request to finish (if it hasn't already)
+        await sendPromise;
         
-        // Reset after success
-        setTimeout(() => {
-          setState(OrbState.IDLE);
-          setInputValue('');
-        }, 2000);
-      } catch (error) {
-        console.error('Failed to send signal:', error);
-        queueSignal(signalData);
-        setState(OrbState.ERROR);
-        setShowSpark(false);
+        setState(OrbState.SUCCESS);
         
         if (navigator.vibrate) {
-          navigator.vibrate([50, 100, 50]);
+          navigator.vibrate([10, 50, 10]);
         }
-
-        setTimeout(() => {
-          setState(OrbState.IDLE);
-          setInputValue('');
-        }, 2000);
+      } catch (error) {
+        console.log('Falling back to offline queue:', error);
+        // If network failed, queue it and still show success (but maybe different?)
+        queueSignal(signalData);
+        setState(OrbState.SUCCESS); // Show success for user, handled in background
+        
+        if (navigator.vibrate) {
+          navigator.vibrate([10, 50, 10]);
+        }
       }
+
+      setShowSpark(false);
+        
+      // Reset after success
+      setTimeout(() => {
+        setState(OrbState.IDLE);
+        setInputValue('');
+      }, 2000);
     }, 4000);
   };
 

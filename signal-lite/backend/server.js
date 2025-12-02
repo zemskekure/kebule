@@ -28,6 +28,10 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS?.split(',') || [];
 // Remove trailing slash if present to prevent CORS errors
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+// Add Strategy App URL to allowed origins
+const STRATEGY_APP_URL = 'https://kebule.onrender.com';
+const ALLOWED_ORIGINS = [FRONTEND_URL, STRATEGY_APP_URL, 'http://localhost:5173', 'http://localhost:5174'];
+
 const BRAND_MAPPING = process.env.BRAND_MAPPING ? JSON.parse(process.env.BRAND_MAPPING) : {};
 
 // Initialize Google OAuth client
@@ -49,7 +53,17 @@ function saveDB(data) {
 
 // Middleware
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (ALLOWED_ORIGINS.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());

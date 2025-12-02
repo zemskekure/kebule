@@ -25,7 +25,7 @@ export function useSignals(googleToken, refreshInterval = 30000) {
         }
 
         // Use environment variable for backend URL, fallback to default
-        const API_URL = import.meta.env.VITE_SIGNAL_API_URL || 'https://signal-lite-backend.onrender.com';
+        const API_URL = (import.meta.env.VITE_SIGNAL_API_URL || 'https://signal-lite-backend.onrender.com').replace(/\/$/, '');
         const fullURL = `${API_URL}/signals`;
         
         console.log('Fetching signals from:', fullURL);

@@ -1022,8 +1022,29 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                 )}
 
                 {type === 'project' && (
-                    <div className="form-group">
-                        <label className="form-label" style={labelStyle}>Vlivy (tlaky na tento projekt):</label>
+                    <>
+                        {/* Cíl assignment dropdown */}
+                        <div className="form-group">
+                            <label className="form-label" style={labelStyle}>Cíl</label>
+                            <select
+                                className="form-control"
+                                style={inputStyle}
+                                value={item.initiativeId || ''}
+                                onChange={e => handleChange('initiativeId', e.target.value || null)}
+                            >
+                                <option value="">Bez cíle</option>
+                                {(data.initiatives || [])
+                                    .filter(i => i.themeId === item.themeId)
+                                    .map(initiative => (
+                                        <option key={initiative.id} value={initiative.id}>
+                                            {initiative.name}
+                                        </option>
+                                    ))
+                                }
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={labelStyle}>Vlivy (tlaky na tento projekt):</label>
                         <div style={{ maxHeight: '200px', overflowY: 'auto', border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef', padding: '0.5rem', borderRadius: '0.25rem', backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#fff' }}>
                             {(data.influences || []).length === 0 && (
                                 <p style={{ color: isDark ? '#adb5bd' : '#868e96', fontSize: '0.85rem', margin: 0 }}>Žádné vlivy k dispozici</p>
@@ -1058,6 +1079,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                             })}
                         </div>
                     </div>
+                    </>
                 )}
 
                 {type === 'influence' && (

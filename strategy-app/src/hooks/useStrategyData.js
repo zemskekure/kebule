@@ -2,9 +2,9 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   loadAllData, 
-  createBrand, createLocation, createYear, createVision, createTheme, createProject, createNewRestaurant, createInfluence,
-  updateBrand, updateLocation, updateYear, updateVision, updateTheme, updateProject, updateNewRestaurant, updateInfluence,
-  deleteBrand, deleteLocation, deleteYear, deleteVision, deleteTheme, deleteProject, deleteNewRestaurant, deleteInfluence,
+  createBrand, createLocation, createYear, createVision, createTheme, createInitiative, createProject, createNewRestaurant, createInfluence,
+  updateBrand, updateLocation, updateYear, updateVision, updateTheme, updateInitiative, updateProject, updateNewRestaurant, updateInfluence,
+  deleteBrand, deleteLocation, deleteYear, deleteVision, deleteTheme, deleteInitiative, deleteProject, deleteNewRestaurant, deleteInfluence,
   updateSignal, deleteSignal
 } from '../services/supabaseData';
 
@@ -16,6 +16,7 @@ const INITIAL_DATA = {
   years: [],
   visions: [],
   themes: [],
+  initiatives: [],
   projects: [],
   newRestaurants: [],
   influences: [],
@@ -29,6 +30,7 @@ function getCollectionName(type) {
     year: 'years',
     vision: 'visions',
     theme: 'themes',
+    initiative: 'initiatives',
     project: 'projects',
     newRestaurant: 'newRestaurants',
     reconstruction: 'newRestaurants', // Facelifts are stored in newRestaurants with category: 'facelift'
@@ -291,11 +293,36 @@ export function useStrategyData() {
     return newId;
   }, [userId]);
 
-  const addProject = useCallback(async (themeId) => {
+  const addInitiative = useCallback(async (themeId) => {
+    const newId = Date.now().toString();
+    const newInitiative = {
+      id: newId,
+      theme_id: themeId,
+      name: 'Nová iniciativa',
+      status: 'idea',
+      description: '',
+      start_date: null,
+      end_date: null,
+      created_by: userId,
+      updated_by: userId
+    };
+    
+    setData(prev => ({ ...prev, initiatives: [...prev.initiatives, { ...newInitiative, themeId: newInitiative.theme_id }] }));
+    
+    try {
+      await createInitiative(newInitiative);
+    } catch (err) {
+      console.error('Failed to create initiative:', err);
+    }
+    return newId;
+  }, [userId]);
+
+  const addProject = useCallback(async (themeId, initiativeId = null) => {
     const newId = Date.now().toString();
     const newProject = {
       id: newId,
       theme_id: themeId,
+      initiative_id: initiativeId,
       title: 'Nový úkol',
       description: '',
       status: 'Nápad',
@@ -307,7 +334,7 @@ export function useStrategyData() {
       updated_by: userId
     };
     
-    setData(prev => ({ ...prev, projects: [...prev.projects, { ...newProject, themeId: newProject.theme_id, brandIds: [], locationIds: [] }] }));
+    setData(prev => ({ ...prev, projects: [...prev.projects, { ...newProject, themeId: newProject.theme_id, initiativeId: newProject.initiative_id, brandIds: [], locationIds: [] }] }));
     
     try {
       await createProject(newProject);
@@ -345,6 +372,7 @@ export function useStrategyData() {
       else if (type === 'year') await updateYear(id, apiUpdates);
       else if (type === 'vision') await updateVision(id, apiUpdates);
       else if (type === 'theme') await updateTheme(id, apiUpdates);
+      else if (type === 'initiative') await updateInitiative(id, apiUpdates);
       else if (type === 'project') await updateProject(id, apiUpdates);
       else if (type === 'newRestaurant' || type === 'reconstruction') await updateNewRestaurant(id, apiUpdates);
       else if (type === 'influence') await updateInfluence(id, apiUpdates);
@@ -378,7 +406,15 @@ export function useStrategyData() {
         newState.projects = prev.projects.filter(p => !themesToDelete.includes(p.themeId));
       } else if (type === 'theme') {
         newState.themes = prev.themes.filter(t => t.id !== id);
-        newState.projects = prev.projects.filter(p => p.themeId !== id);
+        // Cascade delete initiatives
+        const initiativesToDelete = prev.initiatives.filter(i => i.themeId === id).map(i => i.id);
+        newState.initiatives = prev.initiatives.filter(i => i.themeId !== id);
+        // Cascade delete projects (both theme-level and initiative-level)
+        newState.projects = prev.projects.filter(p => p.themeId !== id && !initiativesToDelete.includes(p.initiativeId));
+      } else if (type === 'initiative') {
+        newState.initiatives = prev.initiatives.filter(i => i.id !== id);
+        // Cascade delete projects under this initiative
+        newState.projects = prev.projects.filter(p => p.initiativeId !== id);
       } else if (type === 'project') {
         newState.projects = prev.projects.filter(p => p.id !== id);
       } else if (type === 'newRestaurant' || type === 'reconstruction') {
@@ -403,6 +439,7 @@ export function useStrategyData() {
       else if (type === 'year') await deleteYear(id);
       else if (type === 'vision') await deleteVision(id);
       else if (type === 'theme') await deleteTheme(id);
+      else if (type === 'initiative') await deleteInitiative(id);
       else if (type === 'project') await deleteProject(id);
       else if (type === 'newRestaurant' || type === 'reconstruction') await deleteNewRestaurant(id);
       else if (type === 'influence') await deleteInfluence(id);
@@ -569,6 +606,7 @@ export function useStrategyData() {
     addYear,
     addVision,
     addTheme,
+    addInitiative,
     addProject,
     updateNode,
     deleteNode,

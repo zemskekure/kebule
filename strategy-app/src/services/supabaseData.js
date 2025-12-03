@@ -384,6 +384,7 @@ export async function loadAllData() {
     years,
     visions,
     themes,
+    initiatives,
     projects,
     newRestaurants,
     influences
@@ -393,6 +394,7 @@ export async function loadAllData() {
     getYears(),
     getVisions(),
     getThemes(),
+    getInitiatives(),
     getProjects(),
     getNewRestaurants(),
     getInfluences()
@@ -407,11 +409,58 @@ export async function loadAllData() {
     years,
     visions,
     themes,
+    initiatives,
     projects,
     newRestaurants,
     influences,
     signals
   };
+}
+
+// ============================================================================
+// INITIATIVES
+// ============================================================================
+
+export async function getInitiatives() {
+  const { data, error } = await supabase
+    .from('initiatives')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function createInitiative(initiative) {
+  const { data, error } = await supabase
+    .from('initiatives')
+    .insert([initiative])
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function updateInitiative(id, updates) {
+  const { data, error } = await supabase
+    .from('initiatives')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteInitiative(id) {
+  const { error } = await supabase
+    .from('initiatives')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
 }
 
 // ============================================================================

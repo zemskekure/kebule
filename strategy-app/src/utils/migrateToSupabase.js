@@ -47,7 +47,14 @@ export async function migrateLocalStorageToSupabase() {
       const brandsToInsert = data.brands.map(b => ({
         id: b.id,
         name: b.name,
-        color: b.color,
+        color: b.color || null,
+        foundation_year: b.foundationYear || null,
+        concept_short: b.conceptShort || null,
+        description: b.description || null,
+        logo_url: b.logoUrl || null,
+        social_links: b.socialLinks || null,
+        contact: b.contact || null,
+        account_manager: b.accountManager || null,
         created_by: userId,
         updated_by: userId
       }));
@@ -64,7 +71,9 @@ export async function migrateLocalStorageToSupabase() {
     if (data.locations?.length > 0) {
       const locationsToInsert = data.locations.map(l => ({
         id: l.id,
+        brand_id: l.brandId,
         name: l.name,
+        address: l.address || null,
         created_by: userId,
         updated_by: userId
       }));
@@ -81,7 +90,8 @@ export async function migrateLocalStorageToSupabase() {
     if (data.years?.length > 0) {
       const yearsToInsert = data.years.map(y => ({
         id: y.id,
-        year: y.year,
+        title: y.title || y.year, // Handle both formats
+        sandbox_position: y.sandboxPosition || null,
         created_by: userId,
         updated_by: userId
       }));
@@ -103,6 +113,7 @@ export async function migrateLocalStorageToSupabase() {
         year_id: v.yearId,
         brand_ids: v.brandIds || [],
         location_ids: v.locationIds || [],
+        sandbox_position: v.sandboxPosition || null,
         created_by: userId,
         updated_by: userId
       }));
@@ -122,8 +133,10 @@ export async function migrateLocalStorageToSupabase() {
         title: t.title,
         description: t.description,
         vision_id: t.visionId,
+        priority: t.priority || 'Medium',
         brand_ids: t.brandIds || [],
         location_ids: t.locationIds || [],
+        sandbox_position: t.sandboxPosition || null,
         created_by: userId,
         updated_by: userId
       }));
@@ -145,11 +158,13 @@ export async function migrateLocalStorageToSupabase() {
         theme_id: p.themeId,
         status: p.status || 'planned',
         priority: p.priority || 'medium',
+        type: p.type || 'standard',
         start_date: p.startDate,
         end_date: p.endDate,
         budget: p.budget,
         brand_ids: p.brandIds || [],
         location_ids: p.locationIds || [],
+        sandbox_position: p.sandboxPosition || null,
         created_by: userId,
         updated_by: userId
       }));
@@ -166,13 +181,20 @@ export async function migrateLocalStorageToSupabase() {
     if (data.newRestaurants?.length > 0) {
       const restaurantsToInsert = data.newRestaurants.map(r => ({
         id: r.id,
-        name: r.name,
-        concept: r.concept,
-        location: r.location,
+        title: r.title || r.name, // Handle both
+        description: r.description,
         status: r.status || 'planned',
+        category: r.category || 'new',
+        location_id: r.locationId,
         opening_date: r.openingDate,
+        phase: r.phase,
+        concept_summary: r.conceptSummary,
+        social_links: r.socialLinks || null,
+        contact: r.contact,
+        account_manager: r.accountManager,
         brand_ids: r.brandIds || [],
         location_ids: r.locationIds || [],
+        sandbox_position: r.sandboxPosition || null,
         created_by: userId,
         updated_by: userId
       }));
@@ -195,6 +217,7 @@ export async function migrateLocalStorageToSupabase() {
         impact: i.impact || 'medium',
         connected_theme_ids: i.connectedThemeIds || [],
         connected_project_ids: i.connectedProjectIds || [],
+        sandbox_position: i.sandboxPosition || null,
         created_by: userId,
         updated_by: userId
       }));

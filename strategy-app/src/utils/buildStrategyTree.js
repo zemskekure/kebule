@@ -42,9 +42,9 @@ export function buildStrategyTree(data) {
               initiativesWithProjects.push({
                 id: `unsorted-${theme.id}`,
                 themeId: theme.id,
-                name: 'Bez iniciativy',
+                name: 'Bez cíle',
                 status: 'none',
-                description: 'Projekty nepřiřazené k žádné iniciativě',
+                description: 'Projekty nepřiřazené k žádnému cíli',
                 isUnsorted: true, // Flag to identify synthetic initiative
                 projects: unsortedProjects
               });

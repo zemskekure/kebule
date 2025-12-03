@@ -559,7 +559,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                 {type === 'year' && 'Editace Roku'}
                 {type === 'vision' && 'Editace Vize'}
                 {type === 'theme' && 'Editace Hlavního tématu'}
-                {type === 'initiative' && 'Editace Iniciativy'}
+                {type === 'initiative' && 'Editace Cíle'}
                 {type === 'project' && 'Editace Úkolu'}
                 {type === 'newRestaurant' && 'Editace nové restaurace'}
                 {type === 'influence' && 'Editace vlivu'}
@@ -948,7 +948,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                                     }}>
                                         {initiativeProjects.length === 0 && (
                                             <p style={{ color: isDark ? '#adb5bd' : '#868e96', fontSize: '0.85rem', margin: 0 }}>
-                                                Žádné projekty v této iniciativě
+                                                Žádné projekty v tomto cíli
                                             </p>
                                         )}
                                         {initiativeProjects.map(project => (

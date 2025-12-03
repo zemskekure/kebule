@@ -296,7 +296,7 @@ export function useStrategyData() {
   const addInitiative = useCallback(async (themeId) => {
     const newInitiative = {
       theme_id: themeId,
-      name: 'Nová iniciativa',
+      name: 'Nový cíl',
       status: 'idea',
       description: '',
       start_date: null,

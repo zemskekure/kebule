@@ -514,7 +514,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                                     padding: '0.25rem 0.5rem',
                                                                                                     fontStyle: 'italic'
                                                                                                 }}>
-                                                                                                    Bez iniciativy ({unsortedProjects.length})
+                                                                                                    Bez cíle ({unsortedProjects.length})
                                                                                                 </div>
                                                                                                 {unsortedProjects.map(project => (
                                                                                                     <div
@@ -571,7 +571,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                         {/* Empty state */}
                                                                                         {themeInitiatives.length === 0 && unsortedProjects.length === 0 && (
                                                                                             <div style={{ fontSize: '0.8rem', color: textSecondary, fontStyle: 'italic', padding: '0.5rem 0.75rem' }}>
-                                                                                                Žádné iniciativy ani projekty
+                                                                                                Žádné cíle ani projekty
                                                                                             </div>
                                                                                         )}
                                                                                         
@@ -592,7 +592,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                                     fontSize: '0.75rem'
                                                                                                 }}
                                                                                             >
-                                                                                                <Plus size={12} /> Iniciativa
+                                                                                                <Plus size={12} /> Cíl
                                                                                             </button>
                                                                                             <button
                                                                                                 onClick={() => onAddProject(themeItem.id)}

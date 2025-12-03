@@ -1,4 +1,4 @@
-# Signal Lite
+# Drobky
 
 A minimal PWA for Ambiente account managers to capture quick restaurant signals with near-zero friction.
 
@@ -6,7 +6,7 @@ A minimal PWA for Ambiente account managers to capture quick restaurant signals 
 
 **"One breathing button to send quick field intelligence."**
 
-Signal Lite is designed as a single-purpose walkie-talkie: open → tap orb → type → send → done.
+Drobky is designed as a single-purpose walkie-talkie: open → tap orb → type → send → done.
 
 ## Features
 

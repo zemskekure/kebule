@@ -136,17 +136,17 @@ function Orb({ token, onLogout }) {
   const getOrbLabel = () => {
     switch (state) {
       case OrbState.IDLE:
-        return 'Signal';
+        return 'Drobek';
       case OrbState.CAPTURE:
-        return 'Send';
+        return 'Odeslat';
       case OrbState.SENDING:
         return '';
       case OrbState.SUCCESS:
-        return 'Signál odeslán';
+        return 'Děkujeme!';
       case OrbState.ERROR:
         return 'Zkuste znovu';
       default:
-        return 'Signal';
+        return 'Drobek';
     }
   };
 
@@ -174,7 +174,7 @@ function Orb({ token, onLogout }) {
       {/* Success message */}
       {state === OrbState.SUCCESS && (
         <div className="success-message">
-          Signál odeslán
+          Děkujeme za drobek!
         </div>
       )}
 

@@ -16,8 +16,8 @@ function LoginScreen({ onLogin }) {
         <div className="logo">
           <div className="logo-orb"></div>
         </div>
-        <h1>Signal Lite</h1>
-        <p className="tagline">Rychlé signály z terénu</p>
+        <h1>Drobky</h1>
+        <p className="tagline">Rychlé drobky z terénu</p>
         <div className="login-button-wrapper">
           <GoogleLogin
             onSuccess={handleSuccess}

@@ -9,9 +9,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
-        name: 'Signal Lite',
-        short_name: 'Signal',
-        description: 'Quick restaurant signals for account managers',
+        name: 'Drobky',
+        short_name: 'Drobky',
+        description: 'Rychlé drobky z terénu pro account manažery',
         theme_color: '#000000',
         background_color: '#000000',
         display: 'standalone',

@@ -308,10 +308,11 @@ export function useStrategyData() {
     try {
       // Let Supabase generate the UUID
       const created = await createInitiative(newInitiative);
-      // Update local state with the real UUID from Supabase
+      // Convert to camelCase and update local state
+      const camelCaseInitiative = toCamelCase(created);
       setData(prev => ({ 
         ...prev, 
-        initiatives: [...prev.initiatives, { ...created, themeId: created.theme_id }] 
+        initiatives: [...prev.initiatives, camelCaseInitiative] 
       }));
       return created.id;
     } catch (err) {

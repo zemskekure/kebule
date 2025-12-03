@@ -420,8 +420,11 @@ export function useStrategyData() {
         newState.projects = prev.projects.filter(p => p.themeId !== id && !initiativesToDelete.includes(p.initiativeId));
       } else if (type === 'initiative') {
         newState.initiatives = prev.initiatives.filter(i => i.id !== id);
-        // Cascade delete projects under this initiative
-        newState.projects = prev.projects.filter(p => p.initiativeId !== id);
+        // Unlink projects from this initiative (set initiativeId to null)
+        // This matches the DB behavior (ON DELETE SET NULL)
+        newState.projects = prev.projects.map(p => 
+          p.initiativeId === id ? { ...p, initiativeId: null } : p
+        );
       } else if (type === 'project') {
         newState.projects = prev.projects.filter(p => p.id !== id);
       } else if (type === 'newRestaurant' || type === 'reconstruction') {

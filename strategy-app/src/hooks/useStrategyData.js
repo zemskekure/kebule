@@ -4,9 +4,9 @@ import {
   loadAllData, 
   createBrand, createLocation, createYear, createVision, createTheme, createProject, createNewRestaurant, createInfluence,
   updateBrand, updateLocation, updateYear, updateVision, updateTheme, updateProject, updateNewRestaurant, updateInfluence,
-  deleteBrand, deleteLocation, deleteYear, deleteVision, deleteTheme, deleteProject, deleteNewRestaurant, deleteInfluence
+  deleteBrand, deleteLocation, deleteYear, deleteVision, deleteTheme, deleteProject, deleteNewRestaurant, deleteInfluence,
+  updateSignal, deleteSignal
 } from '../services/supabaseData';
-import { fetchSignals, updateSignal as apiUpdateSignal, deleteSignal as apiDeleteSignal } from '../services/signalApi';
 
 // --- Initial Data (for loading state) ---
 
@@ -98,19 +98,8 @@ export function useStrategyData() {
         // Convert all Supabase data to camelCase for the app
         const camelCaseData = toCamelCase(supabaseData);
         
-        // Load Signals from Signal Lite API
-        let signals = [];
-        try {
-          const signalsResponse = await fetchSignals(googleToken);
-          signals = signalsResponse.signals || [];
-        } catch (err) {
-          console.warn('Failed to load signals:', err);
-        }
-        
-        setData({
-          ...camelCaseData,
-          signals
-        });
+        // Signals are now included in camelCaseData from Supabase
+        setData(camelCaseData);
       } catch (err) {
         console.error('Failed to load strategy data:', err);
         setError(err);
@@ -438,11 +427,11 @@ export function useStrategyData() {
     }));
     
     try {
-      await apiUpdateSignal(id, updates, googleToken);
+      await apiUpdateSignal(id, updates);
     } catch (err) {
       console.error('Failed to update signal:', err);
     }
-  }, [userId, googleToken]);
+  }, [userId]);
 
   const deleteSignal = useCallback(async (id, skipConfirm = false, confirmFn = null) => {
     if (!skipConfirm && !confirmFn && !window.confirm('Opravdu chcete smazat tento drobek?')) return false;
@@ -453,12 +442,12 @@ export function useStrategyData() {
     }));
     
     try {
-      await apiDeleteSignal(id, googleToken);
+      await apiDeleteSignal(id);
     } catch (err) {
       console.error('Failed to delete signal:', err);
     }
     return true;
-  }, [googleToken]);
+  }, []);
 
   const convertSignalToProject = useCallback(async (signalId, themeId) => {
     const signal = (data.signals || []).find(s => s.id === signalId);

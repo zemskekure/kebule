@@ -398,6 +398,9 @@ export async function loadAllData() {
     getInfluences()
   ]);
 
+  // Fetch signals from Supabase
+  const signals = await getSignals();
+
   return {
     brands,
     locations,
@@ -407,6 +410,51 @@ export async function loadAllData() {
     projects,
     newRestaurants,
     influences,
-    signals: [] // Signals come from Signal Lite API, not Supabase
+    signals
   };
+}
+
+// ============================================================================
+// SIGNALS
+// ============================================================================
+
+export async function getSignals() {
+  const { data, error } = await supabase
+    .from('signals')
+    .select('*')
+    .order('date', { ascending: false });
+  
+  if (error) throw error;
+  return data || [];
+}
+
+export async function updateSignal(id, updates) {
+  // Convert camelCase to snake_case for Supabase
+  const dbUpdates = {};
+  if (updates.status) dbUpdates.status = updates.status;
+  if (updates.projectId !== undefined) dbUpdates.project_id = updates.projectId;
+  if (updates.themeIds !== undefined) dbUpdates.theme_ids = updates.themeIds;
+  if (updates.influenceIds !== undefined) dbUpdates.influence_ids = updates.influenceIds;
+  if (updates.restaurantIds !== undefined) dbUpdates.restaurant_ids = updates.restaurantIds;
+  
+  dbUpdates.updated_at = new Date().toISOString();
+
+  const { data, error } = await supabase
+    .from('signals')
+    .update(dbUpdates)
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteSignal(id) {
+  const { error } = await supabase
+    .from('signals')
+    .delete()
+    .eq('id', id);
+  
+  if (error) throw error;
 }

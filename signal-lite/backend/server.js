@@ -176,24 +176,30 @@ app.post('/signals', verifyToken, async (req, res) => {
       body: body || null,
       date,
       source: req.body.source || 'restaurant',
-      authorId: req.user.id,
-      authorName: req.user.name,
-      authorEmail: req.user.email,
-      authorBrandIds,
-      restaurantIds: req.body.restaurantIds || [],
+      author_id: req.user.id,
+      author_name: req.user.name,
+      author_email: req.user.email,
+      author_brand_ids: authorBrandIds,
+      restaurant_ids: req.body.restaurantIds || [],
       priority: req.body.priority || null,
       status: 'inbox',
-      projectId: null,
-      themeIds: [],
-      influenceIds: [],
-      createdAt: new Date().toISOString()
+      project_id: null,
+      theme_ids: [],
+      influence_ids: [],
+      created_at: new Date().toISOString()
     };
 
-    const db = loadDB();
-    db.signals.push(signal);
-    saveDB(db);
+    // Store in Supabase
+    const { error: insertError } = await supabase
+      .from('signals')
+      .insert([signal]);
 
-    console.log('Signal created:', id);
+    if (insertError) {
+      console.error('Failed to insert signal:', insertError);
+      throw insertError;
+    }
+
+    console.log('Signal created in Supabase:', id);
 
     // Send webhook to Strategy App (if configured)
     const STRATEGY_APP_WEBHOOK = process.env.STRATEGY_APP_WEBHOOK;
@@ -230,35 +236,46 @@ app.patch('/signals/:id', verifyToken, async (req, res) => {
     
     console.log('Updating signal:', id, updates);
 
-    const db = loadDB();
-    const signalIndex = db.signals.findIndex(s => s.id === id);
-    
-    if (signalIndex === -1) {
-      return res.status(404).json({ error: 'Signal not found' });
-    }
-
     // Only allow specific fields to be updated
     const allowedFields = ['status', 'projectId', 'themeIds', 'influenceIds', 'restaurantIds', 'priority', 'body'];
     const filteredUpdates = {};
     
+    // Convert camelCase to snake_case for Supabase
+    const fieldMapping = {
+      'projectId': 'project_id',
+      'themeIds': 'theme_ids',
+      'influenceIds': 'influence_ids',
+      'restaurantIds': 'restaurant_ids'
+    };
+    
     for (const field of allowedFields) {
       if (updates.hasOwnProperty(field)) {
-        filteredUpdates[field] = updates[field];
+        const dbField = fieldMapping[field] || field;
+        filteredUpdates[dbField] = updates[field];
       }
     }
 
-    db.signals[signalIndex] = {
-      ...db.signals[signalIndex],
-      ...filteredUpdates,
-      updatedAt: new Date().toISOString()
-    };
-    
-    saveDB(db);
+    filteredUpdates.updated_at = new Date().toISOString();
 
-    console.log('Signal updated:', id);
+    const { data, error } = await supabase
+      .from('signals')
+      .update(filteredUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'Signal not found' });
+      }
+      console.error('Error updating signal:', error);
+      throw error;
+    }
+
+    console.log('Signal updated in Supabase:', id);
     res.json({ 
       ok: true, 
-      signal: db.signals[signalIndex],
+      signal: data,
       message: 'Signal updated successfully' 
     });
   } catch (error) {
@@ -268,29 +285,32 @@ app.patch('/signals/:id', verifyToken, async (req, res) => {
 });
 
 // GET /signals - Retrieve signals (for main app integration)
-app.get('/signals', (req, res) => {
+app.get('/signals', async (req, res) => {
   try {
     const { limit = 100, offset = 0, authorEmail, status } = req.query;
     
-    const db = loadDB();
-    let signals = db.signals;
+    let query = supabase
+      .from('signals')
+      .select('*')
+      .order('date', { ascending: false })
+      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
 
     if (authorEmail) {
-      signals = signals.filter(s => s.authorEmail === authorEmail);
+      query = query.eq('author_email', authorEmail);
     }
 
     if (status) {
-      signals = signals.filter(s => s.status === status);
+      query = query.eq('status', status);
     }
 
-    signals.sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    const paginatedSignals = signals.slice(
-      parseInt(offset), 
-      parseInt(offset) + parseInt(limit)
-    );
+    const { data: signals, error } = await query;
 
-    res.json({ signals: paginatedSignals });
+    if (error) {
+      console.error('Error fetching signals from Supabase:', error);
+      throw error;
+    }
+
+    res.json({ signals: signals || [] });
   } catch (error) {
     console.error('Error fetching signals:', error);
     res.status(500).json({ error: 'Failed to fetch signals' });
@@ -304,25 +324,35 @@ app.delete('/signals/:id', verifyToken, async (req, res) => {
     
     console.log('Deleting signal:', id, 'by user:', req.user.email);
 
-    const db = loadDB();
-    const signalIndex = db.signals.findIndex(s => s.id === id);
-    
-    if (signalIndex === -1) {
+    // Check if signal exists and get author info
+    const { data: signal, error: fetchError } = await supabase
+      .from('signals')
+      .select('author_email')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !signal) {
       return res.status(404).json({ error: 'Signal not found' });
     }
 
     // Check if user is the author or has admin rights
-    const signal = db.signals[signalIndex];
-    if (signal.authorEmail !== req.user.email) {
+    if (signal.author_email !== req.user.email) {
       // For now, allow anyone to delete (you can add admin check later)
       console.log('User is not author but allowing delete');
     }
 
-    // Remove the signal
-    db.signals.splice(signalIndex, 1);
-    saveDB(db);
+    // Delete the signal
+    const { error: deleteError } = await supabase
+      .from('signals')
+      .delete()
+      .eq('id', id);
 
-    console.log('Signal deleted:', id);
+    if (deleteError) {
+      console.error('Error deleting signal:', deleteError);
+      throw deleteError;
+    }
+
+    console.log('Signal deleted from Supabase:', id);
     res.json({ 
       ok: true, 
       message: 'Signal deleted successfully' 

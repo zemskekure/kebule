@@ -543,12 +543,8 @@ function App() {
                 if (!confirm('Opravdu chcete smazat tento drobek?')) return;
                 
                 try {
-                  // Delete from Signal Lite backend
-                  const { deleteSignal: deleteSignalAPI } = await import('./services/signalApi');
-                  await deleteSignalAPI(selectedSignal.id, googleToken);
-                  
-                  // Also remove from local state
-                  deleteSignal(selectedSignal.id, true);
+                  // Delete from Supabase (via useStrategyData hook)
+                  await deleteSignal(selectedSignal.id, true);
                   setSelectedSignal(null);
                 } catch (error) {
                   console.error('Failed to delete signal:', error);

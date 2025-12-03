@@ -48,7 +48,7 @@ function loadDB() {
 }
 
 function saveDB(data) {
-  writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+  writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
 
 // Middleware

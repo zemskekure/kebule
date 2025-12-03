@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
+import { OAuth2Client } from 'google-auth-library';
 import dotenv from 'dotenv';
 import { randomUUID } from 'crypto';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
@@ -26,6 +27,7 @@ if (isNaN(PORT) || PORT < 1 || PORT > 65535) {
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Service role key for server-side verification
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID; // For Signal Lite PWA
 const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS?.split(',') || [];
 // Remove trailing slash if present to prevent CORS errors
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
@@ -37,6 +39,8 @@ const BRAND_MAPPING = process.env.BRAND_MAPPING ? JSON.parse(process.env.BRAND_M
 
 // Initialize Supabase client for server-side verification
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+// Initialize Google OAuth client for Signal Lite PWA
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 // JSON file storage
 const DB_FILE = 'signals.json';
@@ -69,7 +73,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Verify Supabase JWT token middleware
+// Verify token middleware - supports both Supabase JWT and Google OAuth tokens
 async function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
   
@@ -78,21 +82,45 @@ async function verifyToken(req, res, next) {
   }
 
   const token = authHeader.substring(7);
+  let user = null;
 
   try {
-    console.log('Verifying Supabase token...');
+    // Try Supabase token first (for Strategy App)
+    console.log('Attempting Supabase token verification...');
+    const { data: { user: supabaseUser }, error: supabaseError } = await supabase.auth.getUser(token);
     
-    // Verify the JWT token using Supabase
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
-    if (error || !user) {
-      console.log('Token verification failed:', error?.message);
+    if (supabaseUser && !supabaseError) {
+      console.log('✓ Supabase token verified for:', supabaseUser.email);
+      user = {
+        id: supabaseUser.id,
+        email: supabaseUser.email,
+        name: supabaseUser.user_metadata?.name || supabaseUser.user_metadata?.full_name || supabaseUser.email,
+        picture: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture
+      };
+    } else {
+      // Try Google OAuth token (for Signal Lite PWA)
+      console.log('Supabase verification failed, trying Google OAuth...');
+      const ticket = await googleClient.verifyIdToken({
+        idToken: token,
+        audience: GOOGLE_CLIENT_ID,
+      });
+      
+      const payload = ticket.getPayload();
+      console.log('✓ Google OAuth token verified for:', payload.email);
+      user = {
+        id: payload.sub,
+        email: payload.email,
+        name: payload.name,
+        picture: payload.picture
+      };
+    }
+
+    if (!user) {
       return res.status(401).json({ error: 'Invalid token' });
     }
-    
+
     const email = user.email;
     const domain = email.split('@')[1];
-    console.log('Token verified for:', email);
     console.log('Domain:', domain);
     console.log('Allowed domains:', ALLOWED_DOMAINS);
 
@@ -103,12 +131,7 @@ async function verifyToken(req, res, next) {
     }
 
     // Attach user info to request
-    req.user = {
-      id: user.id,
-      email: user.email,
-      name: user.user_metadata?.name || user.user_metadata?.full_name || user.email,
-      picture: user.user_metadata?.avatar_url || user.user_metadata?.picture
-    };
+    req.user = user;
 
     // Update or create user in JSON DB
     const db = loadDB();

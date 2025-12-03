@@ -41,7 +41,7 @@ function useLocalStorage(key, initialValue) {
 
 function App() {
   // Auth
-  const { currentUser, isAdmin, login, logout, isLoading } = useAuth();
+  const { currentUser, isAdmin, googleToken, login, logout, isLoading } = useAuth();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const confirm = useConfirm();
 
@@ -307,8 +307,8 @@ function App() {
             src="/kedlubna.png" 
             alt="kedlubna" 
             style={{ 
-              width: '40px', 
-              height: '40px'
+              height: '40px',
+              width: 'auto'
             }} 
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
@@ -524,7 +524,7 @@ function App() {
           backgroundColor: currentTheme === 'dark' ? '#0a0a0a' : '#f8f9fa'
         }}>
           <SignalsInbox 
-            googleToken={null} 
+            googleToken={googleToken} 
             onSelectSignal={(signal) => {
               setSelectedSignal(signal);
               setSelectedNode({ type: 'signal', id: signal.id });
@@ -598,10 +598,11 @@ function App() {
       {/* Login Modal */}
       {showLoginModal && (
         <LoginModal
-          onLogin={(email, password) => {
-            const result = login(email, password);
+          onLogin={async () => {
+            const result = await login();
             if (result.success) {
-              setShowLoginModal(false);
+              // Modal will close automatically when auth state changes
+              // Google OAuth redirects, so we don't need to manually close
             }
             return result;
           }}

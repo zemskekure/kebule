@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Save, Trash2, Globe, Instagram, Radio, Archive, CheckCircle, ArrowRight, User, Clock } from 'lucide-react';
 import { getUserById } from '../contexts/AuthContext';
+import { updateSignal as updateSignalAPI } from '../services/signalApi';
 
 // Helper to format date in Czech
 function formatDate(isoString) {
@@ -56,6 +57,7 @@ function AuditInfo({ item, isDark }) {
 function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, isDark, inputStyle, labelStyle }) {
     const [showConvertModal, setShowConvertModal] = useState(false);
     const [selectedThemeId, setSelectedThemeId] = useState('');
+    const [isConverting, setIsConverting] = useState(false);
 
     const textColor = isDark ? '#ffffff' : '#212529';
     const textSecondary = isDark ? '#adb5bd' : '#6c757d';
@@ -69,10 +71,32 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, is
         onUpdate({ [field]: newArray });
     };
 
-    const handleConvert = () => {
-        if (!selectedThemeId) return;
-        onConvertToProject(signal.id, selectedThemeId);
-        setShowConvertModal(false);
+    const handleConvert = async () => {
+        if (!selectedThemeId || isConverting) return;
+        
+        setIsConverting(true);
+        try {
+            // Convert locally first
+            const result = onConvertToProject(signal.id, selectedThemeId);
+            
+            if (result && result.signalUpdates) {
+                // Update in Signal Lite backend (no token = public access for now)
+                try {
+                    await updateSignalAPI(signal.id, result.signalUpdates, null);
+                    console.log('Signal updated in backend');
+                } catch (apiError) {
+                    console.error('Failed to update signal in backend:', apiError);
+                    // Continue anyway - local update succeeded
+                }
+            }
+            
+            setShowConvertModal(false);
+        } catch (error) {
+            console.error('Failed to convert signal:', error);
+            alert('Chyba při převodu signálu na projekt');
+        } finally {
+            setIsConverting(false);
+        }
     };
 
     const getStatusColor = (status) => {
@@ -391,17 +415,17 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, is
                             </button>
                             <button
                                 onClick={handleConvert}
-                                disabled={!selectedThemeId}
+                                disabled={!selectedThemeId || isConverting}
                                 style={{
                                     padding: '0.5rem 1rem',
-                                    backgroundColor: selectedThemeId ? '#10b981' : (isDark ? 'rgba(255,255,255,0.1)' : '#e9ecef'),
-                                    color: selectedThemeId ? '#fff' : textSecondary,
+                                    backgroundColor: selectedThemeId && !isConverting ? '#10b981' : (isDark ? 'rgba(255,255,255,0.1)' : '#e9ecef'),
+                                    color: selectedThemeId && !isConverting ? '#fff' : textSecondary,
                                     border: 'none',
                                     borderRadius: '6px',
-                                    cursor: selectedThemeId ? 'pointer' : 'not-allowed'
+                                    cursor: selectedThemeId && !isConverting ? 'pointer' : 'not-allowed'
                                 }}
                             >
-                                Převést
+                                {isConverting ? 'Převádím...' : 'Převést'}
                             </button>
                         </div>
                     </div>

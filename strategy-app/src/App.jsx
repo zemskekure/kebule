@@ -6,7 +6,7 @@ import { LoginModal } from './components/LoginModal';
 import { DetailPanel } from './components/DetailPanel';
 import { VisionBoard } from './components/VisionBoard';
 import { Dashboard } from './components/Dashboard';
-import { SignalsFeed } from './components/SignalsFeed';
+import { SignalsInbox } from './components/SignalsInbox';
 import { AIChatWindow } from './components/AIChatWindow';
 import { EditorSidebar } from './components/EditorSidebar';
 import { EditorContent } from './components/EditorContent';
@@ -73,6 +73,7 @@ function App() {
   const [viewMode, setViewMode] = useState('vision'); // 'admin' | 'dashboard' | 'vision' | 'sandbox'
   const [editorSection, setEditorSection] = useState('thought-system');
   const [selectedNode, setSelectedNode] = useState(null);
+  const [selectedSignal, setSelectedSignal] = useState(null);
   const [selectedBrandIds, setSelectedBrandIds] = useState([]);
   const [selectedLocationIds, setSelectedLocationIds] = useState([]);
   const [expandedNodes, setExpandedNodes] = useState({});
@@ -508,7 +509,33 @@ function App() {
           onAddNode={addSandboxNode}
         />
       ) : viewMode === 'signals' ? (
-        <SignalsFeed googleToken={null} />
+        <div style={{
+          display: 'flex',
+          flex: 1,
+          overflow: 'hidden',
+          backgroundColor: currentTheme === 'dark' ? '#0a0a0a' : '#f8f9fa'
+        }}>
+          <SignalsInbox 
+            googleToken={null} 
+            onSelectSignal={(signal) => {
+              setSelectedSignal(signal);
+              setSelectedNode({ type: 'signal', id: signal.id });
+            }}
+            theme={currentTheme}
+          />
+          {selectedSignal && (
+            <DetailPanel
+              selectedNode={{ type: 'signal', id: selectedSignal.id }}
+              data={{ ...data, signals: [selectedSignal] }}
+              onUpdate={(updates) => {
+                setSelectedSignal({ ...selectedSignal, ...updates });
+              }}
+              onDelete={() => setSelectedSignal(null)}
+              onConvertSignalToProject={convertSignalToProject}
+              theme={currentTheme}
+            />
+          )}
+        </div>
       ) : (
         <div style={{
           display: 'flex',

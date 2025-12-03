@@ -34,3 +34,17 @@ export async function getSignals(token, params = {}) {
 
   return response.json();
 }
+
+export async function getRestaurants(token) {
+  const response = await fetch(`${API_URL}/restaurants`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch restaurants');
+  }
+
+  return response.json();
+}

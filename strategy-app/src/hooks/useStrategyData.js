@@ -611,29 +611,13 @@ export function useStrategyData() {
   }, [setData]);
 
   // --- Signal CRUD Operations ---
+  // NOTE: Signals are now created ONLY in Signal Lite app, not here
 
   const addSignal = useCallback((signalPartial) => {
-    const newId = Date.now().toString();
-    const newSignal = {
-      id: newId,
-      title: signalPartial.title || 'Nový signál',
-      body: signalPartial.body || '',
-      date: new Date().toISOString(),
-      source: signalPartial.source || 'me',
-      restaurantIds: signalPartial.restaurantIds || [],
-      influenceIds: signalPartial.influenceIds || [],
-      themeIds: signalPartial.themeIds || [],
-      projectId: signalPartial.projectId || null,
-      status: 'inbox',
-      priority: signalPartial.priority || null,
-      tags: signalPartial.tags || [],
-      attachments: signalPartial.attachments || [],
-      ...createAuditFields(userId)
-    };
-    // Keep newest signals first
-    setData(prev => ({ ...prev, signals: [newSignal, ...(prev.signals || [])] }));
-    return newId;
-  }, [setData, userId]);
+    // Signals should be created in Signal Lite app, not Strategy App
+    console.error('addSignal called - signals should be created in Signal Lite app');
+    throw new Error('Signals can only be created in Signal Lite app');
+  }, []);
 
   const updateSignal = useCallback((id, updates) => {
     setData(prev => ({
@@ -667,15 +651,17 @@ export function useStrategyData() {
       ...createAuditFields(userId)
     };
 
+    // Calculate new themeIds
+    const newThemeIds = signal.themeIds?.includes(themeId) 
+      ? signal.themeIds 
+      : [...(signal.themeIds || []), themeId];
+
     setData(prev => {
       // Add project
       const updatedProjects = [...prev.projects, newProject];
-      // Update signal
+      // Update signal locally
       const updatedSignals = (prev.signals || []).map(s => {
         if (s.id === signalId) {
-          const newThemeIds = s.themeIds?.includes(themeId) 
-            ? s.themeIds 
-            : [...(s.themeIds || []), themeId];
           return { ...s, status: 'converted', projectId: newProjectId, themeIds: newThemeIds, ...updateAuditFields(userId) };
         }
         return s;
@@ -683,7 +669,15 @@ export function useStrategyData() {
       return { ...prev, projects: updatedProjects, signals: updatedSignals };
     });
 
-    return newProjectId;
+    // Return data needed for API update
+    return {
+      projectId: newProjectId,
+      signalUpdates: {
+        status: 'converted',
+        projectId: newProjectId,
+        themeIds: newThemeIds
+      }
+    };
   }, [data.signals, setData, userId]);
 
   const moveItem = useCallback((itemType, itemId, newParentId, newIndex = null) => {

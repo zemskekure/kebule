@@ -148,11 +148,17 @@ app.post('/signals', verifyToken, async (req, res) => {
       title,
       body: body || null,
       date,
-      source: 'restaurant',
+      source: req.body.source || 'restaurant',
       authorId: req.user.id,
       authorName: req.user.name,
       authorEmail: req.user.email,
       authorBrandIds,
+      restaurantIds: req.body.restaurantIds || [],
+      priority: req.body.priority || null,
+      status: 'inbox',
+      projectId: null,
+      themeIds: [],
+      influenceIds: [],
       createdAt: new Date().toISOString()
     };
 
@@ -189,16 +195,65 @@ app.post('/signals', verifyToken, async (req, res) => {
   }
 });
 
+// PATCH /signals/:id - Update a signal (for Strategy App triage)
+app.patch('/signals/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    
+    console.log('Updating signal:', id, updates);
+
+    const db = loadDB();
+    const signalIndex = db.signals.findIndex(s => s.id === id);
+    
+    if (signalIndex === -1) {
+      return res.status(404).json({ error: 'Signal not found' });
+    }
+
+    // Only allow specific fields to be updated
+    const allowedFields = ['status', 'projectId', 'themeIds', 'influenceIds', 'restaurantIds', 'priority', 'body'];
+    const filteredUpdates = {};
+    
+    for (const field of allowedFields) {
+      if (updates.hasOwnProperty(field)) {
+        filteredUpdates[field] = updates[field];
+      }
+    }
+
+    db.signals[signalIndex] = {
+      ...db.signals[signalIndex],
+      ...filteredUpdates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    saveDB(db);
+
+    console.log('Signal updated:', id);
+    res.json({ 
+      ok: true, 
+      signal: db.signals[signalIndex],
+      message: 'Signal updated successfully' 
+    });
+  } catch (error) {
+    console.error('Error updating signal:', error);
+    res.status(500).json({ error: 'Failed to update signal' });
+  }
+});
+
 // GET /signals - Retrieve signals (for main app integration)
 app.get('/signals', (req, res) => {
   try {
-    const { limit = 100, offset = 0, authorEmail } = req.query;
+    const { limit = 100, offset = 0, authorEmail, status } = req.query;
     
     const db = loadDB();
     let signals = db.signals;
 
     if (authorEmail) {
       signals = signals.filter(s => s.authorEmail === authorEmail);
+    }
+
+    if (status) {
+      signals = signals.filter(s => s.status === status);
     }
 
     signals.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -212,6 +267,57 @@ app.get('/signals', (req, res) => {
   } catch (error) {
     console.error('Error fetching signals:', error);
     res.status(500).json({ error: 'Failed to fetch signals' });
+  }
+});
+
+// GET /restaurants - Retrieve restaurant list for dropdown
+app.get('/restaurants', verifyToken, (req, res) => {
+  try {
+    const userBrandIds = BRAND_MAPPING[req.user.email] || [];
+    
+    // Hardcoded restaurant list based on Ambiente brands
+    const allRestaurants = [
+      // Lokál
+      { id: 'l1', brandId: 'b1', name: 'Lokál Dlouhááá', brand: 'Lokál' },
+      { id: 'l2', brandId: 'b1', name: 'Lokál U Bílé kuželky', brand: 'Lokál' },
+      { id: 'l3', brandId: 'b1', name: 'Lokál Hamburk', brand: 'Lokál' },
+      { id: 'l4', brandId: 'b1', name: 'Lokál Nad Stromovkou', brand: 'Lokál' },
+      { id: 'l5', brandId: 'b1', name: 'Lokál U Zavadilů', brand: 'Lokál' },
+      { id: 'l6', brandId: 'b1', name: 'Lokál Korunní', brand: 'Lokál' },
+      { id: 'l7', brandId: 'b1', name: 'Lokál U Jiráta', brand: 'Lokál' },
+      // Brasileiro
+      { id: 'l8', brandId: 'b4', name: 'Brasileiro Slovanský dům', brand: 'Brasileiro' },
+      { id: 'l9', brandId: 'b4', name: 'Brasileiro U Zelené žáby', brand: 'Brasileiro' },
+      // Eska
+      { id: 'l10', brandId: 'b2', name: 'Eska Karlín', brand: 'Eska' },
+      { id: 'l24', brandId: 'b2', name: 'Eska Letná', brand: 'Eska' },
+      // Others
+      { id: 'l11', brandId: 'b21', name: 'Štangl', brand: 'Štangl' },
+      { id: 'l12', brandId: 'b3', name: 'Café Savoy', brand: 'Café Savoy' },
+      { id: 'l13', brandId: 'b5', name: 'Čestr', brand: 'Čestr' },
+      { id: 'l14', brandId: 'b13', name: 'Kuchyň', brand: 'Kuchyň' },
+      { id: 'l15', brandId: 'b14', name: 'La Degustation', brand: 'La Degustation' },
+      { id: 'l16', brandId: 'b12', name: 'Kantýna', brand: 'Kantýna' },
+      { id: 'l17', brandId: 'b16', name: 'Naše maso', brand: 'Naše maso' },
+      { id: 'l18', brandId: 'b17', name: 'Pasta Fresca', brand: 'Pasta Fresca' },
+      { id: 'l19', brandId: 'b18', name: 'Pastacaffé Vodičkova', brand: 'Pastacaffé' },
+      { id: 'l20', brandId: 'b18', name: 'Pastacaffé Vězeňská', brand: 'Pastacaffé' },
+      { id: 'l21', brandId: 'b19', name: 'Pizza Nuova', brand: 'Pizza Nuova' },
+      { id: 'l22', brandId: 'b10', name: 'Myšák Vodičkova', brand: 'Cukrárna Myšák' },
+      { id: 'l25', brandId: 'b10', name: 'Myšák Holešovice', brand: 'Cukrárna Myšák' },
+      { id: 'l23', brandId: 'b22', name: 'U Kalendů', brand: 'U Kalendů' },
+    ];
+
+    // Filter by user's brands if mapping exists
+    let restaurants = allRestaurants;
+    if (userBrandIds.length > 0) {
+      restaurants = allRestaurants.filter(r => userBrandIds.includes(r.brandId));
+    }
+
+    res.json({ restaurants });
+  } catch (error) {
+    console.error('Error fetching restaurants:', error);
+    res.status(500).json({ error: 'Failed to fetch restaurants' });
   }
 });
 

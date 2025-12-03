@@ -453,7 +453,7 @@
   cursor: not-allowed;
 }
 
-/* User Info & Logout */
+/* User Info & Navigation */
 .user-info {
   position: absolute;
   top: 20px;
@@ -461,6 +461,36 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.history-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.history-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.9);
+  border-color: rgba(249, 115, 22, 0.3);
+}
+
+.history-button:active {
+  transform: scale(0.95);
+}
+
+.history-button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .user-name {
@@ -492,9 +522,23 @@
 
 @media (max-width: 640px) {
   .user-info {
-    flex-direction: column;
-    align-items: flex-end;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
     gap: 8px;
+    top: 16px;
+    right: 16px;
+  }
+  
+  .history-button {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .history-button svg {
+    width: 14px;
+    height: 14px;
   }
   
   .user-name {

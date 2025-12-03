@@ -56,6 +56,7 @@ function App() {
     addYear,
     addVision,
     addTheme,
+    addInitiative,
     addProject,
     updateNode,
     deleteNode,
@@ -143,9 +144,17 @@ function App() {
     selectNode('theme', newId);
   };
 
-  const handleAddProject = (themeId) => {
-    const newId = addProject(themeId);
-    setExpandedNodes(prev => ({ ...prev, [themeId]: true }));
+  const handleAddInitiative = async (themeId) => {
+    const newId = await addInitiative(themeId);
+    if (newId) {
+      setExpandedNodes(prev => ({ ...prev, [themeId]: true, [newId]: true }));
+      selectNode('initiative', newId);
+    }
+  };
+
+  const handleAddProject = (themeId, initiativeId = null) => {
+    const newId = addProject(themeId, initiativeId);
+    setExpandedNodes(prev => ({ ...prev, [themeId]: true, ...(initiativeId ? { [initiativeId]: true } : {}) }));
     selectNode('project', newId);
   };
 
@@ -581,6 +590,7 @@ function App() {
             onAddYear={handleAddYear}
             onAddVision={handleAddVision}
             onAddTheme={handleAddTheme}
+            onAddInitiative={handleAddInitiative}
             onAddProject={handleAddProject}
             onAddInfluence={handleAddInfluence}
             onAddNewRestaurant={handleAddNewRestaurant}

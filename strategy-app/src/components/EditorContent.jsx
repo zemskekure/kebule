@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, ChevronDown, ChevronRight, Edit2, Trash2, Calendar, MapPin, User, ExternalLink, Zap, GripVertical, Radio, Search, Filter, Inbox, CheckCircle, Archive, ArrowRight } from 'lucide-react';
 import { BackupManager } from './BackupManager';
-import { buildStrategyTree, getVisionsForYear, getThemesForVision, getProjectsForTheme } from '../utils/buildStrategyTree';
+import { buildStrategyTree, getVisionsForYear, getThemesForVision, getProjectsForTheme, getInitiativesForTheme, getProjectsForInitiative, getUnsortedProjectsForTheme } from '../utils/buildStrategyTree';
 import { useSignals } from '../hooks/useSignals';
 
 // Kedlubna Content (Thought System) with Drag & Drop
-function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddProject, onMoveItem, theme }) {
+function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddInitiative, onAddProject, onMoveItem, theme }) {
     const isDark = theme === 'dark';
     const textColor = isDark ? '#ffffff' : '#212529';
     const textSecondary = isDark ? '#adb5bd' : '#6c757d';
@@ -364,7 +364,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                         <span style={{ fontSize: '0.75rem', color: textSecondary }}>{themeProjects.length} projektů</span>
                                                                     </div>
 
-                                                                    {/* Projects under theme */}
+                                                                    {/* Initiatives and Projects under theme */}
                                                                     {isThemeExpanded && (
                                                                         <div 
                                                                             style={{ marginLeft: '1.5rem', marginTop: '0.25rem' }}
@@ -372,78 +372,249 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                             onDragLeave={handleDragLeave}
                                                                             onDrop={(e) => handleDrop(e, 'theme', themeItem.id, vision.id)}
                                                                         >
-                                                                            {themeProjects.map(project => (
-                                                                                <div
-                                                                                    key={project.id}
-                                                                                    draggable
-                                                                                    onDragStart={(e) => handleDragStart(e, 'project', project.id, themeItem.id)}
-                                                                                    onDragEnd={handleDragEnd}
-                                                                                    onDragOver={(e) => handleDragOver(e, 'project', project.id)}
-                                                                                    onDragLeave={handleDragLeave}
-                                                                                    onDrop={(e) => handleDrop(e, 'project', project.id, themeItem.id)}
-                                                                                    onClick={() => onSelectNode('project', project.id)}
-                                                                                    className="interactive-card"
-                                                                                    style={{
-                                                                                        display: 'flex',
-                                                                                        alignItems: 'center',
-                                                                                        padding: '0.5rem 0.75rem',
-                                                                                        marginBottom: '0.25rem',
-                                                                                        borderLeft: '3px solid #198754',
-                                                                                        backgroundColor: selectedNode?.id === project.id
-                                                                                            ? (isDark ? 'rgba(25, 135, 84, 0.15)' : 'rgba(25, 135, 84, 0.1)')
-                                                                                            : (isDark ? 'rgba(255, 255, 255, 0.02)' : '#fafafa'),
-                                                                                        cursor: 'pointer',
-                                                                                        borderRadius: '0 6px 6px 0',
-                                                                                        ...getDropTargetStyle('project', project.id)
-                                                                                    }}
-                                                                                >
-                                                                                    <div style={getDragHandleStyle()} className="drag-handle">
-                                                                                        <GripVertical size={12} />
-                                                                                    </div>
-                                                                                    <div style={{ flex: 1 }}>
-                                                                                        <div style={{ color: textColor, fontWeight: 500, fontSize: '0.9rem' }}>{project.title}</div>
-                                                                                        {project.description && (
-                                                                                            <div style={{ fontSize: '0.8rem', color: textSecondary, marginTop: '0.25rem' }}>{project.description}</div>
+                                                                            {/* Initiatives */}
+                                                                            {(() => {
+                                                                                const themeInitiatives = getInitiativesForTheme(data, themeItem.id);
+                                                                                const unsortedProjects = getUnsortedProjectsForTheme(data, themeItem.id);
+                                                                                
+                                                                                return (
+                                                                                    <>
+                                                                                        {themeInitiatives.map(initiative => {
+                                                                                            const initiativeProjects = getProjectsForInitiative(data, initiative.id);
+                                                                                            const isInitiativeExpanded = expandedNodes[initiative.id];
+                                                                                            const doneCount = initiativeProjects.filter(p => p.status === 'Hotovo').length;
+                                                                                            
+                                                                                            return (
+                                                                                                <div key={initiative.id} style={{ marginBottom: '0.5rem' }}>
+                                                                                                    <div
+                                                                                                        className="interactive-card"
+                                                                                                        style={{
+                                                                                                            display: 'flex',
+                                                                                                            alignItems: 'center',
+                                                                                                            padding: '0.4rem 0.6rem',
+                                                                                                            borderLeft: '3px solid #6f42c1',
+                                                                                                            backgroundColor: selectedNode?.id === initiative.id
+                                                                                                                ? (isDark ? 'rgba(111, 66, 193, 0.15)' : 'rgba(111, 66, 193, 0.1)')
+                                                                                                                : (isDark ? 'rgba(255, 255, 255, 0.02)' : '#fafafa'),
+                                                                                                            cursor: 'pointer',
+                                                                                                            borderRadius: '0 6px 6px 0'
+                                                                                                        }}
+                                                                                                        onClick={() => onSelectNode('initiative', initiative.id)}
+                                                                                                    >
+                                                                                                        <button
+                                                                                                            onClick={(e) => { e.stopPropagation(); onToggleNode(initiative.id); }}
+                                                                                                            style={{
+                                                                                                                background: 'none',
+                                                                                                                border: 'none',
+                                                                                                                cursor: 'pointer',
+                                                                                                                padding: '2px',
+                                                                                                                marginRight: '0.5rem',
+                                                                                                                color: textSecondary
+                                                                                                            }}
+                                                                                                        >
+                                                                                                            {isInitiativeExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                                                                                        </button>
+                                                                                                        <div style={{ flex: 1 }}>
+                                                                                                            <span style={{ color: textColor, fontWeight: 500, fontSize: '0.85rem' }}>{initiative.name}</span>
+                                                                                                            <span style={{
+                                                                                                                marginLeft: '0.5rem',
+                                                                                                                fontSize: '0.65rem',
+                                                                                                                padding: '0.1rem 0.4rem',
+                                                                                                                borderRadius: '3px',
+                                                                                                                backgroundColor: initiative.status === 'done' ? 'rgba(25, 135, 84, 0.2)' :
+                                                                                                                    initiative.status === 'in_progress' ? 'rgba(13, 110, 253, 0.2)' :
+                                                                                                                    initiative.status === 'shaping' ? 'rgba(255, 193, 7, 0.2)' :
+                                                                                                                    initiative.status === 'on_hold' ? 'rgba(220, 53, 69, 0.2)' : 'rgba(108, 117, 125, 0.2)',
+                                                                                                                color: initiative.status === 'done' ? '#198754' :
+                                                                                                                    initiative.status === 'in_progress' ? '#0d6efd' :
+                                                                                                                    initiative.status === 'shaping' ? '#cc9a00' :
+                                                                                                                    initiative.status === 'on_hold' ? '#dc3545' : textSecondary
+                                                                                                            }}>
+                                                                                                                {initiative.status === 'idea' ? 'Nápad' :
+                                                                                                                 initiative.status === 'shaping' ? 'Příprava' :
+                                                                                                                 initiative.status === 'in_progress' ? 'Běží' :
+                                                                                                                 initiative.status === 'done' ? 'Hotovo' :
+                                                                                                                 initiative.status === 'on_hold' ? 'Pozastaveno' : initiative.status}
+                                                                                                            </span>
+                                                                                                        </div>
+                                                                                                        <span style={{ fontSize: '0.7rem', color: textSecondary }}>
+                                                                                                            {doneCount}/{initiativeProjects.length}
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                    
+                                                                                                    {/* Projects under initiative */}
+                                                                                                    {isInitiativeExpanded && (
+                                                                                                        <div style={{ marginLeft: '1.5rem', marginTop: '0.25rem' }}>
+                                                                                                            {initiativeProjects.map(project => (
+                                                                                                                <div
+                                                                                                                    key={project.id}
+                                                                                                                    onClick={() => onSelectNode('project', project.id)}
+                                                                                                                    className="interactive-card"
+                                                                                                                    style={{
+                                                                                                                        display: 'flex',
+                                                                                                                        alignItems: 'center',
+                                                                                                                        padding: '0.4rem 0.6rem',
+                                                                                                                        marginBottom: '0.25rem',
+                                                                                                                        borderLeft: '3px solid #198754',
+                                                                                                                        backgroundColor: selectedNode?.id === project.id
+                                                                                                                            ? (isDark ? 'rgba(25, 135, 84, 0.15)' : 'rgba(25, 135, 84, 0.1)')
+                                                                                                                            : (isDark ? 'rgba(255, 255, 255, 0.02)' : '#fafafa'),
+                                                                                                                        cursor: 'pointer',
+                                                                                                                        borderRadius: '0 6px 6px 0'
+                                                                                                                    }}
+                                                                                                                >
+                                                                                                                    <div style={{ flex: 1 }}>
+                                                                                                                        <div style={{ color: textColor, fontWeight: 500, fontSize: '0.85rem' }}>{project.title}</div>
+                                                                                                                    </div>
+                                                                                                                    <span style={{
+                                                                                                                        fontSize: '0.65rem',
+                                                                                                                        padding: '0.15rem 0.4rem',
+                                                                                                                        borderRadius: '4px',
+                                                                                                                        backgroundColor: project.status === 'Hotovo' ? 'rgba(25, 135, 84, 0.2)' :
+                                                                                                                            project.status === 'Běží' ? 'rgba(13, 110, 253, 0.2)' :
+                                                                                                                            project.status === 'V přípravě' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(108, 117, 125, 0.2)',
+                                                                                                                        color: project.status === 'Hotovo' ? '#198754' :
+                                                                                                                            project.status === 'Běží' ? '#0d6efd' :
+                                                                                                                            project.status === 'V přípravě' ? '#cc9a00' : textSecondary
+                                                                                                                    }}>
+                                                                                                                        {project.status}
+                                                                                                                    </span>
+                                                                                                                </div>
+                                                                                                            ))}
+                                                                                                            <button
+                                                                                                                onClick={() => onAddProject(themeItem.id, initiative.id)}
+                                                                                                                style={{
+                                                                                                                    display: 'flex',
+                                                                                                                    alignItems: 'center',
+                                                                                                                    gap: '0.25rem',
+                                                                                                                    padding: '0.2rem 0.4rem',
+                                                                                                                    marginTop: '0.25rem',
+                                                                                                                    background: 'none',
+                                                                                                                    border: `1px dashed ${borderColor}`,
+                                                                                                                    borderRadius: '4px',
+                                                                                                                    color: textSecondary,
+                                                                                                                    cursor: 'pointer',
+                                                                                                                    fontSize: '0.7rem'
+                                                                                                                }}
+                                                                                                            >
+                                                                                                                <Plus size={10} /> Přidat projekt
+                                                                                                            </button>
+                                                                                                        </div>
+                                                                                                    )}
+                                                                                                </div>
+                                                                                            );
+                                                                                        })}
+                                                                                        
+                                                                                        {/* Unsorted projects (without initiative) */}
+                                                                                        {unsortedProjects.length > 0 && (
+                                                                                            <div style={{ marginBottom: '0.5rem' }}>
+                                                                                                <div style={{
+                                                                                                    fontSize: '0.75rem',
+                                                                                                    color: textSecondary,
+                                                                                                    padding: '0.25rem 0.5rem',
+                                                                                                    fontStyle: 'italic'
+                                                                                                }}>
+                                                                                                    Bez iniciativy ({unsortedProjects.length})
+                                                                                                </div>
+                                                                                                {unsortedProjects.map(project => (
+                                                                                                    <div
+                                                                                                        key={project.id}
+                                                                                                        draggable
+                                                                                                        onDragStart={(e) => handleDragStart(e, 'project', project.id, themeItem.id)}
+                                                                                                        onDragEnd={handleDragEnd}
+                                                                                                        onDragOver={(e) => handleDragOver(e, 'project', project.id)}
+                                                                                                        onDragLeave={handleDragLeave}
+                                                                                                        onDrop={(e) => handleDrop(e, 'project', project.id, themeItem.id)}
+                                                                                                        onClick={() => onSelectNode('project', project.id)}
+                                                                                                        className="interactive-card"
+                                                                                                        style={{
+                                                                                                            display: 'flex',
+                                                                                                            alignItems: 'center',
+                                                                                                            padding: '0.5rem 0.75rem',
+                                                                                                            marginBottom: '0.25rem',
+                                                                                                            borderLeft: '3px solid #198754',
+                                                                                                            backgroundColor: selectedNode?.id === project.id
+                                                                                                                ? (isDark ? 'rgba(25, 135, 84, 0.15)' : 'rgba(25, 135, 84, 0.1)')
+                                                                                                                : (isDark ? 'rgba(255, 255, 255, 0.02)' : '#fafafa'),
+                                                                                                            cursor: 'pointer',
+                                                                                                            borderRadius: '0 6px 6px 0',
+                                                                                                            ...getDropTargetStyle('project', project.id)
+                                                                                                        }}
+                                                                                                    >
+                                                                                                        <div style={getDragHandleStyle()} className="drag-handle">
+                                                                                                            <GripVertical size={12} />
+                                                                                                        </div>
+                                                                                                        <div style={{ flex: 1 }}>
+                                                                                                            <div style={{ color: textColor, fontWeight: 500, fontSize: '0.9rem' }}>{project.title}</div>
+                                                                                                            {project.description && (
+                                                                                                                <div style={{ fontSize: '0.8rem', color: textSecondary, marginTop: '0.25rem' }}>{project.description}</div>
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                        <span style={{
+                                                                                                            fontSize: '0.7rem',
+                                                                                                            padding: '0.2rem 0.5rem',
+                                                                                                            borderRadius: '4px',
+                                                                                                            backgroundColor: project.status === 'Hotovo' ? 'rgba(25, 135, 84, 0.2)' :
+                                                                                                                project.status === 'Běží' ? 'rgba(13, 110, 253, 0.2)' :
+                                                                                                                project.status === 'V přípravě' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(108, 117, 125, 0.2)',
+                                                                                                            color: project.status === 'Hotovo' ? '#198754' :
+                                                                                                                project.status === 'Běží' ? '#0d6efd' :
+                                                                                                                project.status === 'V přípravě' ? '#cc9a00' : textSecondary
+                                                                                                        }}>
+                                                                                                            {project.status}
+                                                                                                        </span>
+                                                                                                    </div>
+                                                                                                ))}
+                                                                                            </div>
                                                                                         )}
-                                                                                    </div>
-                                                                                    <span style={{
-                                                                                        fontSize: '0.7rem',
-                                                                                        padding: '0.2rem 0.5rem',
-                                                                                        borderRadius: '4px',
-                                                                                        backgroundColor: project.status === 'Hotovo' ? 'rgba(25, 135, 84, 0.2)' :
-                                                                                            project.status === 'Běží' ? 'rgba(13, 110, 253, 0.2)' :
-                                                                                                project.status === 'V přípravě' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(108, 117, 125, 0.2)',
-                                                                                        color: project.status === 'Hotovo' ? '#198754' :
-                                                                                            project.status === 'Běží' ? '#0d6efd' :
-                                                                                                project.status === 'V přípravě' ? '#cc9a00' : textSecondary
-                                                                                    }}>
-                                                                                        {project.status}
-                                                                                    </span>
-                                                                                </div>
-                                                                            ))}
-                                                                            {themeProjects.length === 0 && (
-                                                                                <div style={{ fontSize: '0.8rem', color: textSecondary, fontStyle: 'italic', padding: '0.5rem 0.75rem' }}>
-                                                                                    Žádné projekty
-                                                                                </div>
-                                                                            )}
-                                                                            <button
-                                                                                onClick={() => onAddProject(themeItem.id)}
-                                                                                style={{
-                                                                                    display: 'flex',
-                                                                                    alignItems: 'center',
-                                                                                    gap: '0.25rem',
-                                                                                    padding: '0.25rem 0.5rem',
-                                                                                    marginTop: '0.25rem',
-                                                                                    background: 'none',
-                                                                                    border: `1px dashed ${borderColor}`,
-                                                                                    borderRadius: '4px',
-                                                                                    color: textSecondary,
-                                                                                    cursor: 'pointer',
-                                                                                    fontSize: '0.75rem'
-                                                                                }}
-                                                                            >
-                                                                                <Plus size={12} /> Přidat projekt
-                                                                            </button>
+                                                                                        
+                                                                                        {/* Empty state */}
+                                                                                        {themeInitiatives.length === 0 && unsortedProjects.length === 0 && (
+                                                                                            <div style={{ fontSize: '0.8rem', color: textSecondary, fontStyle: 'italic', padding: '0.5rem 0.75rem' }}>
+                                                                                                Žádné iniciativy ani projekty
+                                                                                            </div>
+                                                                                        )}
+                                                                                        
+                                                                                        {/* Add buttons */}
+                                                                                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                                                                            <button
+                                                                                                onClick={() => onAddInitiative && onAddInitiative(themeItem.id)}
+                                                                                                style={{
+                                                                                                    display: 'flex',
+                                                                                                    alignItems: 'center',
+                                                                                                    gap: '0.25rem',
+                                                                                                    padding: '0.25rem 0.5rem',
+                                                                                                    background: 'none',
+                                                                                                    border: `1px dashed #6f42c1`,
+                                                                                                    borderRadius: '4px',
+                                                                                                    color: '#6f42c1',
+                                                                                                    cursor: 'pointer',
+                                                                                                    fontSize: '0.75rem'
+                                                                                                }}
+                                                                                            >
+                                                                                                <Plus size={12} /> Iniciativa
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={() => onAddProject(themeItem.id)}
+                                                                                                style={{
+                                                                                                    display: 'flex',
+                                                                                                    alignItems: 'center',
+                                                                                                    gap: '0.25rem',
+                                                                                                    padding: '0.25rem 0.5rem',
+                                                                                                    background: 'none',
+                                                                                                    border: `1px dashed ${borderColor}`,
+                                                                                                    borderRadius: '4px',
+                                                                                                    color: textSecondary,
+                                                                                                    cursor: 'pointer',
+                                                                                                    fontSize: '0.75rem'
+                                                                                                }}
+                                                                                            >
+                                                                                                <Plus size={12} /> Projekt
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </>
+                                                                                );
+                                                                            })()}
                                                                         </div>
                                                                     )}
                                                                 </div>
@@ -1429,6 +1600,7 @@ export function EditorContent({
     onAddYear,
     onAddVision,
     onAddTheme,
+    onAddInitiative,
     onAddProject,
     onAddInfluence,
     onAddNewRestaurant,
@@ -1461,6 +1633,7 @@ export function EditorContent({
                         onAddYear={onAddYear}
                         onAddVision={onAddVision}
                         onAddTheme={onAddTheme}
+                        onAddInitiative={onAddInitiative}
                         onAddProject={onAddProject}
                         onMoveItem={onMoveItem}
                         theme={theme}

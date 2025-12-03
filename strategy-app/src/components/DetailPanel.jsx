@@ -481,6 +481,9 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
     } else if (type === 'theme') {
         item = data.themes.find(i => i.id === id);
         parentItem = data.visions.find(v => v.id === item?.visionId);
+    } else if (type === 'initiative') {
+        item = (data.initiatives || []).find(i => i.id === id);
+        parentItem = data.themes.find(t => t.id === item?.themeId);
     } else if (type === 'project') {
         item = data.projects.find(i => i.id === id);
         parentItem = data.themes.find(t => t.id === item?.themeId);
@@ -556,6 +559,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                 {type === 'year' && 'Editace Roku'}
                 {type === 'vision' && 'Editace Vize'}
                 {type === 'theme' && 'Editace Hlavního tématu'}
+                {type === 'initiative' && 'Editace Iniciativy'}
                 {type === 'project' && 'Editace Úkolu'}
                 {type === 'newRestaurant' && 'Editace nové restaurace'}
                 {type === 'influence' && 'Editace vlivu'}
@@ -877,6 +881,99 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                                                     {signal.status === 'inbox' ? 'Inbox' : 
                                                      signal.status === 'triaged' ? 'Tříděno' : 
                                                      signal.status === 'converted' ? 'Převedeno' : 'Archiv'}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+                    </>
+                )}
+
+                {/* Initiative-specific fields */}
+                {type === 'initiative' && (
+                    <>
+                        <div className="form-group">
+                            <label className="form-label" style={labelStyle}>Stav</label>
+                            <select
+                                className="form-control"
+                                style={inputStyle}
+                                value={item.status || 'idea'}
+                                onChange={e => handleChange('status', e.target.value)}
+                            >
+                                <option value="idea">Nápad</option>
+                                <option value="shaping">Příprava</option>
+                                <option value="in_progress">Běží</option>
+                                <option value="done">Hotovo</option>
+                                <option value="on_hold">Pozastaveno</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={labelStyle}>Datum zahájení</label>
+                            <input
+                                type="date"
+                                className="form-control"
+                                style={inputStyle}
+                                value={item.startDate || ''}
+                                onChange={e => handleChange('startDate', e.target.value)}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label" style={labelStyle}>Datum ukončení</label>
+                            <input
+                                type="date"
+                                className="form-control"
+                                style={inputStyle}
+                                value={item.endDate || ''}
+                                onChange={e => handleChange('endDate', e.target.value)}
+                            />
+                        </div>
+                        {/* Projects in this initiative */}
+                        {(() => {
+                            const initiativeProjects = (data.projects || []).filter(p => p.initiativeId === id);
+                            const doneCount = initiativeProjects.filter(p => p.status === 'Hotovo').length;
+                            return (
+                                <div className="form-group">
+                                    <label className="form-label" style={labelStyle}>
+                                        Projekty ({doneCount}/{initiativeProjects.length} hotovo)
+                                    </label>
+                                    <div style={{ 
+                                        maxHeight: '200px', 
+                                        overflowY: 'auto', 
+                                        border: isDark ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e9ecef', 
+                                        padding: '0.5rem', 
+                                        borderRadius: '0.25rem', 
+                                        backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : '#fff' 
+                                    }}>
+                                        {initiativeProjects.length === 0 && (
+                                            <p style={{ color: isDark ? '#adb5bd' : '#868e96', fontSize: '0.85rem', margin: 0 }}>
+                                                Žádné projekty v této iniciativě
+                                            </p>
+                                        )}
+                                        {initiativeProjects.map(project => (
+                                            <div key={project.id} style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center', 
+                                                justifyContent: 'space-between',
+                                                padding: '0.25rem 0',
+                                                borderBottom: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid #f0f0f0'
+                                            }}>
+                                                <span style={{ color: isDark ? '#fff' : '#212529', fontSize: '0.85rem' }}>
+                                                    {project.title}
+                                                </span>
+                                                <span style={{
+                                                    fontSize: '0.7rem',
+                                                    padding: '0.15rem 0.4rem',
+                                                    borderRadius: '4px',
+                                                    backgroundColor: project.status === 'Hotovo' ? 'rgba(25, 135, 84, 0.2)' :
+                                                        project.status === 'Běží' ? 'rgba(13, 110, 253, 0.2)' :
+                                                        project.status === 'V přípravě' ? 'rgba(255, 193, 7, 0.2)' : 'rgba(108, 117, 125, 0.2)',
+                                                    color: project.status === 'Hotovo' ? '#198754' :
+                                                        project.status === 'Běží' ? '#0d6efd' :
+                                                        project.status === 'V přípravě' ? '#cc9a00' : (isDark ? '#adb5bd' : '#6c757d')
+                                                }}>
+                                                    {project.status}
                                                 </span>
                                             </div>
                                         ))}

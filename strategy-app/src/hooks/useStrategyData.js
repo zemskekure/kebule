@@ -294,9 +294,7 @@ export function useStrategyData() {
   }, [userId]);
 
   const addInitiative = useCallback(async (themeId) => {
-    const newId = Date.now().toString();
     const newInitiative = {
-      id: newId,
       theme_id: themeId,
       name: 'Nová iniciativa',
       status: 'idea',
@@ -307,14 +305,19 @@ export function useStrategyData() {
       updated_by: userId
     };
     
-    setData(prev => ({ ...prev, initiatives: [...prev.initiatives, { ...newInitiative, themeId: newInitiative.theme_id }] }));
-    
     try {
-      await createInitiative(newInitiative);
+      // Let Supabase generate the UUID
+      const created = await createInitiative(newInitiative);
+      // Update local state with the real UUID from Supabase
+      setData(prev => ({ 
+        ...prev, 
+        initiatives: [...prev.initiatives, { ...created, themeId: created.theme_id }] 
+      }));
+      return created.id;
     } catch (err) {
       console.error('Failed to create initiative:', err);
+      return null;
     }
-    return newId;
   }, [userId]);
 
   const addProject = useCallback(async (themeId, initiativeId = null) => {

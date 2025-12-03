@@ -4,7 +4,7 @@ import { BackupManager } from './BackupManager';
 import { buildStrategyTree, getVisionsForYear, getThemesForVision, getProjectsForTheme } from '../utils/buildStrategyTree';
 import { useSignals } from '../hooks/useSignals';
 
-// Šiška Content (Thought System) with Drag & Drop
+// Kedlubna Content (Thought System) with Drag & Drop
 function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddProject, onMoveItem, theme }) {
     const isDark = theme === 'dark';
     const textColor = isDark ? '#ffffff' : '#212529';
@@ -135,7 +135,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
     return (
         <div style={{ padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h2 style={{ margin: 0, color: textColor, fontSize: '1.5rem' }}>Šiška</h2>
+                <h2 style={{ margin: 0, color: textColor, fontSize: '1.5rem' }}>Kedlubna</h2>
                 <button
                     onClick={onAddYear}
                     style={{

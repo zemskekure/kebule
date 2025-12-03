@@ -1,0 +1,41 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Kedlubna logo - stylized kohlrabi brain -->
+  <g transform="translate(512, 512)">
+    <!-- Top left leaf -->
+    <path d="M -180 -280 Q -280 -200, -340 -80 Q -300 -120, -240 -180 Q -200 -240, -180 -280 Z" fill="#8FBC8F"/>
+    
+    <!-- Top right leaf -->
+    <path d="M 180 -280 Q 280 -200, 340 -80 Q 300 -120, 240 -180 Q 200 -240, 180 -280 Z" fill="#90C290"/>
+    
+    <!-- Middle left leaf -->
+    <path d="M -280 -80 Q -360 40, -380 180 Q -320 100, -260 20 Q -240 -40, -280 -80 Z" fill="#6B9B6B"/>
+    
+    <!-- Middle right leaf -->
+    <path d="M 280 -80 Q 360 40, 380 180 Q 320 100, 260 20 Q 240 -40, 280 -80 Z" fill="#7CA87C"/>
+    
+    <!-- Bottom left leaf -->
+    <path d="M -240 180 Q -280 300, -240 420 Q -200 340, -160 260 Q -180 220, -240 180 Z" fill="#5A8A5A"/>
+    
+    <!-- Bottom right leaf -->
+    <path d="M 240 180 Q 280 300, 240 420 Q 200 340, 160 260 Q 180 220, 240 180 Z" fill="#6B9B6B"/>
+    
+    <!-- Central stem -->
+    <rect x="-20" y="-300" width="40" height="700" fill="#FFFFFF" rx="20"/>
+    
+    <!-- Top bulb -->
+    <circle cx="0" cy="-180" r="140" fill="#90C290"/>
+    <path d="M -100 -180 Q -60 -220, 0 -200 Q 60 -220, 100 -180 Q 60 -140, 0 -160 Q -60 -140, -100 -180 Z" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Middle bulb -->
+    <circle cx="-120" cy="0" r="160" fill="#7CA87C"/>
+    <path d="M -180 0 Q -140 -40, -80 -20 Q -20 -40, 20 0 Q -20 40, -80 20 Q -140 40, -180 0 Z" fill="#FFFFFF" opacity="0.3" transform="translate(-120, 0)"/>
+    
+    <!-- Middle right bulb -->
+    <circle cx="120" cy="0" r="160" fill="#8FBC8F"/>
+    <path d="M 60 0 Q 100 -40, 160 -20 Q 220 -40, 260 0 Q 220 40, 160 20 Q 100 40, 60 0 Z" fill="#FFFFFF" opacity="0.3"/>
+    
+    <!-- Bottom bulb -->
+    <circle cx="0" cy="200" r="150" fill="#6B9B6B"/>
+    <path d="M -80 200 Q -40 160, 0 180 Q 40 160, 80 200 Q 40 240, 0 220 Q -40 240, -80 200 Z" fill="#FFFFFF" opacity="0.3"/>
+  </g>
+</svg>

@@ -93,10 +93,10 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async () => {
+    // Don't specify redirectTo - let Supabase use the current URL
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/`,
         queryParams: {
           prompt: 'select_account', // Force account selection
           access_type: 'offline' // Request refresh token

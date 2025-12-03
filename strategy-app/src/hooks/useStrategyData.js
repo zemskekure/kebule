@@ -58,6 +58,23 @@ function updateAuditFields(userId) {
   };
 }
 
+// --- Helper: Convert snake_case to camelCase ---
+function toCamelCase(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(v => toCamelCase(v));
+  } else if (obj !== null && obj.constructor === Object) {
+    return Object.keys(obj).reduce(
+      (result, key) => {
+        const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+        result[camelKey] = toCamelCase(obj[key]);
+        return result;
+      },
+      {}
+    );
+  }
+  return obj;
+}
+
 // --- Main Hook ---
 
 export function useStrategyData() {
@@ -78,6 +95,9 @@ export function useStrategyData() {
         // Load Strategy App data from Supabase
         const supabaseData = await loadAllData();
         
+        // Convert all Supabase data to camelCase for the app
+        const camelCaseData = toCamelCase(supabaseData);
+        
         // Load Signals from Signal Lite API
         let signals = [];
         try {
@@ -88,7 +108,7 @@ export function useStrategyData() {
         }
         
         setData({
-          ...supabaseData,
+          ...camelCaseData,
           signals
         });
       } catch (err) {

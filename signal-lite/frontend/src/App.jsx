@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 import Orb from './components/Orb';
 import LoginScreen from './components/LoginScreen';
-import { getStoredToken, storeToken, clearToken } from './utils/auth';
+import { getStoredToken, storeToken, clearToken, isTokenExpired } from './utils/auth';
 import { processOfflineQueue } from './utils/offlineQueue';
 import './App.css';
 
@@ -29,7 +29,19 @@ function App() {
     };
 
     window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
+
+    // Periodic token expiration check (every minute)
+    const tokenCheckInterval = setInterval(() => {
+      if (isTokenExpired()) {
+        console.log('Token expired, logging out...');
+        handleLogout();
+      }
+    }, 60000); // Check every 60 seconds
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      clearInterval(tokenCheckInterval);
+    };
   }, []);
 
   const login = useGoogleLogin({

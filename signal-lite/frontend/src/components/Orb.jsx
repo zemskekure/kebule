@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { sendSignal, getRestaurants } from '../utils/api';
 import { queueSignal } from '../utils/offlineQueue';
+import { isTokenExpired } from '../utils/auth';
 import DrobekHistory from './DrobekHistory';
 import './Orb.css';
 
@@ -69,6 +70,13 @@ function Orb({ token, onLogout }) {
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
+
+    // Check if token is expired
+    if (isTokenExpired()) {
+      alert('Vaše přihlášení vypršelo. Přihlaste se prosím znovu.');
+      onLogout();
+      return;
+    }
 
     setState(OrbState.SENDING);
     setShowSpark(true);

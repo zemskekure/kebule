@@ -11,6 +11,7 @@ import { AIChatWindow } from './components/AIChatWindow';
 import { EditorSidebar } from './components/EditorSidebar';
 import { EditorContent } from './components/EditorContent';
 import { SandboxEditor } from './components/SandboxEditor';
+import { MigrationBanner } from './components/MigrationBanner';
 import { useStrategyData } from './hooks/useStrategyData';
 
 // --- Theme localStorage hook ---
@@ -538,7 +539,22 @@ function App() {
               onUpdate={(updates) => {
                 setSelectedSignal({ ...selectedSignal, ...updates });
               }}
-              onDelete={() => setSelectedSignal(null)}
+              onDelete={async () => {
+                if (!confirm('Opravdu chcete smazat tento drobek?')) return;
+                
+                try {
+                  // Delete from Signal Lite backend
+                  const { deleteSignal: deleteSignalAPI } = await import('./services/signalApi');
+                  await deleteSignalAPI(selectedSignal.id, googleToken);
+                  
+                  // Also remove from local state
+                  deleteSignal(selectedSignal.id, true);
+                  setSelectedSignal(null);
+                } catch (error) {
+                  console.error('Failed to delete signal:', error);
+                  alert('Nepodařilo se smazat drobek: ' + error.message);
+                }
+              }}
               onConvertSignalToProject={convertSignalToProject}
               theme={currentTheme}
             />
@@ -594,6 +610,9 @@ function App() {
           <AIChatWindow onCommand={handleAICommand} data={data} />
         </div>
       )}
+
+      {/* Migration Banner */}
+      {currentUser && <MigrationBanner />}
 
       {/* Login Modal */}
       {showLoginModal && (

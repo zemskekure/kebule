@@ -93,7 +93,7 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, is
             setShowConvertModal(false);
         } catch (error) {
             console.error('Failed to convert signal:', error);
-            alert('Chyba při převodu signálu na projekt');
+            alert('Chyba při převodu drobku na projekt');
         } finally {
             setIsConverting(false);
         }
@@ -119,7 +119,7 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, is
                     style={{ ...inputStyle, minHeight: '100px' }}
                     value={signal.body || ''}
                     onChange={e => onUpdate({ body: e.target.value })}
-                    placeholder="Detailní popis signálu..."
+                    placeholder="Detailní popis drobku..."
                 />
             </div>
 
@@ -358,7 +358,7 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, is
                         fontSize: '0.85rem'
                     }}
                 >
-                    <Trash2 size={14} /> Smazat signál
+                    <Trash2 size={14} /> Smazat drobek
                 </button>
             </div>
 
@@ -561,7 +561,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                 {type === 'influence' && 'Editace vlivu'}
                 {type === 'brand' && 'Editace značky'}
                 {type === 'location' && 'Editace pobočky'}
-                {type === 'signal' && 'Editace signálu'}
+                {type === 'signal' && 'Editace drobku'}
             </div>
             <div className="panel-content" style={contentStyle}>
                 <div className="form-group">
@@ -843,7 +843,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                                 <div className="form-group">
                                     <label className="form-label" style={labelStyle}>
                                         <Radio size={14} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                                        Signály za tímto tématem ({linkedSignals.length})
+                                        Drobky za tímto tématem ({linkedSignals.length})
                                     </label>
                                     <div style={{ 
                                         border: isDark ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(99, 102, 241, 0.2)', 
@@ -1005,7 +1005,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                                 <div className="form-group">
                                     <label className="form-label" style={labelStyle}>
                                         <Radio size={14} style={{ marginRight: '0.5rem', verticalAlign: 'middle' }} />
-                                        Signály živící tento vliv ({linkedSignals.length})
+                                        Drobky živící tento vliv ({linkedSignals.length})
                                     </label>
                                     <div style={{ 
                                         border: isDark ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(99, 102, 241, 0.2)', 

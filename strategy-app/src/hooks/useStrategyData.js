@@ -627,7 +627,7 @@ export function useStrategyData() {
   }, [setData, userId]);
 
   const deleteSignal = useCallback((id, skipConfirm = false, confirmFn = null) => {
-    if (!skipConfirm && !confirmFn && !window.confirm('Opravdu chcete smazat tento signál?')) return false;
+    if (!skipConfirm && !confirmFn && !window.confirm('Opravdu chcete smazat tento drobek?')) return false;
     setData(prev => ({
       ...prev,
       signals: (prev.signals || []).filter(s => s.id !== id)

@@ -377,7 +377,7 @@ function App() {
                 backgroundColor: viewMode === 'signals' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
               }}
             >
-              <Radio size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Signály
+              <Radio size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Drobky
             </button>
           </div>
 

@@ -120,7 +120,7 @@ export function SignalsInbox({ googleToken, onSelectSignal, theme = 'light' }) {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
-          <p>Načítání signálů...</p>
+          <p>Načítání drobků...</p>
         </div>
       </div>
     );
@@ -138,7 +138,7 @@ export function SignalsInbox({ googleToken, onSelectSignal, theme = 'light' }) {
       }}>
         <div style={{ textAlign: 'center', color: '#ef4444' }}>
           <AlertCircle size={48} style={{ margin: '0 auto 1rem' }} />
-          <p>Chyba při načítání signálů</p>
+          <p>Chyba při načítání drobků</p>
           <small style={{ color: textSecondary }}>{error}</small>
         </div>
       </div>
@@ -166,7 +166,7 @@ export function SignalsInbox({ googleToken, onSelectSignal, theme = 'light' }) {
           marginBottom: '1rem'
         }}>
           <h2 style={{ margin: 0, color: textColor, fontSize: '1.5rem' }}>
-            📡 Signály
+            📡 Drobky
           </h2>
           <span style={{ 
             padding: '0.25rem 0.75rem',
@@ -176,7 +176,7 @@ export function SignalsInbox({ googleToken, onSelectSignal, theme = 'light' }) {
             fontSize: '0.85rem',
             fontWeight: '600'
           }}>
-            {filteredSignals.length} signálů
+            {filteredSignals.length} drobků
           </span>
         </div>
 
@@ -191,7 +191,7 @@ export function SignalsInbox({ googleToken, onSelectSignal, theme = 'light' }) {
           }} />
           <input
             type="text"
-            placeholder="Hledat v signálech..."
+            placeholder="Hledat v drobcích..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             style={{
@@ -264,8 +264,8 @@ export function SignalsInbox({ googleToken, onSelectSignal, theme = 'light' }) {
             color: textSecondary
           }}>
             <Radio size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-            <p>Žádné signály</p>
-            <small>Zkuste změnit filtry nebo vytvořit nový signál v Signal Lite</small>
+            <p>Žádné drobky</p>
+            <small>Zkuste změnit filtry nebo vytvořit nový drobek v Signal Lite</small>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>

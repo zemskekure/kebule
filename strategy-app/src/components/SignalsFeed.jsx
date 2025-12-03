@@ -13,7 +13,7 @@ export function SignalsFeed({ googleToken }) {
       <div className="signals-feed">
         <div className="signals-loading">
           <div className="spinner"></div>
-          <p>Načítání signálů...</p>
+          <p>Načítání drobků...</p>
         </div>
       </div>
     );
@@ -23,7 +23,7 @@ export function SignalsFeed({ googleToken }) {
     return (
       <div className="signals-feed">
         <div className="signals-error">
-          <p>❌ Chyba při načítání signálů</p>
+          <p>❌ Chyba při načítání drobků</p>
           <small>{error}</small>
         </div>
       </div>
@@ -34,8 +34,8 @@ export function SignalsFeed({ googleToken }) {
     return (
       <div className="signals-feed">
         <div className="signals-empty">
-          <p>📭 Zatím žádné signály</p>
-          <small>Signály se zobrazí, jakmile je někdo odešle z aplikace Signal Lite</small>
+          <p>📭 Zatím žádné drobky</p>
+          <small>Drobky se zobrazí, jakmile je někdo odešle z aplikace Signal Lite</small>
         </div>
       </div>
     );
@@ -49,8 +49,8 @@ export function SignalsFeed({ googleToken }) {
   return (
     <div className="signals-feed">
       <div className="signals-header">
-        <h2>📡 Signály z terénu</h2>
-        <span className="signals-count">{signals.length} signálů</span>
+        <h2>📡 Drobky z terénu</h2>
+        <span className="signals-count">{signals.length} drobků</span>
       </div>
 
       <div className="signals-list">

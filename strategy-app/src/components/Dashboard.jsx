@@ -680,7 +680,7 @@ export function Dashboard({ data, theme = 'dark' }) {
                         style={{ background: cardBg, border: `1px solid ${cardBorder}`, maxWidth: '320px' }}
                     >
                         <h3 style={{ color: textColor, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Radio size={18} style={{ color: '#6366f1' }} /> Signály
+                            <Radio size={18} style={{ color: '#6366f1' }} /> Drobky
                         </h3>
                         {(() => {
                             const allSignals = signals || [];
@@ -741,10 +741,10 @@ export function Dashboard({ data, theme = 'dark' }) {
                                     }}>
                                         <Radio size={32} style={{ color: textSecondary, marginBottom: '0.75rem', opacity: 0.5 }} />
                                         <p style={{ color: textSecondary, fontSize: '0.85rem', margin: 0 }}>
-                                            Zatím žádné signály
+                                            Zatím žádné drobky
                                         </p>
                                         <p style={{ color: textSecondary, fontSize: '0.75rem', margin: '0.5rem 0 0 0', opacity: 0.7 }}>
-                                            Přidejte signály v sekci Editor → Signály
+                                            Přidejte drobky v sekci Editor → Drobky
                                         </p>
                                     </div>
                                 );

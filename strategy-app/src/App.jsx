@@ -145,10 +145,16 @@ function App() {
   };
 
   const handleAddInitiative = async (themeId) => {
-    const newId = await addInitiative(themeId);
-    if (newId) {
-      setExpandedNodes(prev => ({ ...prev, [themeId]: true, [newId]: true }));
-      selectNode('initiative', newId);
+    console.log('App: handleAddInitiative called with themeId:', themeId);
+    try {
+      const newId = await addInitiative(themeId);
+      console.log('App: addInitiative returned:', newId);
+      if (newId) {
+        setExpandedNodes(prev => ({ ...prev, [themeId]: true, [newId]: true }));
+        selectNode('initiative', newId);
+      }
+    } catch (err) {
+      console.error('App: handleAddInitiative error:', err);
     }
   };
 

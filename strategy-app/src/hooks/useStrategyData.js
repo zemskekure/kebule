@@ -294,8 +294,10 @@ export function useStrategyData() {
   }, [userId]);
 
   const addInitiative = useCallback(async (themeId) => {
+    console.log('Hook: addInitiative called with themeId:', themeId);
     // Generate UUID client-side to be safe
     const newId = crypto.randomUUID();
+    console.log('Hook: Generated new UUID:', newId);
     const newInitiative = {
       id: newId,
       theme_id: themeId,

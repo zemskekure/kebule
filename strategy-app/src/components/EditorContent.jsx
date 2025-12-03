@@ -6,6 +6,9 @@ import { useSignals } from '../hooks/useSignals';
 
 // Kedlubna Content (Thought System) with Drag & Drop
 function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddInitiative, onAddProject, onMoveItem, theme }) {
+    // Debug logging
+    console.log('EditorContent rendered. onAddInitiative present:', !!onAddInitiative);
+
     const isDark = theme === 'dark';
     const textColor = isDark ? '#ffffff' : '#212529';
     const textSecondary = isDark ? '#adb5bd' : '#6c757d';
@@ -578,7 +581,12 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                         {/* Add buttons */}
                                                                                         <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
                                                                                             <button
-                                                                                                onClick={() => onAddInitiative && onAddInitiative(themeItem.id)}
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    console.log('Button Cíl clicked for theme:', themeItem.id);
+                                                                                                    if (onAddInitiative) onAddInitiative(themeItem.id);
+                                                                                                    else console.error('onAddInitiative prop is missing!');
+                                                                                                }}
                                                                                                 style={{
                                                                                                     display: 'flex',
                                                                                                     alignItems: 'center',

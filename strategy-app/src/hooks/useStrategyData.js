@@ -294,7 +294,10 @@ export function useStrategyData() {
   }, [userId]);
 
   const addInitiative = useCallback(async (themeId) => {
+    // Generate UUID client-side to be safe
+    const newId = crypto.randomUUID();
     const newInitiative = {
+      id: newId,
       theme_id: themeId,
       name: 'Nový cíl',
       status: 'idea',
@@ -306,7 +309,6 @@ export function useStrategyData() {
     };
     
     try {
-      // Let Supabase generate the UUID
       const created = await createInitiative(newInitiative);
       // Convert to camelCase and update local state
       const camelCaseInitiative = toCamelCase(created);
@@ -317,6 +319,7 @@ export function useStrategyData() {
       return created.id;
     } catch (err) {
       console.error('Failed to create initiative:', err);
+      // Even if API fails, we could optimistically add it, but let's stick to safe behavior
       return null;
     }
   }, [userId]);

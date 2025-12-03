@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { OAuth2Client } from 'google-auth-library';
+import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { randomUUID } from 'crypto';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
@@ -24,7 +24,8 @@ if (isNaN(PORT) || PORT < 1 || PORT > 65535) {
   PORT = 3001;
 }
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Service role key for server-side verification
 const ALLOWED_DOMAINS = process.env.ALLOWED_DOMAINS?.split(',') || [];
 // Remove trailing slash if present to prevent CORS errors
 const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
@@ -34,8 +35,8 @@ const ALLOWED_ORIGINS = [FRONTEND_URL, STRATEGY_APP_URL, 'http://localhost:5173'
 
 const BRAND_MAPPING = process.env.BRAND_MAPPING ? JSON.parse(process.env.BRAND_MAPPING) : {};
 
-// Initialize Google OAuth client
-const client = new OAuth2Client(GOOGLE_CLIENT_ID);
+// Initialize Supabase client for server-side verification
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 // JSON file storage
 const DB_FILE = 'signals.json';
@@ -68,7 +69,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Verify Google ID token middleware
+// Verify Supabase JWT token middleware
 async function verifyToken(req, res, next) {
   const authHeader = req.headers.authorization;
   
@@ -79,14 +80,17 @@ async function verifyToken(req, res, next) {
   const token = authHeader.substring(7);
 
   try {
-    console.log('Verifying token...');
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: GOOGLE_CLIENT_ID,
-    });
+    console.log('Verifying Supabase token...');
     
-    const payload = ticket.getPayload();
-    const email = payload.email;
+    // Verify the JWT token using Supabase
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      console.log('Token verification failed:', error?.message);
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    
+    const email = user.email;
     const domain = email.split('@')[1];
     console.log('Token verified for:', email);
     console.log('Domain:', domain);
@@ -100,10 +104,10 @@ async function verifyToken(req, res, next) {
 
     // Attach user info to request
     req.user = {
-      id: payload.sub,
-      email: payload.email,
-      name: payload.name,
-      picture: payload.picture
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name || user.user_metadata?.full_name || user.email,
+      picture: user.user_metadata?.avatar_url || user.user_metadata?.picture
     };
 
     // Update or create user in JSON DB

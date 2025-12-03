@@ -29,7 +29,7 @@ function getUserRole(email) {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [googleToken, setGoogleToken] = useState(null);
+  const [googleToken, setGoogleToken] = useState(null); // Now stores Supabase access token
 
   // Load user session on mount and subscribe to auth changes
   useEffect(() => {
@@ -47,11 +47,8 @@ export function AuthProvider({ children }) {
         };
         setCurrentUser(userData);
         
-        // Extract Google OAuth token for Signal Lite API
-        const providerToken = session.provider_token;
-        if (providerToken) {
-          setGoogleToken(providerToken);
-        }
+        // Use Supabase access token for Signal Lite API
+        setGoogleToken(session.access_token);
       }
       setIsLoading(false);
     });
@@ -90,11 +87,8 @@ export function AuthProvider({ children }) {
         };
         setCurrentUser(userData);
         
-        // Extract Google OAuth token for Signal Lite API
-        const providerToken = session.provider_token;
-        if (providerToken) {
-          setGoogleToken(providerToken);
-        }
+        // Use Supabase access token for Signal Lite API
+        setGoogleToken(session.access_token);
       } else {
         setCurrentUser(null);
         setGoogleToken(null);

@@ -24,10 +24,11 @@ export function MigrationBanner() {
     setMigrating(false);
 
     if (migrationResult.success) {
-      // Auto-hide after 5 seconds on success
+      // Auto-hide after 3 seconds on success and reload to fetch data
       setTimeout(() => {
         setShowBanner(false);
-      }, 5000);
+        window.location.reload();
+      }, 3000);
     }
   };
 

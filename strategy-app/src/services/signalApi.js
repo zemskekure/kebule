@@ -33,6 +33,31 @@ export async function updateSignal(signalId, updates, token) {
 }
 
 /**
+ * Delete a signal from Signal Lite backend
+ * @param {string} signalId - Signal ID
+ * @param {string} token - Google OAuth token
+ */
+export async function deleteSignal(signalId, token) {
+  if (!token) {
+    throw new Error('Authentication token required');
+  }
+
+  const response = await fetch(`${API_URL}/signals/${signalId}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Network error' }));
+    throw new Error(error.error || 'Failed to delete signal');
+  }
+
+  return response.json();
+}
+
+/**
  * Fetch signals from Signal Lite backend
  * @param {string} token - Google OAuth token (optional for public access)
  * @param {object} params - Query parameters (limit, offset, status, authorEmail)

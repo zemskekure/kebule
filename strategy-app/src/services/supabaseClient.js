@@ -7,4 +7,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('Supabase credentials missing. Check your .env file.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true, // Automatically refresh the token before it expires
+    persistSession: true, // Persist session in localStorage
+    detectSessionInUrl: true, // Detect OAuth callback in URL
+    storage: window.localStorage, // Use localStorage for session persistence
+    storageKey: 'ambiente-strategy-auth', // Custom storage key
+  }
+});

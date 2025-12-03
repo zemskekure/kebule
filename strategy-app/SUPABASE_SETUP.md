@@ -88,6 +88,7 @@ SELECT * FROM auth.users;
 
 ```javascript
 const ROLE_MAP = {
+  'jan.cervenka@amanual.cz': 'admin',
   'jan.cervenka@ambi.cz': 'admin',
   'stepanka.borisovova@ambi.cz': 'admin',
   // Add more users here as needed
@@ -99,6 +100,28 @@ const ROLE_MAP = {
 2. Add their email with role `'admin'`
 
 **Later migration:** Move roles to Supabase `profiles` table (already created in schema).
+
+---
+
+## Session Persistence (Keep Users Logged In)
+
+The app now keeps users logged in indefinitely through:
+
+1. **Auto token refresh** - Every 30 minutes, automatically refreshes the session
+2. **Visibility refresh** - When user returns to the tab, refreshes the session
+3. **LocalStorage persistence** - Session survives browser restarts
+4. **Offline access** - Requests refresh tokens from Google OAuth
+
+**Users will stay logged in:**
+- ✅ Across browser refreshes
+- ✅ After closing and reopening browser
+- ✅ After days/weeks of inactivity
+- ✅ Until they explicitly log out
+
+**Only logs out if:**
+- User clicks "Odhlásit" (logout)
+- User clears browser storage/cookies
+- Extremely long inactivity (months)
 
 ---
 

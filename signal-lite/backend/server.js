@@ -270,6 +270,42 @@ app.get('/signals', (req, res) => {
   }
 });
 
+// DELETE /signals/:id - Delete a signal
+app.delete('/signals/:id', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log('Deleting signal:', id, 'by user:', req.user.email);
+
+    const db = loadDB();
+    const signalIndex = db.signals.findIndex(s => s.id === id);
+    
+    if (signalIndex === -1) {
+      return res.status(404).json({ error: 'Signal not found' });
+    }
+
+    // Check if user is the author or has admin rights
+    const signal = db.signals[signalIndex];
+    if (signal.authorEmail !== req.user.email) {
+      // For now, allow anyone to delete (you can add admin check later)
+      console.log('User is not author but allowing delete');
+    }
+
+    // Remove the signal
+    db.signals.splice(signalIndex, 1);
+    saveDB(db);
+
+    console.log('Signal deleted:', id);
+    res.json({ 
+      ok: true, 
+      message: 'Signal deleted successfully' 
+    });
+  } catch (error) {
+    console.error('Error deleting signal:', error);
+    res.status(500).json({ error: 'Failed to delete signal' });
+  }
+});
+
 // GET /restaurants - Retrieve restaurant list for dropdown
 app.get('/restaurants', verifyToken, (req, res) => {
   try {

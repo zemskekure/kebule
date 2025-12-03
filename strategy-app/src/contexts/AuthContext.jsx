@@ -23,7 +23,6 @@ function getInitials(name) {
 
 function getUserRole(email) {
   const normalizedEmail = email?.toLowerCase()?.trim();
-  console.log('Getting role for email:', { original: email, normalized: normalizedEmail, role: ROLE_MAP[normalizedEmail] });
   return ROLE_MAP[normalizedEmail] || 'viewer';
 }
 
@@ -36,7 +35,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Check active session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('Session check:', { session: !!session, error });
       if (session?.user) {
         const user = session.user;
         const userData = {
@@ -47,22 +45,39 @@ export function AuthProvider({ children }) {
           initials: getInitials(user.user_metadata?.name || user.user_metadata?.full_name || user.email),
           avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture
         };
-        console.log('Setting user:', userData);
         setCurrentUser(userData);
         
         // Extract Google OAuth token for Signal Lite API
         const providerToken = session.provider_token;
         if (providerToken) {
-          console.log('Google OAuth token available');
           setGoogleToken(providerToken);
         }
       }
       setIsLoading(false);
     });
 
+    // Proactively refresh session every 30 minutes to keep user logged in
+    const refreshInterval = setInterval(async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        // This triggers Supabase to refresh the token if needed
+        await supabase.auth.refreshSession();
+      }
+    }, 30 * 60 * 1000); // 30 minutes
+
+    // Also refresh when user returns to the tab after being away
+    const handleVisibilityChange = async () => {
+      if (!document.hidden) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await supabase.auth.refreshSession();
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state change:', event, { session: !!session });
       if (session?.user) {
         const user = session.user;
         const userData = {
@@ -73,23 +88,24 @@ export function AuthProvider({ children }) {
           initials: getInitials(user.user_metadata?.name || user.user_metadata?.full_name || user.email),
           avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture
         };
-        console.log('Auth change - setting user:', userData);
         setCurrentUser(userData);
         
         // Extract Google OAuth token for Signal Lite API
         const providerToken = session.provider_token;
         if (providerToken) {
-          console.log('Google OAuth token available');
           setGoogleToken(providerToken);
         }
       } else {
-        console.log('Auth change - clearing user');
         setCurrentUser(null);
         setGoogleToken(null);
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const login = async () => {

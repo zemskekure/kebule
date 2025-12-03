@@ -304,12 +304,11 @@ function App() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <img 
-            src="/kedlubna-logo.svg" 
+            src="/kedlubna-logo.png" 
             alt="Kedlubna" 
             style={{ 
               width: '40px', 
-              height: '40px',
-              filter: currentTheme === 'dark' ? 'brightness(1.1)' : 'brightness(0.95)'
+              height: '40px'
             }} 
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>

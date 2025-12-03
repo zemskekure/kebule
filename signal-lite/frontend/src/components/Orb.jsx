@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { sendSignal, getRestaurants } from '../utils/api';
+import { sendSignal } from '../utils/api';
 import { queueSignal } from '../utils/offlineQueue';
 import { isTokenExpired } from '../utils/auth';
 import DrobekHistory from './DrobekHistory';
@@ -20,12 +20,9 @@ function Orb({ token, onLogout }) {
   const [sparkStyle, setSparkStyle] = useState({});
   const [userName, setUserName] = useState('');
   const [showHistory, setShowHistory] = useState(false);
-  const [restaurants, setRestaurants] = useState([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState('');
-  const [isPriority, setIsPriority] = useState(false);
   const inputRef = useRef(null);
 
-  // Decode token to get user name and fetch restaurants
+  // Decode token to get user name
   useEffect(() => {
     if (token) {
       try {
@@ -43,11 +40,6 @@ function Orb({ token, onLogout }) {
       } catch (e) {
         console.error('Failed to decode token', e);
       }
-
-      // Fetch restaurants list
-      getRestaurants(token)
-        .then(data => setRestaurants(data.restaurants || []))
-        .catch(err => console.error('Failed to fetch restaurants:', err));
     }
   }, [token]);
 
@@ -85,12 +77,17 @@ function Orb({ token, onLogout }) {
       navigator.vibrate(10);
     }
 
+    // Detect priority from "!" at end of message
+    const trimmedInput = inputValue.trim();
+    const hasPriority = trimmedInput.endsWith('!');
+    const cleanTitle = hasPriority ? trimmedInput.slice(0, -1).trim() : trimmedInput;
+
     const signalData = {
-      title: inputValue.trim(),
+      title: cleanTitle,
       body: null,
       date: new Date().toISOString(),
-      restaurantIds: selectedRestaurant ? [selectedRestaurant] : [],
-      priority: isPriority ? 'high' : null
+      restaurantIds: [],
+      priority: hasPriority ? 'high' : null
     };
 
     // Generate random path for spark
@@ -138,8 +135,6 @@ function Orb({ token, onLogout }) {
       setTimeout(() => {
         setState(OrbState.IDLE);
         setInputValue('');
-        setSelectedRestaurant('');
-        setIsPriority(false);
       }, 2000);
     }, 4000);
   };
@@ -189,55 +184,10 @@ function Orb({ token, onLogout }) {
           />
           <div className="character-counter">
             {inputValue.length}/300
+            {inputValue.trim().endsWith('!') && (
+              <span style={{ marginLeft: '0.5rem', color: '#ef4444', fontWeight: '600' }}>! Vysoká priorita</span>
+            )}
           </div>
-          
-          {/* Restaurant selector */}
-          {restaurants.length > 0 && (
-            <select 
-              className="restaurant-select"
-              value={selectedRestaurant}
-              onChange={(e) => setSelectedRestaurant(e.target.value)}
-              style={{
-                marginTop: '0.5rem',
-                width: '100%',
-                padding: '0.5rem',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                color: '#fff',
-                fontSize: '0.9rem'
-              }}
-            >
-              <option value="">Pobočka (volitelné)</option>
-              {restaurants.map(r => (
-                <option key={r.id} value={r.id}>{r.name}</option>
-              ))}
-            </select>
-          )}
-          
-          {/* Priority toggle */}
-          <button
-            type="button"
-            className="priority-toggle"
-            onClick={() => setIsPriority(!isPriority)}
-            style={{
-              marginTop: '0.5rem',
-              padding: '0.5rem 1rem',
-              borderRadius: '8px',
-              border: isPriority ? '2px solid #ef4444' : '1px solid rgba(255, 255, 255, 0.2)',
-              backgroundColor: isPriority ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-              color: isPriority ? '#ef4444' : 'rgba(255, 255, 255, 0.7)',
-              fontSize: '0.9rem',
-              fontWeight: isPriority ? '600' : '400',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}
-          >
-            <span style={{ fontSize: '1.2rem' }}>!</span>
-            {isPriority ? 'Vysoká priorita' : 'Normální priorita'}
-          </button>
         </div>
       )}
 

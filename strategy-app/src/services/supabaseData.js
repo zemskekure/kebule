@@ -105,7 +105,7 @@ export async function getYears() {
   const { data, error } = await supabase
     .from('years')
     .select('*')
-    .order('year', { ascending: false });
+    .order('title', { ascending: false });
   
   if (error) throw error;
   return data || [];

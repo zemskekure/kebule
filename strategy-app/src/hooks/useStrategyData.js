@@ -475,17 +475,17 @@ export function useStrategyData() {
 
   // --- Signal CRUD Operations (read/update/delete only - creation is in Drobky) ---
 
-  const updateSignal = useCallback(async (id, updates) => {
+  const updateSignal = useCallback((id, updates) => {
+    // Optimistic update - instant UI feedback
     setData(prev => ({
       ...prev,
       signals: (prev.signals || []).map(s => s.id === id ? { ...s, ...updates, ...updateAuditFields(userId) } : s)
     }));
     
-    try {
-      await signalLiteUpdateSignal(id, updates, googleToken);
-    } catch (err) {
+    // Fire-and-forget API call - don't block UI
+    signalLiteUpdateSignal(id, updates, googleToken).catch(err => {
       console.error('Failed to update signal:', err);
-    }
+    });
   }, [userId, googleToken]);
 
   const deleteSignal = useCallback(async (id, skipConfirm = false, confirmFn = null) => {
@@ -541,14 +541,16 @@ export function useStrategyData() {
       return { ...prev, projects: updatedProjects, signals: updatedSignals };
     });
 
-    // API calls
+    // API calls - run in parallel for speed
     try {
-      await createProject(newProject);
-      await apiUpdateSignal(signalId, {
-        status: 'converted',
-        projectId: newProjectId,
-        themeIds: newThemeIds
-      }, googleToken);
+      await Promise.all([
+        createProject(newProject),
+        apiUpdateSignal(signalId, {
+          status: 'converted',
+          projectId: newProjectId,
+          themeIds: newThemeIds
+        }, googleToken)
+      ]);
     } catch (err) {
       console.error('Failed to convert signal:', err);
     }
@@ -595,13 +597,15 @@ export function useStrategyData() {
       return { ...prev, influences: updatedInfluences, signals: updatedSignals };
     });
 
-    // API calls
+    // API calls - run in parallel for speed
     try {
-      await createInfluence(newInfluence);
-      await signalLiteUpdateSignal(signalId, {
-        status: 'converted',
-        influenceId: newInfluenceId
-      }, googleToken);
+      await Promise.all([
+        createInfluence(newInfluence),
+        signalLiteUpdateSignal(signalId, {
+          status: 'converted',
+          influenceId: newInfluenceId
+        }, googleToken)
+      ]);
     } catch (err) {
       console.error('Failed to convert signal to influence:', err);
     }

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Save, Trash2, Globe, Instagram, Radio, Archive, CheckCircle, ArrowRight, User, Clock, Zap } from 'lucide-react';
 import { getUserById } from '../contexts/AuthContext';
-import { updateSignal as updateSignalAPI } from '../services/signalApi';
 
 // Helper to format date in Czech
 function formatDate(isoString) {
@@ -78,20 +77,10 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, on
         
         setIsConverting(true);
         try {
-            // Convert locally first
-            const result = onConvertToProject(signal.id, selectedThemeId);
-            
-            if (result && result.signalUpdates) {
-                // Update in Signal Lite backend (no token = public access for now)
-                try {
-                    await updateSignalAPI(signal.id, result.signalUpdates, null);
-                    console.log('Signal updated in backend');
-                } catch (apiError) {
-                    console.error('Failed to update signal in backend:', apiError);
-                    // Continue anyway - local update succeeded
-                }
-            }
-            
+            // convertSignalToProject in useStrategyData handles both:
+            // 1. Creating project in Supabase
+            // 2. Updating signal in Drobky backend (with proper auth token)
+            await onConvertToProject(signal.id, selectedThemeId);
             setShowConvertModal(false);
         } catch (error) {
             console.error('Failed to convert signal:', error);
@@ -106,18 +95,10 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, on
         
         setIsConverting(true);
         try {
-            const result = await onConvertToInfluence(signal.id, selectedInfluenceType);
-            
-            if (result) {
-                // Update signal status in backend
-                try {
-                    await updateSignalAPI(signal.id, { status: 'converted', influenceId: result.influenceId }, null);
-                    console.log('Signal converted to influence');
-                } catch (apiError) {
-                    console.error('Failed to update signal in backend:', apiError);
-                }
-            }
-            
+            // convertSignalToInfluence in useStrategyData handles both:
+            // 1. Creating influence in Supabase
+            // 2. Updating signal in Drobky backend (with proper auth token)
+            await onConvertToInfluence(signal.id, selectedInfluenceType);
             setShowInfluenceModal(false);
         } catch (error) {
             console.error('Failed to convert signal to influence:', error);

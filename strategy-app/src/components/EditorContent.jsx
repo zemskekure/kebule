@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Plus, ChevronDown, ChevronRight, Edit2, Trash2, Calendar, MapPin, User, ExternalLink, Zap, GripVertical, Radio, Search, Filter, Inbox, CheckCircle, Archive, ArrowRight } from 'lucide-react';
 import { BackupManager } from './BackupManager';
 import { buildStrategyTree, getVisionsForYear, getThemesForVision, getProjectsForTheme, getInitiativesForTheme, getProjectsForInitiative, getUnsortedProjectsForTheme } from '../utils/buildStrategyTree';
-import { useSignals } from '../hooks/useSignals';
 
 // Kedlubna Content (Thought System) with Drag & Drop
 function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes, onToggleNode, onAddYear, onAddVision, onAddTheme, onAddInitiative, onAddProject, onMoveItem, theme }) {
@@ -1062,42 +1061,8 @@ function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }
     const [searchQuery, setSearchQuery] = useState('');
     const [quickAddTitle, setQuickAddTitle] = useState('');
 
-    // Fetch live signals from Signal Lite backend
-    const { signals: liveSignals, loading: liveLoading } = useSignals(null);
-    
-    // Merge local signals with live signals from Signal Lite
-    const localSignals = data.signals || [];
-    const signals = useMemo(() => {
-        // Convert live signals to local format and merge
-        // Backend returns snake_case fields, convert to camelCase
-        const convertedLiveSignals = liveSignals.map(ls => ({
-            id: ls.id,
-            title: ls.title,
-            body: ls.body,
-            date: ls.date || ls.created_at,
-            createdAt: ls.created_at,
-            status: ls.status || 'inbox',
-            source: ls.source || 'signal-lite',
-            authorName: ls.author_name,
-            authorEmail: ls.author_email,
-            priority: ls.priority,
-            restaurantIds: ls.restaurant_ids || [],
-            themeIds: ls.theme_ids || [],
-            projectId: ls.project_id,
-            isLive: true // Mark as coming from Signal Lite
-        }));
-        
-        // Combine and deduplicate by ID
-        const allSignals = [...localSignals, ...convertedLiveSignals];
-        const uniqueSignals = Array.from(
-            new Map(allSignals.map(s => [s.id, s])).values()
-        );
-        
-        // Sort by date, newest first
-        return uniqueSignals.sort((a, b) => 
-            new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt)
-        );
-    }, [localSignals, liveSignals]);
+    // Signals are already merged at App level with live signals from Signal Lite
+    const signals = data.signals || [];
 
     // Filter signals
     const filteredSignals = useMemo(() => {

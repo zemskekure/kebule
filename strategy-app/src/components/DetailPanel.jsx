@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, Trash2, Globe, Instagram, Radio, Archive, CheckCircle, ArrowRight, User, Clock } from 'lucide-react';
+import { Save, Trash2, Globe, Instagram, Radio, Archive, CheckCircle, ArrowRight, User, Clock, Zap } from 'lucide-react';
 import { getUserById } from '../contexts/AuthContext';
 import { updateSignal as updateSignalAPI } from '../services/signalApi';
 
@@ -54,9 +54,11 @@ function AuditInfo({ item, isDark }) {
 }
 
 // Signal Editor Component
-function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, isDark, inputStyle, labelStyle }) {
+function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, onConvertToInfluence, isDark, inputStyle, labelStyle }) {
     const [showConvertModal, setShowConvertModal] = useState(false);
+    const [showInfluenceModal, setShowInfluenceModal] = useState(false);
     const [selectedThemeId, setSelectedThemeId] = useState('');
+    const [selectedInfluenceType, setSelectedInfluenceType] = useState('external');
     const [isConverting, setIsConverting] = useState(false);
 
     const textColor = isDark ? '#ffffff' : '#212529';
@@ -94,6 +96,32 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, is
         } catch (error) {
             console.error('Failed to convert signal:', error);
             alert('Chyba při převodu drobku na projekt');
+        } finally {
+            setIsConverting(false);
+        }
+    };
+
+    const handleConvertToInfluence = async () => {
+        if (isConverting) return;
+        
+        setIsConverting(true);
+        try {
+            const result = await onConvertToInfluence(signal.id, selectedInfluenceType);
+            
+            if (result) {
+                // Update signal status in backend
+                try {
+                    await updateSignalAPI(signal.id, { status: 'converted', influenceId: result.influenceId }, null);
+                    console.log('Signal converted to influence');
+                } catch (apiError) {
+                    console.error('Failed to update signal in backend:', apiError);
+                }
+            }
+            
+            setShowInfluenceModal(false);
+        } catch (error) {
+            console.error('Failed to convert signal to influence:', error);
+            alert('Chyba při převodu drobku na vliv');
         } finally {
             setIsConverting(false);
         }
@@ -142,17 +170,40 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, is
             {/* Status */}
             <div className="form-group">
                 <label className="form-label" style={labelStyle}>Stav</label>
-                <select
-                    className="form-control"
-                    style={inputStyle}
-                    value={signal.status || 'inbox'}
-                    onChange={e => onUpdate({ status: e.target.value })}
-                >
-                    <option value="inbox">Inbox</option>
-                    <option value="triaged">Tříděno</option>
-                    <option value="converted">Převedeno na projekt</option>
-                    <option value="archived">Archivováno</option>
-                </select>
+                {signal.status === 'converted' && signal.projectId ? (
+                    // Show linked project when converted
+                    (() => {
+                        const linkedProject = (data.projects || []).find(p => p.id === signal.projectId);
+                        return (
+                            <div style={{
+                                padding: '0.75rem',
+                                borderRadius: '0.5rem',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                border: '1px solid rgba(16, 185, 129, 0.3)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem'
+                            }}>
+                                <CheckCircle size={16} style={{ color: '#10b981' }} />
+                                <span style={{ color: textColor, fontSize: '0.9rem' }}>
+                                    Převedeno → <strong>{linkedProject?.title || 'Projekt'}</strong>
+                                </span>
+                            </div>
+                        );
+                    })()
+                ) : (
+                    <select
+                        className="form-control"
+                        style={inputStyle}
+                        value={signal.status || 'inbox'}
+                        onChange={e => onUpdate({ status: e.target.value })}
+                    >
+                        <option value="inbox">Inbox</option>
+                        <option value="triaged">Tříděno</option>
+                        <option value="converted">Převedeno na projekt</option>
+                        <option value="archived">Archivováno</option>
+                    </select>
+                )}
             </div>
 
             {/* Priority */}
@@ -321,25 +372,46 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, is
                 </div>
 
                 {signal.status !== 'converted' && (
-                    <button
-                        className="btn"
-                        onClick={() => setShowConvertModal(true)}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            padding: '0.75rem 1rem',
-                            backgroundColor: '#10b981',
-                            color: '#fff',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            fontSize: '0.9rem',
-                            fontWeight: 500
-                        }}
-                    >
-                        <ArrowRight size={16} /> Převést na projekt
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <button
+                            className="btn"
+                            onClick={() => setShowConvertModal(true)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.75rem 1rem',
+                                backgroundColor: '#10b981',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                                fontWeight: 500
+                            }}
+                        >
+                            <ArrowRight size={16} /> Převést na projekt
+                        </button>
+                        <button
+                            className="btn"
+                            onClick={() => setShowInfluenceModal(true)}
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.75rem 1rem',
+                                backgroundColor: '#8b5cf6',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '0.9rem',
+                                fontWeight: 500
+                            }}
+                        >
+                            <Zap size={16} /> Převést na vliv
+                        </button>
+                    </div>
                 )}
 
                 <button
@@ -431,11 +503,79 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, is
                     </div>
                 </div>
             )}
+
+            {/* Convert to Influence Modal */}
+            {showInfluenceModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: isDark ? '#1a1a1a' : '#fff',
+                        padding: '1.5rem',
+                        borderRadius: '12px',
+                        width: '400px',
+                        maxWidth: '90vw',
+                        boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
+                    }}>
+                        <h3 style={{ margin: '0 0 1rem 0', color: textColor }}>Převést na vliv</h3>
+                        <p style={{ color: textSecondary, fontSize: '0.9rem', marginBottom: '1rem' }}>
+                            Vyberte typ vlivu:
+                        </p>
+                        <select
+                            className="form-control"
+                            style={{ ...inputStyle, marginBottom: '1rem' }}
+                            value={selectedInfluenceType}
+                            onChange={e => setSelectedInfluenceType(e.target.value)}
+                        >
+                            <option value="external">Externí vliv</option>
+                            <option value="internal">Interní vliv</option>
+                        </select>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => setShowInfluenceModal(false)}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#e9ecef',
+                                    color: textSecondary,
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Zrušit
+                            </button>
+                            <button
+                                onClick={handleConvertToInfluence}
+                                disabled={isConverting}
+                                style={{
+                                    padding: '0.5rem 1rem',
+                                    backgroundColor: !isConverting ? '#8b5cf6' : (isDark ? 'rgba(255,255,255,0.1)' : '#e9ecef'),
+                                    color: !isConverting ? '#fff' : textSecondary,
+                                    border: 'none',
+                                    borderRadius: '6px',
+                                    cursor: !isConverting ? 'pointer' : 'not-allowed'
+                                }}
+                            >
+                                {isConverting ? 'Převádím...' : 'Převést na vliv'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
 
-export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertSignalToProject, theme = 'light' }) {
+export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertSignalToProject, onConvertSignalToInfluence, theme = 'light' }) {
     const isDark = theme === 'dark';
     const panelStyle = {
         backgroundColor: isDark ? '#0a0a0a' : '#fcfcfc',
@@ -1179,6 +1319,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                         onUpdate={(updates) => onUpdate('signal', id, updates)}
                         onDelete={() => onDelete('signal', id)}
                         onConvertToProject={onConvertSignalToProject}
+                        onConvertToInfluence={onConvertSignalToInfluence}
                         isDark={isDark}
                         inputStyle={inputStyle}
                         labelStyle={labelStyle}
@@ -1299,14 +1440,17 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                 {/* Audit trail info */}
                 <AuditInfo item={item} isDark={isDark} />
 
-                <div style={{ marginTop: '2rem', display: 'flex', gap: '0.5rem' }}>
-                    <button className="btn btn-primary" onClick={() => { }}>
-                        <Save size={16} /> Hotovo
-                    </button>
-                    <button className="btn btn-danger" onClick={() => onDelete(type, id)}>
-                        <Trash2 size={16} /> Smazat
-                    </button>
-                </div>
+                {/* Action buttons - signals have their own buttons in SignalEditor */}
+                {type !== 'signal' && (
+                    <div style={{ marginTop: '2rem', display: 'flex', gap: '0.5rem' }}>
+                        <button className="btn btn-primary" onClick={() => { }}>
+                            <Save size={16} /> Hotovo
+                        </button>
+                        <button className="btn btn-danger" onClick={() => onDelete(type, id)}>
+                            <Trash2 size={16} /> Smazat
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

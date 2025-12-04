@@ -566,6 +566,58 @@ export function useStrategyData() {
     };
   }, [data.signals, userId, googleToken]);
 
+  const convertSignalToInfluence = useCallback(async (signalId, influenceType = 'external') => {
+    const signal = (data.signals || []).find(s => s.id === signalId);
+    if (!signal) return null;
+
+    const newInfluenceId = Date.now().toString();
+    const newInfluence = {
+      id: newInfluenceId,
+      title: signal.title,
+      type: influenceType,
+      description: signal.body || '',
+      connected_theme_ids: signal.themeIds || [],
+      connected_project_ids: [],
+      created_by: userId,
+      updated_by: userId
+    };
+
+    // Optimistic update
+    setData(prev => {
+      const updatedInfluences = [...prev.influences, { 
+        ...newInfluence, 
+        connectedThemeIds: newInfluence.connected_theme_ids, 
+        connectedProjectIds: [] 
+      }];
+      const updatedSignals = (prev.signals || []).map(s => {
+        if (s.id === signalId) {
+          return { ...s, status: 'converted', influenceId: newInfluenceId, ...updateAuditFields(userId) };
+        }
+        return s;
+      });
+      return { ...prev, influences: updatedInfluences, signals: updatedSignals };
+    });
+
+    // API calls
+    try {
+      await createInfluence(newInfluence);
+      await signalLiteUpdateSignal(signalId, {
+        status: 'converted',
+        influenceId: newInfluenceId
+      }, googleToken);
+    } catch (err) {
+      console.error('Failed to convert signal to influence:', err);
+    }
+
+    return {
+      influenceId: newInfluenceId,
+      signalUpdates: {
+        status: 'converted',
+        influenceId: newInfluenceId
+      }
+    };
+  }, [data.signals, userId, googleToken]);
+
   const moveItem = useCallback((itemType, itemId, newParentId, newIndex = null) => {
     // This functionality requires more complex handling with positions (sandboxPosition)
     // For now, just updating parent ID
@@ -640,6 +692,7 @@ export function useStrategyData() {
     updateSignal,
     deleteSignal,
     convertSignalToProject,
+    convertSignalToInfluence,
     // Import/Export
     exportData,
     importData,

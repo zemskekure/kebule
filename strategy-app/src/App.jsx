@@ -67,6 +67,7 @@ function App() {
     updateSignal,
     deleteSignal,
     convertSignalToProject,
+    convertSignalToInfluence,
     exportData,
     importData,
     restoreData,
@@ -615,6 +616,7 @@ function App() {
                 }
               }}
               onConvertSignalToProject={convertSignalToProject}
+              onConvertSignalToInfluence={convertSignalToInfluence}
               theme={currentTheme}
             />
           )}
@@ -663,6 +665,7 @@ function App() {
             onUpdate={updateNode}
             onDelete={handleDeleteNode}
             onConvertSignalToProject={convertSignalToProject}
+            onConvertSignalToInfluence={convertSignalToInfluence}
             theme={currentTheme}
           />
 

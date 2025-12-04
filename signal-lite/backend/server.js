@@ -237,12 +237,13 @@ app.patch('/signals/:id', verifyToken, async (req, res) => {
     console.log('Updating signal:', id, updates);
 
     // Only allow specific fields to be updated
-    const allowedFields = ['title', 'body', 'status', 'priority', 'projectId', 'themeIds', 'influenceIds', 'restaurantIds'];
+    const allowedFields = ['title', 'body', 'status', 'priority', 'projectId', 'influenceId', 'themeIds', 'influenceIds', 'restaurantIds'];
     const filteredUpdates = {};
     
     // Convert camelCase to snake_case for Supabase
     const fieldMapping = {
       'projectId': 'project_id',
+      'influenceId': 'influence_id',
       'themeIds': 'theme_ids',
       'influenceIds': 'influence_ids',
       'restaurantIds': 'restaurant_ids'

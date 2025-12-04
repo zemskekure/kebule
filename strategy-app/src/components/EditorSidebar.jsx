@@ -3,7 +3,6 @@ import { Brain, Zap, HardHat, Building2, Store, Database, ChevronRight, Radio } 
 
 const EDITOR_SECTIONS = [
     { id: 'thought-system', label: 'Kedlubna', icon: Brain, description: 'Vize, témata a projekty' },
-    { id: 'signals', label: 'Drobky', icon: Radio, description: 'Surové postřehy a pozorování' },
     { id: 'influences', label: 'Vlivy', icon: Zap, description: 'Externí a interní vlivy' },
     { id: 'reconstructions', label: 'Rekonstrukce & Facelifty', icon: HardHat, description: 'Plánované rekonstrukce' },
     { id: 'new-restaurants', label: 'Nové restaurace', icon: Building2, description: 'Nové koncepty a pobočky' },

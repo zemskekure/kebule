@@ -504,18 +504,16 @@ export function useStrategyData() {
     return true;
   }, [googleToken]);
 
-  const convertSignalToProject = useCallback(async (signalId, themeId) => {
-    console.log('🚀 convertSignalToProject called:', { signalId, themeId });
-    console.log('📊 Current signals:', data.signals?.length, 'googleToken:', !!googleToken);
+  const convertSignalToProject = useCallback(async (signal, themeId) => {
+    // Signal object is passed directly from caller (App.jsx has merged signals from Drobky)
+    console.log('🚀 convertSignalToProject called:', { signal, themeId });
     
-    const signal = (data.signals || []).find(s => s.id === signalId);
-    console.log('🔍 Found signal:', signal);
-    
-    if (!signal) {
-      console.error('❌ Signal not found!');
+    if (!signal || !signal.id) {
+      console.error('❌ Invalid signal passed!');
       return null;
     }
 
+    const signalId = signal.id;
     const newProjectId = Date.now().toString();
     const newProject = {
       id: newProjectId,
@@ -538,18 +536,12 @@ export function useStrategyData() {
       ? signal.themeIds 
       : [...(signal.themeIds || []), themeId];
 
-    // Optimistic update
+    // Optimistic update for projects (signals are in App.jsx merged data, not here)
     console.log('⚡ Applying optimistic update...');
     setData(prev => {
       const updatedProjects = [...prev.projects, { ...newProject, themeId: newProject.theme_id, signalId: newProject.signal_id, brandIds: [], locationIds: [] }];
-      const updatedSignals = (prev.signals || []).map(s => {
-        if (s.id === signalId) {
-          return { ...s, status: 'converted', projectId: newProjectId, themeIds: newThemeIds, ...updateAuditFields(userId) };
-        }
-        return s;
-      });
       console.log('📊 Updated projects count:', updatedProjects.length);
-      return { ...prev, projects: updatedProjects, signals: updatedSignals };
+      return { ...prev, projects: updatedProjects };
     });
 
     // API calls - run in parallel for speed
@@ -577,12 +569,18 @@ export function useStrategyData() {
         themeIds: newThemeIds
       }
     };
-  }, [data.signals, userId, googleToken]);
+  }, [userId, googleToken]);
 
-  const convertSignalToInfluence = useCallback(async (signalId, influenceType = 'external') => {
-    const signal = (data.signals || []).find(s => s.id === signalId);
-    if (!signal) return null;
+  const convertSignalToInfluence = useCallback(async (signal, influenceType = 'external') => {
+    // Signal object is passed directly from caller (App.jsx has merged signals from Drobky)
+    console.log('🚀 convertSignalToInfluence called:', { signal, influenceType });
+    
+    if (!signal || !signal.id) {
+      console.error('❌ Invalid signal passed!');
+      return null;
+    }
 
+    const signalId = signal.id;
     const newInfluenceId = Date.now().toString();
     const newInfluence = {
       id: newInfluenceId,
@@ -594,34 +592,32 @@ export function useStrategyData() {
       created_by: userId,
       updated_by: userId
     };
+    console.log('📝 New influence to create:', newInfluence);
 
-    // Optimistic update
+    // Optimistic update for influences
     setData(prev => {
       const updatedInfluences = [...prev.influences, { 
         ...newInfluence, 
         connectedThemeIds: newInfluence.connected_theme_ids, 
         connectedProjectIds: [] 
       }];
-      const updatedSignals = (prev.signals || []).map(s => {
-        if (s.id === signalId) {
-          return { ...s, status: 'converted', influenceId: newInfluenceId, ...updateAuditFields(userId) };
-        }
-        return s;
-      });
-      return { ...prev, influences: updatedInfluences, signals: updatedSignals };
+      console.log('📊 Updated influences count:', updatedInfluences.length);
+      return { ...prev, influences: updatedInfluences };
     });
 
     // API calls - run in parallel for speed
+    console.log('🌐 Making API calls...');
     try {
-      await Promise.all([
-        createInfluence(newInfluence),
+      const results = await Promise.all([
+        createInfluence(newInfluence).then(r => { console.log('✅ createInfluence success:', r); return r; }),
         signalLiteUpdateSignal(signalId, {
           status: 'converted',
           influenceId: newInfluenceId
-        }, googleToken)
+        }, googleToken).then(r => { console.log('✅ signalLiteUpdateSignal success:', r); return r; })
       ]);
+      console.log('✅ All API calls completed:', results);
     } catch (err) {
-      console.error('Failed to convert signal to influence:', err);
+      console.error('❌ Failed to convert signal to influence:', err);
     }
 
     return {
@@ -631,7 +627,7 @@ export function useStrategyData() {
         influenceId: newInfluenceId
       }
     };
-  }, [data.signals, userId, googleToken]);
+  }, [userId, googleToken]);
 
   const moveItem = useCallback((itemType, itemId, newParentId, newIndex = null) => {
     // This functionality requires more complex handling with positions (sandboxPosition)

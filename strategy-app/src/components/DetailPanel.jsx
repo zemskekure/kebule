@@ -73,7 +73,7 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, on
     };
 
     const handleConvert = async () => {
-        console.log('🎯 handleConvert clicked:', { selectedThemeId, isConverting, signalId: signal.id });
+        console.log('🎯 handleConvert clicked:', { selectedThemeId, isConverting, signal });
         if (!selectedThemeId || isConverting) {
             console.log('⚠️ Blocked: selectedThemeId=', selectedThemeId, 'isConverting=', isConverting);
             return;
@@ -81,8 +81,9 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, on
         
         setIsConverting(true);
         try {
-            console.log('📤 Calling onConvertToProject...');
-            const result = await onConvertToProject(signal.id, selectedThemeId);
+            console.log('📤 Calling onConvertToProject with signal object...');
+            // Pass the full signal object, not just the ID
+            const result = await onConvertToProject(signal, selectedThemeId);
             console.log('📥 onConvertToProject returned:', result);
             setShowConvertModal(false);
         } catch (error) {
@@ -94,14 +95,14 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, on
     };
 
     const handleConvertToInfluence = async () => {
+        console.log('🎯 handleConvertToInfluence clicked:', { signal, selectedInfluenceType, isConverting });
         if (isConverting) return;
         
         setIsConverting(true);
         try {
-            // convertSignalToInfluence in useStrategyData handles both:
-            // 1. Creating influence in Supabase
-            // 2. Updating signal in Drobky backend (with proper auth token)
-            await onConvertToInfluence(signal.id, selectedInfluenceType);
+            console.log('📤 Calling onConvertToInfluence with signal object...');
+            // Pass the full signal object, not just the ID
+            await onConvertToInfluence(signal, selectedInfluenceType);
             setShowInfluenceModal(false);
         } catch (error) {
             console.error('Failed to convert signal to influence:', error);

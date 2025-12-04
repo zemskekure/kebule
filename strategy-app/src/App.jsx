@@ -63,7 +63,6 @@ function App() {
     deleteNode,
     moveItem,
     addSandboxNode,
-    addSignal,
     updateSignal,
     deleteSignal,
     convertSignalToProject,
@@ -207,12 +206,6 @@ function App() {
     const newId = addProject(themeId, initiativeId);
     setExpandedNodes(prev => ({ ...prev, [themeId]: true, ...(initiativeId ? { [initiativeId]: true } : {}) }));
     selectNode('project', newId);
-  };
-
-  const handleAddSignal = (signalPartial) => {
-    const newId = addSignal(signalPartial);
-    selectNode('signal', newId);
-    return newId;
   };
 
   const handleDeleteNode = useCallback(async (type, id, options = {}) => {
@@ -652,7 +645,6 @@ function App() {
             onAddNewRestaurant={handleAddNewRestaurant}
             onAddBrand={handleAddBrand}
             onAddLocation={handleAddLocation}
-            onAddSignal={handleAddSignal}
             onMoveItem={moveItem}
             onRestoreBackup={restoreData}
             theme={currentTheme}

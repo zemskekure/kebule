@@ -1049,7 +1049,7 @@ function NewRestaurantsContent({ data, onSelectNode, selectedNode, onAddNewResta
 }
 
 // Signals Content (Inbox)
-function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }) {
+function SignalsContent({ data, onSelectNode, selectedNode, theme }) {
     const isDark = theme === 'dark';
     const textColor = isDark ? '#ffffff' : '#212529';
     const textSecondary = isDark ? '#adb5bd' : '#6c757d';
@@ -1059,7 +1059,6 @@ function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }
 
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [quickAddTitle, setQuickAddTitle] = useState('');
 
     // Signals are already merged at App level with live signals from Signal Lite
     const signals = data.signals || [];
@@ -1085,12 +1084,6 @@ function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }
     const triagedCount = signals.filter(s => s.status === 'triaged').length;
     const convertedCount = signals.filter(s => s.status === 'converted').length;
     const archivedCount = signals.filter(s => s.status === 'archived').length;
-
-    const handleQuickAdd = () => {
-        if (!quickAddTitle.trim()) return;
-        onAddSignal({ title: quickAddTitle.trim() });
-        setQuickAddTitle('');
-    };
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -1142,54 +1135,6 @@ function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }
                 <h2 style={{ margin: 0, color: textColor, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <Radio size={24} style={{ color: '#ea580c' }} /> Drobky
                 </h2>
-            </div>
-
-            {/* Quick Add */}
-            <div style={{ 
-                display: 'flex', 
-                gap: '0.5rem', 
-                marginBottom: '1.5rem',
-                padding: '1rem',
-                backgroundColor: isDark ? cardBg : '#f8f9fa',
-                borderRadius: '12px',
-                border: 'none'
-            }}>
-                <input
-                    type="text"
-                    placeholder="Rychle přidat signál..."
-                    value={quickAddTitle}
-                    onChange={(e) => setQuickAddTitle(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleQuickAdd()}
-                    style={{
-                        flex: 1,
-                        padding: '0.75rem 1rem',
-                        backgroundColor: inputBg,
-                        color: textColor,
-                        border: `1px solid ${borderColor}`,
-                        borderRadius: '8px',
-                        fontSize: '0.95rem'
-                    }}
-                />
-                <button
-                    onClick={handleQuickAdd}
-                    disabled={!quickAddTitle.trim()}
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        padding: '0.75rem 1.25rem',
-                        background: quickAddTitle.trim() ? 'linear-gradient(135deg, #ea580c, #c2410c)' : (isDark ? 'rgba(255,255,255,0.1)' : '#e9ecef'),
-                        color: quickAddTitle.trim() ? '#ffffff' : textSecondary,
-                        border: 'none',
-                        borderRadius: '8px',
-                        cursor: quickAddTitle.trim() ? 'pointer' : 'not-allowed',
-                        fontWeight: 500,
-                        transition: 'all 0.2s ease',
-                        boxShadow: quickAddTitle.trim() ? '0 2px 8px rgba(234, 88, 12, 0.3)' : 'none'
-                    }}
-                >
-                    <Plus size={18} /> Přidat
-                </button>
             </div>
 
             {/* Stats Row */}
@@ -1629,7 +1574,6 @@ export function EditorContent({
     onAddNewRestaurant,
     onAddBrand,
     onAddLocation,
-    onAddSignal,
     onMoveItem,
     onRestoreBackup,
     theme
@@ -1668,7 +1612,6 @@ export function EditorContent({
                         data={data}
                         onSelectNode={onSelectNode}
                         selectedNode={selectedNode}
-                        onAddSignal={onAddSignal}
                         theme={theme}
                     />
                 );

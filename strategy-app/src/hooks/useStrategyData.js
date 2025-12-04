@@ -473,11 +473,7 @@ export function useStrategyData() {
     return true;
   }, []);
 
-  // --- Signal CRUD Operations ---
-
-  const addSignal = useCallback(() => {
-    console.error('Signals can only be created in Signal Lite app');
-  }, []);
+  // --- Signal CRUD Operations (read/update/delete only - creation is in Drobky) ---
 
   const updateSignal = useCallback(async (id, updates) => {
     setData(prev => ({
@@ -687,8 +683,7 @@ export function useStrategyData() {
     moveItem,
     // Sandbox
     addSandboxNode,
-    // Signals
-    addSignal,
+    // Signals (no addSignal - signals are created in Drobky only)
     updateSignal,
     deleteSignal,
     convertSignalToProject,

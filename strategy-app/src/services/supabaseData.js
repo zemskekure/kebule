@@ -400,8 +400,7 @@ export async function loadAllData() {
     getInfluences()
   ]);
 
-  // Fetch signals from Supabase
-  const signals = await getSignals();
+  // Signals are fetched from signal-lite backend via useSignals hook, not Supabase
 
   return {
     brands,
@@ -413,7 +412,7 @@ export async function loadAllData() {
     projects,
     newRestaurants,
     influences,
-    signals
+    signals: [] // Signals come from Drobky via useSignals hook
   };
 }
 

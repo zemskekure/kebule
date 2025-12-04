@@ -505,8 +505,16 @@ export function useStrategyData() {
   }, [googleToken]);
 
   const convertSignalToProject = useCallback(async (signalId, themeId) => {
+    console.log('🚀 convertSignalToProject called:', { signalId, themeId });
+    console.log('📊 Current signals:', data.signals?.length, 'googleToken:', !!googleToken);
+    
     const signal = (data.signals || []).find(s => s.id === signalId);
-    if (!signal) return null;
+    console.log('🔍 Found signal:', signal);
+    
+    if (!signal) {
+      console.error('❌ Signal not found!');
+      return null;
+    }
 
     const newProjectId = Date.now().toString();
     const newProject = {
@@ -523,6 +531,7 @@ export function useStrategyData() {
       created_by: userId,
       updated_by: userId
     };
+    console.log('📝 New project to create:', newProject);
 
     // Calculate new themeIds
     const newThemeIds = signal.themeIds?.includes(themeId) 
@@ -530,6 +539,7 @@ export function useStrategyData() {
       : [...(signal.themeIds || []), themeId];
 
     // Optimistic update
+    console.log('⚡ Applying optimistic update...');
     setData(prev => {
       const updatedProjects = [...prev.projects, { ...newProject, themeId: newProject.theme_id, signalId: newProject.signal_id, brandIds: [], locationIds: [] }];
       const updatedSignals = (prev.signals || []).map(s => {
@@ -538,23 +548,27 @@ export function useStrategyData() {
         }
         return s;
       });
+      console.log('📊 Updated projects count:', updatedProjects.length);
       return { ...prev, projects: updatedProjects, signals: updatedSignals };
     });
 
     // API calls - run in parallel for speed
+    console.log('🌐 Making API calls...');
     try {
-      await Promise.all([
-        createProject(newProject),
+      const results = await Promise.all([
+        createProject(newProject).then(r => { console.log('✅ createProject success:', r); return r; }),
         signalLiteUpdateSignal(signalId, {
           status: 'converted',
           projectId: newProjectId,
           themeIds: newThemeIds
-        }, googleToken)
+        }, googleToken).then(r => { console.log('✅ signalLiteUpdateSignal success:', r); return r; })
       ]);
+      console.log('✅ All API calls completed:', results);
     } catch (err) {
-      console.error('Failed to convert signal:', err);
+      console.error('❌ Failed to convert signal:', err);
     }
 
+    console.log('🏁 convertSignalToProject finished');
     return {
       projectId: newProjectId,
       signalUpdates: {

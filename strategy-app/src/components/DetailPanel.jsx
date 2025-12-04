@@ -73,17 +73,20 @@ function SignalEditor({ signal, data, onUpdate, onDelete, onConvertToProject, on
     };
 
     const handleConvert = async () => {
-        if (!selectedThemeId || isConverting) return;
+        console.log('🎯 handleConvert clicked:', { selectedThemeId, isConverting, signalId: signal.id });
+        if (!selectedThemeId || isConverting) {
+            console.log('⚠️ Blocked: selectedThemeId=', selectedThemeId, 'isConverting=', isConverting);
+            return;
+        }
         
         setIsConverting(true);
         try {
-            // convertSignalToProject in useStrategyData handles both:
-            // 1. Creating project in Supabase
-            // 2. Updating signal in Drobky backend (with proper auth token)
-            await onConvertToProject(signal.id, selectedThemeId);
+            console.log('📤 Calling onConvertToProject...');
+            const result = await onConvertToProject(signal.id, selectedThemeId);
+            console.log('📥 onConvertToProject returned:', result);
             setShowConvertModal(false);
         } catch (error) {
-            console.error('Failed to convert signal:', error);
+            console.error('❌ Failed to convert signal:', error);
             alert('Chyba při převodu drobku na projekt');
         } finally {
             setIsConverting(false);

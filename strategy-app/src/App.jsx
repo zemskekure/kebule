@@ -103,6 +103,13 @@ function App() {
       new Map(allSignals.map(s => [s.id, s])).values()
     );
     
+    console.log('Signals Merged:', {
+      local: localSignals.length,
+      live: convertedLiveSignals.length,
+      total: uniqueSignals.length,
+      sample: uniqueSignals[0]
+    });
+
     // Sort by date, newest first
     const sortedSignals = uniqueSignals.sort((a, b) => 
       new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0)
@@ -583,7 +590,7 @@ function App() {
           backgroundColor: currentTheme === 'dark' ? '#0a0a0a' : '#f8f9fa'
         }}>
           <SignalsInbox 
-            googleToken={googleToken} 
+            signals={data.signals}
             onSelectSignal={(signal) => {
               setSelectedSignal(signal);
               setSelectedNode({ type: 'signal', id: signal.id });

@@ -1140,7 +1140,7 @@ function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h2 style={{ margin: 0, color: textColor, fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Radio size={24} style={{ color: '#ea580c' }} /> Signály
+                    <Radio size={24} style={{ color: '#ea580c' }} /> Drobky
                 </h2>
             </div>
 

@@ -5,7 +5,7 @@ import {
   createBrand, createLocation, createYear, createVision, createTheme, createInitiative, createProject, createNewRestaurant, createInfluence,
   updateBrand, updateLocation, updateYear, updateVision, updateTheme, updateInitiative, updateProject, updateNewRestaurant, updateInfluence,
   deleteBrand, deleteLocation, deleteYear, deleteVision, deleteTheme, deleteInitiative, deleteProject, deleteNewRestaurant, deleteInfluence,
-  updateSignal, deleteSignal
+  updateSignal as apiUpdateSignal, deleteSignal as apiDeleteSignal
 } from '../services/supabaseData';
 
 // --- Initial Data (for loading state) ---
@@ -385,6 +385,7 @@ export function useStrategyData() {
       else if (type === 'project') await updateProject(id, apiUpdates);
       else if (type === 'newRestaurant' || type === 'reconstruction') await updateNewRestaurant(id, apiUpdates);
       else if (type === 'influence') await updateInfluence(id, apiUpdates);
+      else if (type === 'signal') await apiUpdateSignal(id, apiUpdates);
     } catch (err) {
       console.error(`Failed to update ${type}:`, err);
     }

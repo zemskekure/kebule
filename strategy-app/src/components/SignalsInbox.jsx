@@ -1,13 +1,11 @@
 import { useState, useMemo } from 'react';
-import { useSignals } from '../hooks/useSignals';
 import { Search, Filter, Radio, AlertCircle, CheckCircle, Archive, ArrowRight } from 'lucide-react';
 import './SignalsInbox.css';
 
 /**
  * Enhanced Signals Inbox for admin triage
  */
-export function SignalsInbox({ googleToken, onSelectSignal, theme = 'light' }) {
-  const { signals, loading, error } = useSignals(googleToken);
+export function SignalsInbox({ signals = [], onSelectSignal, theme = 'light' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [restaurantFilter, setRestaurantFilter] = useState('all');
@@ -107,43 +105,6 @@ export function SignalsInbox({ googleToken, onSelectSignal, theme = 'light' }) {
       minute: '2-digit'
     });
   };
-
-  if (loading) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        height: '100%',
-        backgroundColor: bgColor,
-        color: textColor
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="spinner" style={{ margin: '0 auto 1rem' }}></div>
-          <p>Načítání drobků...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        height: '100%',
-        backgroundColor: bgColor,
-        color: textColor
-      }}>
-        <div style={{ textAlign: 'center', color: '#ef4444' }}>
-          <AlertCircle size={48} style={{ margin: '0 auto 1rem' }} />
-          <p>Chyba při načítání drobků</p>
-          <small style={{ color: textSecondary }}>{error}</small>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ 

@@ -545,7 +545,7 @@ export function useStrategyData() {
     try {
       await Promise.all([
         createProject(newProject),
-        apiUpdateSignal(signalId, {
+        signalLiteUpdateSignal(signalId, {
           status: 'converted',
           projectId: newProjectId,
           themeIds: newThemeIds

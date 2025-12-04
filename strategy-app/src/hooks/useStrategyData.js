@@ -519,6 +519,7 @@ export function useStrategyData() {
       type: 'standard',
       brand_ids: [],
       location_ids: [],
+      signal_id: signalId, // Traceability: link back to source signal
       created_by: userId,
       updated_by: userId
     };
@@ -530,7 +531,7 @@ export function useStrategyData() {
 
     // Optimistic update
     setData(prev => {
-      const updatedProjects = [...prev.projects, { ...newProject, themeId: newProject.theme_id, brandIds: [], locationIds: [] }];
+      const updatedProjects = [...prev.projects, { ...newProject, themeId: newProject.theme_id, signalId: newProject.signal_id, brandIds: [], locationIds: [] }];
       const updatedSignals = (prev.signals || []).map(s => {
         if (s.id === signalId) {
           return { ...s, status: 'converted', projectId: newProjectId, themeIds: newThemeIds, ...updateAuditFields(userId) };

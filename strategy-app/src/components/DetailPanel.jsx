@@ -1167,6 +1167,27 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
 
                 {type === 'project' && (
                     <>
+                        {/* Source Signal Traceability */}
+                        {item.signalId && (() => {
+                            const sourceSignal = (data.signals || []).find(s => s.id === item.signalId);
+                            return (
+                                <div style={{ 
+                                    marginBottom: '1rem', 
+                                    padding: '0.75rem', 
+                                    backgroundColor: isDark ? 'rgba(234, 88, 12, 0.1)' : 'rgba(234, 88, 12, 0.05)',
+                                    borderRadius: '8px',
+                                    border: `1px solid ${isDark ? 'rgba(234, 88, 12, 0.3)' : 'rgba(234, 88, 12, 0.2)'}`
+                                }}>
+                                    <div style={{ fontSize: '0.75rem', color: '#ea580c', fontWeight: 500, marginBottom: '0.25rem' }}>
+                                        Vytvořeno z drobku
+                                    </div>
+                                    <div style={{ fontSize: '0.85rem', color: textColor }}>
+                                        {sourceSignal?.title || `Signal ID: ${item.signalId}`}
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
                         {/* Cíl assignment dropdown */}
                         <div className="form-group">
                             <label className="form-label" style={labelStyle}>Cíl</label>

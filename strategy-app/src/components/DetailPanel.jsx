@@ -498,9 +498,13 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
         parentItem = data.brands.find(b => b.id === item?.brandId);
     } else if (type === 'signal') {
         item = (data.signals || []).find(i => i.id === id);
+        console.log('DetailPanel signal lookup:', { id, found: !!item, signalsCount: (data.signals || []).length });
     }
 
-    if (!item) return null;
+    if (!item) {
+        console.log('DetailPanel: item not found for', { type, id });
+        return null;
+    }
 
     const handleChange = (field, value) => {
         onUpdate(type, id, { [field]: value });
@@ -581,7 +585,7 @@ export function DetailPanel({ selectedNode, data, onUpdate, onDelete, onConvertS
                     />
                 </div>
 
-                {type !== 'newRestaurant' && type !== 'year' && (
+                {type !== 'newRestaurant' && type !== 'year' && type !== 'signal' && (
                     <div className="form-group">
                         <label className="form-label" style={labelStyle}>Popis</label>
                         <textarea

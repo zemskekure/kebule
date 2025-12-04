@@ -354,13 +354,17 @@ export function useStrategyData() {
   }, [userId]);
 
   const updateNode = useCallback(async (type, id, updates) => {
+    console.log('updateNode called:', { type, id, updates });
+    
     // Optimistic update
     setData(prev => {
       const collectionName = getCollectionName(type);
       const collection = prev[collectionName] || [];
+      console.log('updateNode - collection before:', collection.find(item => item.id === id));
       const updatedCollection = collection.map(item => 
         item.id === id ? { ...item, ...updates, ...updateAuditFields(userId) } : item
       );
+      console.log('updateNode - collection after:', updatedCollection.find(item => item.id === id));
       return { ...prev, [collectionName]: updatedCollection };
     });
 

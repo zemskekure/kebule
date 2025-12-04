@@ -97,18 +97,12 @@ function App() {
       isLive: true
     }));
     
-    // Combine and deduplicate by ID (live signals take precedence)
-    const allSignals = [...localSignals, ...convertedLiveSignals];
+    // Combine and deduplicate by ID (local edits take precedence over live data)
+    // We put convertedLiveSignals first, then localSignals - Map keeps last occurrence
+    const allSignals = [...convertedLiveSignals, ...localSignals];
     const uniqueSignals = Array.from(
       new Map(allSignals.map(s => [s.id, s])).values()
     );
-    
-    console.log('Signals Merged:', {
-      local: localSignals.length,
-      live: convertedLiveSignals.length,
-      total: uniqueSignals.length,
-      sample: uniqueSignals[0]
-    });
 
     // Sort by date, newest first
     const sortedSignals = uniqueSignals.sort((a, b) => 

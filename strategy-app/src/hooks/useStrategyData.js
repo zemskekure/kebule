@@ -515,6 +515,7 @@ export function useStrategyData() {
 
     const signalId = signal.id;
     const newProjectId = Date.now().toString();
+    // Note: signal_id is NOT in Supabase schema, we only track it locally for UI
     const newProject = {
       id: newProjectId,
       theme_id: themeId,
@@ -525,7 +526,6 @@ export function useStrategyData() {
       type: 'standard',
       brand_ids: [],
       location_ids: [],
-      signal_id: signalId, // Traceability: link back to source signal
       created_by: userId,
       updated_by: userId
     };

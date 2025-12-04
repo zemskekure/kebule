@@ -243,7 +243,6 @@ app.patch('/signals/:id', verifyToken, async (req, res) => {
     // Convert camelCase to snake_case for Supabase
     const fieldMapping = {
       'projectId': 'project_id',
-      'influenceId': 'influence_id',
       'themeIds': 'theme_ids',
       'influenceIds': 'influence_ids',
       'restaurantIds': 'restaurant_ids'
@@ -251,8 +250,14 @@ app.patch('/signals/:id', verifyToken, async (req, res) => {
     
     for (const field of allowedFields) {
       if (updates.hasOwnProperty(field)) {
-        const dbField = fieldMapping[field] || field;
-        filteredUpdates[dbField] = updates[field];
+        // Special handling for influenceId -> add to influence_ids array
+        if (field === 'influenceId' && updates[field]) {
+          // Get current influence_ids and add the new one
+          filteredUpdates['influence_ids'] = [updates[field]];
+        } else {
+          const dbField = fieldMapping[field] || field;
+          filteredUpdates[dbField] = updates[field];
+        }
       }
     }
 

@@ -1069,16 +1069,21 @@ function SignalsContent({ data, onSelectNode, selectedNode, onAddSignal, theme }
     const localSignals = data.signals || [];
     const signals = useMemo(() => {
         // Convert live signals to local format and merge
+        // Backend returns snake_case fields, convert to camelCase
         const convertedLiveSignals = liveSignals.map(ls => ({
             id: ls.id,
             title: ls.title,
             body: ls.body,
-            date: ls.createdAt,
-            status: 'inbox', // New signals from Signal Lite start as inbox
+            date: ls.date || ls.created_at,
+            createdAt: ls.created_at,
+            status: ls.status || 'inbox',
             source: ls.source || 'signal-lite',
-            authorName: ls.authorName,
-            authorEmail: ls.authorEmail,
-            restaurantIds: [],
+            authorName: ls.author_name,
+            authorEmail: ls.author_email,
+            priority: ls.priority,
+            restaurantIds: ls.restaurant_ids || [],
+            themeIds: ls.theme_ids || [],
+            projectId: ls.project_id,
             isLive: true // Mark as coming from Signal Lite
         }));
         

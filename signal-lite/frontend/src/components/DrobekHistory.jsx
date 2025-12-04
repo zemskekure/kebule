@@ -43,6 +43,15 @@ function DrobekHistory({ token, isOpen, onClose }) {
     return date.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
   };
 
+  const getPriorityLabel = (priority) => {
+    switch (priority) {
+      case 'high': return '🔴';
+      case 'med': return '🟡';
+      case 'low': return '🟢';
+      default: return null;
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -69,16 +78,28 @@ function DrobekHistory({ token, isOpen, onClose }) {
           {!loading && !error && drobeks.length > 0 && (
             <ul className="history-list">
               {drobeks.map((drobek) => (
-                <li key={drobek.id} className="history-item">
+                <li key={drobek.id} className={`history-item ${drobek.priority === 'high' ? 'history-item-priority' : ''}`}>
                   <div className="history-item-content">
-                    <p className="history-item-title">{drobek.title}</p>
+                    <div className="history-item-header">
+                      {drobek.priority && (
+                        <span className="history-item-priority-badge">
+                          {getPriorityLabel(drobek.priority)}
+                        </span>
+                      )}
+                      <p className="history-item-title">{drobek.title}</p>
+                    </div>
                     {drobek.body && (
                       <p className="history-item-body">{drobek.body}</p>
                     )}
+                    <div className="history-item-meta">
+                      {drobek.author_name && (
+                        <span className="history-item-author">{drobek.author_name}</span>
+                      )}
+                      <span className="history-item-date">
+                        {formatDate(drobek.date || drobek.created_at)}
+                      </span>
+                    </div>
                   </div>
-                  <span className="history-item-date">
-                    {formatDate(drobek.date)}
-                  </span>
                 </li>
               ))}
             </ul>

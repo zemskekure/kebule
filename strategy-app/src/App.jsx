@@ -13,6 +13,7 @@ import { EditorContent } from './components/EditorContent';
 import { SandboxEditor } from './components/SandboxEditor';
 import { MigrationBanner } from './components/MigrationBanner';
 import { useStrategyData } from './hooks/useStrategyData';
+import { useSignals } from './hooks/useSignals';
 
 // --- Theme localStorage hook ---
 
@@ -48,7 +49,7 @@ function App() {
 
   // Use the strategy data hook for all CRUD operations
   const {
-    data,
+    data: baseData,
     addBrand,
     addLocation,
     addInfluence,
@@ -70,6 +71,48 @@ function App() {
     importData,
     restoreData,
   } = useStrategyData();
+
+  // Fetch live signals from Signal Lite backend
+  const { signals: liveSignals } = useSignals(null);
+
+  // Merge live signals with local signals (from Supabase)
+  const data = useMemo(() => {
+    const localSignals = baseData.signals || [];
+    
+    // Convert live signals from snake_case to camelCase
+    const convertedLiveSignals = liveSignals.map(ls => ({
+      id: ls.id,
+      title: ls.title,
+      body: ls.body,
+      date: ls.date || ls.created_at,
+      createdAt: ls.created_at,
+      status: ls.status || 'inbox',
+      source: ls.source || 'signal-lite',
+      authorName: ls.author_name,
+      authorEmail: ls.author_email,
+      priority: ls.priority,
+      restaurantIds: ls.restaurant_ids || [],
+      themeIds: ls.theme_ids || [],
+      projectId: ls.project_id,
+      isLive: true
+    }));
+    
+    // Combine and deduplicate by ID (live signals take precedence)
+    const allSignals = [...localSignals, ...convertedLiveSignals];
+    const uniqueSignals = Array.from(
+      new Map(allSignals.map(s => [s.id, s])).values()
+    );
+    
+    // Sort by date, newest first
+    const sortedSignals = uniqueSignals.sort((a, b) => 
+      new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0)
+    );
+    
+    return {
+      ...baseData,
+      signals: sortedSignals
+    };
+  }, [baseData, liveSignals]);
 
   // UI State - default to vision for non-logged-in users
   const [viewMode, setViewMode] = useState('vision'); // 'admin' | 'dashboard' | 'vision' | 'sandbox'

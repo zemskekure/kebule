@@ -467,7 +467,7 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                                                     }}
                                                                                                                 >
                                                                                                                     <div style={{ flex: 1 }}>
-                                                                                                                        <div style={{ color: textColor, fontWeight: 500, fontSize: '0.85rem' }}>{project.title}</div>
+                                                                                                                        <div style={{ color: textColor, fontWeight: 500, fontSize: '0.8rem' }}>{project.title}</div>
                                                                                                                     </div>
                                                                                                                     <span style={{
                                                                                                                         fontSize: '0.65rem',
@@ -497,7 +497,16 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                                                     borderRadius: '4px',
                                                                                                                     color: textSecondary,
                                                                                                                     cursor: 'pointer',
-                                                                                                                    fontSize: '0.7rem'
+                                                                                                                    fontSize: '0.7rem',
+                                                                                                                    transition: 'all 0.15s ease'
+                                                                                                                }}
+                                                                                                                onMouseEnter={(e) => {
+                                                                                                                    e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)';
+                                                                                                                    e.currentTarget.style.borderStyle = 'solid';
+                                                                                                                }}
+                                                                                                                onMouseLeave={(e) => {
+                                                                                                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                                                                                                    e.currentTarget.style.borderStyle = 'dashed';
                                                                                                                 }}
                                                                                                             >
                                                                                                                 <Plus size={10} /> Přidat projekt
@@ -548,14 +557,14 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                                             <GripVertical size={12} />
                                                                                                         </div>
                                                                                                         <div style={{ flex: 1 }}>
-                                                                                                            <div style={{ color: textColor, fontWeight: 500, fontSize: '0.9rem' }}>{project.title}</div>
+                                                                                                            <div style={{ color: textColor, fontWeight: 500, fontSize: '0.8rem' }}>{project.title}</div>
                                                                                                             {project.description && (
                                                                                                                 <div style={{ fontSize: '0.8rem', color: textSecondary, marginTop: '0.25rem' }}>{project.description}</div>
                                                                                                             )}
                                                                                                         </div>
                                                                                                         <span style={{
-                                                                                                            fontSize: '0.7rem',
-                                                                                                            padding: '0.2rem 0.5rem',
+                                                                                                            fontSize: '0.65rem',
+                                                                                                            padding: '0.15rem 0.4rem',
                                                                                                             borderRadius: '4px',
                                                                                                             backgroundColor: project.status === 'Hotovo' ? 'rgba(25, 135, 84, 0.2)' :
                                                                                                                 project.status === 'Běží' ? 'rgba(13, 110, 253, 0.2)' :
@@ -597,7 +606,16 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                                     borderRadius: '4px',
                                                                                                     color: '#6f42c1',
                                                                                                     cursor: 'pointer',
-                                                                                                    fontSize: '0.75rem'
+                                                                                                    fontSize: '0.75rem',
+                                                                                                    transition: 'all 0.15s ease'
+                                                                                                }}
+                                                                                                onMouseEnter={(e) => {
+                                                                                                    e.currentTarget.style.backgroundColor = 'rgba(111, 66, 193, 0.1)';
+                                                                                                    e.currentTarget.style.borderStyle = 'solid';
+                                                                                                }}
+                                                                                                onMouseLeave={(e) => {
+                                                                                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                                                                                    e.currentTarget.style.borderStyle = 'dashed';
                                                                                                 }}
                                                                                             >
                                                                                                 <Plus size={12} /> Cíl
@@ -614,7 +632,16 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                                                     borderRadius: '4px',
                                                                                                     color: textSecondary,
                                                                                                     cursor: 'pointer',
-                                                                                                    fontSize: '0.75rem'
+                                                                                                    fontSize: '0.75rem',
+                                                                                                    transition: 'all 0.15s ease'
+                                                                                                }}
+                                                                                                onMouseEnter={(e) => {
+                                                                                                    e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)';
+                                                                                                    e.currentTarget.style.borderStyle = 'solid';
+                                                                                                }}
+                                                                                                onMouseLeave={(e) => {
+                                                                                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                                                                                    e.currentTarget.style.borderStyle = 'dashed';
                                                                                                 }}
                                                                                             >
                                                                                                 <Plus size={12} /> Projekt
@@ -641,7 +668,16 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                                                 borderRadius: '4px',
                                                                 color: textSecondary,
                                                                 cursor: 'pointer',
-                                                                fontSize: '0.8rem'
+                                                                fontSize: '0.8rem',
+                                                                transition: 'all 0.15s ease'
+                                                            }}
+                                                            onMouseEnter={(e) => {
+                                                                e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)';
+                                                                e.currentTarget.style.borderStyle = 'solid';
+                                                            }}
+                                                            onMouseLeave={(e) => {
+                                                                e.currentTarget.style.backgroundColor = 'transparent';
+                                                                e.currentTarget.style.borderStyle = 'dashed';
                                                             }}
                                                         >
                                                             <Plus size={14} /> Přidat téma
@@ -664,7 +700,16 @@ function ThoughtSystemContent({ data, onSelectNode, selectedNode, expandedNodes,
                                             borderRadius: '6px',
                                             color: textSecondary,
                                             cursor: 'pointer',
-                                            fontSize: '0.85rem'
+                                            fontSize: '0.85rem',
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.backgroundColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.03)';
+                                            e.currentTarget.style.borderStyle = 'solid';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.backgroundColor = 'transparent';
+                                            e.currentTarget.style.borderStyle = 'dashed';
                                         }}
                                     >
                                         <Plus size={14} /> Přidat vizi

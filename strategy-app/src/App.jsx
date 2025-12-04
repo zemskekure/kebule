@@ -595,8 +595,12 @@ function App() {
             <DetailPanel
               selectedNode={{ type: 'signal', id: selectedSignal.id }}
               data={{ ...data, signals: [selectedSignal] }}
-              onUpdate={(updates) => {
-                setSelectedSignal({ ...selectedSignal, ...updates });
+              onUpdate={(type, id, updates) => {
+                console.log('SignalsView onUpdate:', { type, id, updates });
+                // Update local state for immediate UI feedback
+                setSelectedSignal(prev => ({ ...prev, ...updates }));
+                // Also update in the main data store
+                updateNode(type, id, updates);
               }}
               onDelete={async () => {
                 if (!confirm('Opravdu chcete smazat tento drobek?')) return;

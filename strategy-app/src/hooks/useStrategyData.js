@@ -4,9 +4,9 @@ import {
   loadAllData, 
   createBrand, createLocation, createYear, createVision, createTheme, createInitiative, createProject, createNewRestaurant, createInfluence,
   updateBrand, updateLocation, updateYear, updateVision, updateTheme, updateInitiative, updateProject, updateNewRestaurant, updateInfluence,
-  deleteBrand, deleteLocation, deleteYear, deleteVision, deleteTheme, deleteInitiative, deleteProject, deleteNewRestaurant, deleteInfluence,
-  updateSignal as apiUpdateSignal, deleteSignal as apiDeleteSignal
+  deleteBrand, deleteLocation, deleteYear, deleteVision, deleteTheme, deleteInitiative, deleteProject, deleteNewRestaurant, deleteInfluence
 } from '../services/supabaseData';
+import { updateSignal as signalLiteUpdateSignal, deleteSignal as signalLiteDeleteSignal } from '../services/signalApi';
 
 // --- Initial Data (for loading state) ---
 
@@ -389,11 +389,16 @@ export function useStrategyData() {
       else if (type === 'project') await updateProject(id, apiUpdates);
       else if (type === 'newRestaurant' || type === 'reconstruction') await updateNewRestaurant(id, apiUpdates);
       else if (type === 'influence') await updateInfluence(id, apiUpdates);
-      else if (type === 'signal') await apiUpdateSignal(id, apiUpdates);
+      else if (type === 'signal') {
+        // Signals are stored in Signal Lite backend, not Supabase
+        // Signal Lite API expects camelCase, so pass original updates (not snake_case converted)
+        console.log('Updating signal in Signal Lite backend:', { id, updates, hasToken: !!googleToken });
+        await signalLiteUpdateSignal(id, updates, googleToken);
+      }
     } catch (err) {
       console.error(`Failed to update ${type}:`, err);
     }
-  }, [userId]);
+  }, [userId, googleToken]);
 
   const deleteNode = useCallback(async (type, id, options = {}) => {
     const { skipConfirm = false, confirmFn } = options;
@@ -481,11 +486,11 @@ export function useStrategyData() {
     }));
     
     try {
-      await apiUpdateSignal(id, updates);
+      await signalLiteUpdateSignal(id, updates, googleToken);
     } catch (err) {
       console.error('Failed to update signal:', err);
     }
-  }, [userId]);
+  }, [userId, googleToken]);
 
   const deleteSignal = useCallback(async (id, skipConfirm = false, confirmFn = null) => {
     if (!skipConfirm && !confirmFn && !window.confirm('Opravdu chcete smazat tento drobek?')) return false;
@@ -496,12 +501,12 @@ export function useStrategyData() {
     }));
     
     try {
-      await apiDeleteSignal(id);
+      await signalLiteDeleteSignal(id, googleToken);
     } catch (err) {
       console.error('Failed to delete signal:', err);
     }
     return true;
-  }, []);
+  }, [googleToken]);
 
   const convertSignalToProject = useCallback(async (signalId, themeId) => {
     const signal = (data.signals || []).find(s => s.id === signalId);

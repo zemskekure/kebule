@@ -17,8 +17,8 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], the
   const textSecondary = isDark ? '#adb5bd' : '#6c757d';
   const borderColor = isDark ? 'rgba(255, 255, 255, 0.1)' : '#e9ecef';
 
-  // Get unique restaurants from signals
-  const restaurants = useMemo(() => {
+  // Get unique restaurant IDs from signals (for filter dropdown)
+  const uniqueRestaurantIds = useMemo(() => {
     const restaurantSet = new Set();
     signals.forEach(signal => {
       (signal.restaurantIds || []).forEach(id => restaurantSet.add(id));
@@ -236,9 +236,10 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], the
               }}
             >
               <option value="all">Všechny pobočky</option>
-              {restaurants.map(id => (
-                <option key={id} value={id}>{id}</option>
-              ))}
+              {uniqueRestaurantIds.map(id => {
+                const restaurant = restaurants.find(r => r.id === id);
+                return <option key={id} value={id}>{restaurant?.title || id}</option>;
+              })}
             </select>
           )}
         </div>

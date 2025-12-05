@@ -262,6 +262,8 @@ app.patch('/signals/:id', verifyToken, async (req, res) => {
     }
 
     filteredUpdates.updated_at = new Date().toISOString();
+    
+    console.log('Filtered updates to apply:', JSON.stringify(filteredUpdates, null, 2));
 
     const { data, error } = await supabase
       .from('signals')
@@ -271,11 +273,16 @@ app.patch('/signals/:id', verifyToken, async (req, res) => {
       .single();
 
     if (error) {
+      console.error('Supabase error details:', JSON.stringify(error, null, 2));
       if (error.code === 'PGRST116') {
         return res.status(404).json({ error: 'Signal not found' });
       }
-      console.error('Error updating signal:', error);
-      throw error;
+      // Return the actual error to help debug
+      return res.status(500).json({ 
+        error: 'Failed to update signal', 
+        details: error.message,
+        code: error.code 
+      });
     }
 
     console.log('Signal updated in Supabase:', id);
@@ -286,7 +293,7 @@ app.patch('/signals/:id', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating signal:', error);
-    res.status(500).json({ error: 'Failed to update signal' });
+    res.status(500).json({ error: 'Failed to update signal', details: error.message });
   }
 });
 

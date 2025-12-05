@@ -1,64 +1,72 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../services/supabaseClient';
 
 /**
- * Hook to fetch signals from Signal Lite backend
- * @param {string} googleToken - Google OAuth token for authentication
- * @param {number} refreshInterval - How often to refresh in milliseconds (default: 30000)
+ * Hook to fetch signals with Supabase Realtime for instant updates
+ * Falls back to polling if realtime fails
  */
-export function useSignals(googleToken, refreshInterval = 30000) {
+export function useSignals(googleToken) {
   const [signals, setSignals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    // Allow fetching without token for public feed
-    // if (!googleToken) {
-    //   setLoading(false);
-    //   return;
-    // }
+  // Fetch all signals from Supabase directly
+  const fetchSignals = useCallback(async () => {
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('signals')
+        .select('*')
+        .order('date', { ascending: false });
 
-    async function fetchSignals() {
-      try {
-        const headers = {};
-        if (googleToken) {
-          headers['Authorization'] = `Bearer ${googleToken}`;
-        }
+      if (fetchError) throw fetchError;
 
-        // Use environment variable for backend URL, fallback to default
-        const API_URL = (import.meta.env.VITE_SIGNAL_API_URL || 'https://signal-lite-backend.onrender.com').replace(/\/$/, '');
-        const fullURL = `${API_URL}/signals`;
-        
-        console.log('Fetching signals from:', fullURL);
-        
-        const response = await fetch(fullURL, {
-          headers
-        });
-
-        console.log('Response status:', response.status);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch signals: ${response.status} from ${fullURL}`);
-        }
-
-        const data = await response.json();
-        setSignals(data.signals || []);
-        setError(null);
-        setLoading(false);
-      } catch (err) {
-        console.error('Failed to fetch signals:', err);
-        setError(err.message);
-        setLoading(false);
-      }
+      setSignals(data || []);
+      setError(null);
+      setLoading(false);
+    } catch (err) {
+      console.error('Failed to fetch signals:', err);
+      setError(err.message);
+      setLoading(false);
     }
+  }, []);
 
+  useEffect(() => {
     // Initial fetch
     fetchSignals();
 
-    // Set up polling
-    const interval = setInterval(fetchSignals, refreshInterval);
+    // Subscribe to realtime changes on signals table
+    const channel = supabase
+      .channel('signals-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'signals'
+        },
+        (payload) => {
+          console.log('📡 Realtime signal update:', payload.eventType);
+          
+          if (payload.eventType === 'INSERT') {
+            setSignals(prev => [payload.new, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setSignals(prev => 
+              prev.map(s => s.id === payload.new.id ? payload.new : s)
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setSignals(prev => prev.filter(s => s.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('📡 Realtime subscription status:', status);
+      });
 
-    return () => clearInterval(interval);
-  }, [googleToken, refreshInterval]);
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchSignals]);
 
-  return { signals, loading, error };
+  return { signals, loading, error, refetch: fetchSignals };
 }

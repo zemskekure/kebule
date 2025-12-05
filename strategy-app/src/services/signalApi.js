@@ -26,7 +26,8 @@ export async function updateSignal(signalId, updates, token) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Network error' }));
-    throw new Error(error.error || 'Failed to update signal');
+    console.error('Signal API error response:', error);
+    throw new Error(error.details || error.error || 'Failed to update signal');
   }
 
   return response.json();

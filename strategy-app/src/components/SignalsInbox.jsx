@@ -5,7 +5,7 @@ import './SignalsInbox.css';
 /**
  * Enhanced Signals Inbox for admin triage
  */
-export function SignalsInbox({ signals = [], projects = [], influences = [], onSelectSignal, theme = 'light' }) {
+export function SignalsInbox({ signals = [], projects = [], influences = [], themes = [], onSelectSignal, theme = 'light' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [restaurantFilter, setRestaurantFilter] = useState('all');
@@ -84,17 +84,13 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], onS
     }
   };
 
-  const getConversionTarget = (signal) => {
-    if (signal.status !== 'converted') return null;
-    if (signal.projectId) {
-      const project = projects.find(p => p.id === signal.projectId);
-      return project ? `→ ${project.title}` : null;
-    }
-    if (signal.influenceId) {
-      const influence = influences.find(i => i.id === signal.influenceId);
-      return influence ? `→ ${influence.title}` : null;
-    }
-    return null;
+  // Get theme name for converted signals
+  const getThemeName = (signal) => {
+    if (signal.status !== 'converted' || !signal.projectId) return null;
+    const project = projects.find(p => p.id === signal.projectId);
+    if (!project?.themeId) return null;
+    const themeItem = themes.find(t => t.id === project.themeId);
+    return themeItem?.title || null;
   };
 
   const formatDate = (dateString) => {
@@ -311,15 +307,15 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], onS
                   {signal.title}
                 </h3>
 
-                {/* Conversion target */}
-                {getConversionTarget(signal) && (
+                {/* Theme assignment */}
+                {getThemeName(signal) && (
                   <div style={{
                     fontSize: '0.8rem',
                     color: '#10b981',
                     marginBottom: '0.5rem',
                     fontWeight: '500'
                   }}>
-                    {getConversionTarget(signal)}
+                    Téma: {getThemeName(signal)}
                   </div>
                 )}
 
@@ -350,9 +346,6 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], onS
                 }}>
                   <div>
                     <strong style={{ color: textColor }}>{signal.authorName}</strong>
-                    {signal.authorEmail && (
-                      <span style={{ marginLeft: '0.5rem' }}>{signal.authorEmail}</span>
-                    )}
                   </div>
                   <ArrowRight size={16} />
                 </div>

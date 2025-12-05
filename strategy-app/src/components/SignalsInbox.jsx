@@ -5,7 +5,7 @@ import './SignalsInbox.css';
 /**
  * Enhanced Signals Inbox for admin triage
  */
-export function SignalsInbox({ signals = [], onSelectSignal, theme = 'light' }) {
+export function SignalsInbox({ signals = [], projects = [], influences = [], onSelectSignal, theme = 'light' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [restaurantFilter, setRestaurantFilter] = useState('all');
@@ -74,7 +74,20 @@ export function SignalsInbox({ signals = [], onSelectSignal, theme = 'light' }) 
     }
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (signal) => {
+    const status = signal.status;
+    if (status === 'converted') {
+      if (signal.projectId) {
+        const project = projects.find(p => p.id === signal.projectId);
+        return project ? `Převedeno na: ${project.title}` : 'Převedeno na projekt';
+      }
+      if (signal.influenceId) {
+        const influence = influences.find(i => i.id === signal.influenceId);
+        return influence ? `Převedeno na: ${influence.title}` : 'Převedeno na vliv';
+      }
+      return 'Převedeno';
+    }
+
     switch (status) {
       case 'inbox': return 'Inbox';
       case 'triaged': return 'Tříděno';
@@ -268,7 +281,7 @@ export function SignalsInbox({ signals = [], onSelectSignal, theme = 'light' }) 
                       fontWeight: '600'
                     }}>
                       {getStatusIcon(signal.status)}
-                      {getStatusLabel(signal.status)}
+                      {getStatusLabel(signal)}
                     </span>
                     {signal.priority === 'high' && (
                       <span style={{ 

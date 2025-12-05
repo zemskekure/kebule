@@ -579,6 +579,8 @@ function App() {
         }}>
           <SignalsInbox 
             signals={data.signals}
+            projects={data.projects}
+            influences={data.influences}
             onSelectSignal={(signal) => {
               setSelectedSignal(signal);
               setSelectedNode({ type: 'signal', id: signal.id });

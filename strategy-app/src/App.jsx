@@ -97,12 +97,26 @@ function App() {
       isLive: true
     }));
     
-    // Combine and deduplicate by ID (live Realtime data takes precedence)
-    // We put localSignals first, then convertedLiveSignals - Map keeps last occurrence
-    const allSignals = [...localSignals, ...convertedLiveSignals];
-    const uniqueSignals = Array.from(
-      new Map(allSignals.map(s => [s.id, s])).values()
-    );
+    // Combine and deduplicate by ID
+    // Merge strategy: use liveSignals as base, but overlay with localSignals updates
+    // This ensures optimistic updates show immediately while Realtime syncs
+    const signalMap = new Map();
+    
+    // First add all live signals
+    convertedLiveSignals.forEach(s => signalMap.set(s.id, s));
+    
+    // Then overlay with local signals (these have optimistic updates)
+    localSignals.forEach(s => {
+      const existing = signalMap.get(s.id);
+      if (existing) {
+        // Merge: keep live data but apply local updates
+        signalMap.set(s.id, { ...existing, ...s });
+      } else {
+        signalMap.set(s.id, s);
+      }
+    });
+    
+    const uniqueSignals = Array.from(signalMap.values());
 
     // Sort by date, newest first
     const sortedSignals = uniqueSignals.sort((a, b) => 
@@ -367,7 +381,7 @@ function App() {
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
             <h1 style={{ color: currentTheme === 'dark' ? '#ffffff' : '#212529', margin: 0, lineHeight: 1.2 }}>kedlubna</h1>
-            <span style={{ fontSize: '0.65rem', color: currentTheme === 'dark' ? '#6b7280' : '#9ca3af', fontWeight: 400, letterSpacing: '0.5px' }}>build 0.2.4</span>
+            <span style={{ fontSize: '0.65rem', color: currentTheme === 'dark' ? '#6b7280' : '#9ca3af', fontWeight: 400, letterSpacing: '0.5px' }}>build 0.2.5</span>
           </div>
         </div>
 

@@ -5,12 +5,26 @@
 const API_URL = (import.meta.env.VITE_SIGNAL_API_URL || 'https://signal-lite-backend.onrender.com').replace(/\/$/, '');
 
 /**
+ * Check if a string is a valid UUID
+ */
+function isValidUUID(str) {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
+/**
  * Update a signal in Signal Lite backend
  * @param {string} signalId - Signal ID
  * @param {object} updates - Fields to update (status, projectId, themeIds, etc.)
  * @param {string} token - Google OAuth token
  */
 export async function updateSignal(signalId, updates, token) {
+  // Skip API call for local-only signals (timestamp IDs, not UUIDs)
+  if (!isValidUUID(signalId)) {
+    console.log('⏭️ Skipping API update for local signal:', signalId);
+    return { ok: true, skipped: true, message: 'Local signal, no API update needed' };
+  }
+
   if (!token) {
     throw new Error('Authentication token required');
   }
@@ -39,6 +53,12 @@ export async function updateSignal(signalId, updates, token) {
  * @param {string} token - Google OAuth token
  */
 export async function deleteSignal(signalId, token) {
+  // Skip API call for local-only signals (timestamp IDs, not UUIDs)
+  if (!isValidUUID(signalId)) {
+    console.log('⏭️ Skipping API delete for local signal:', signalId);
+    return { ok: true, skipped: true, message: 'Local signal, no API delete needed' };
+  }
+
   if (!token) {
     throw new Error('Authentication token required');
   }

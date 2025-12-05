@@ -5,7 +5,7 @@ import './SignalsInbox.css';
 /**
  * Enhanced Signals Inbox for admin triage
  */
-export function SignalsInbox({ signals = [], projects = [], influences = [], themes = [], onSelectSignal, theme = 'light' }) {
+export function SignalsInbox({ signals = [], projects = [], influences = [], themes = [], brands = [], restaurants = [], onSelectSignal, theme = 'light' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [restaurantFilter, setRestaurantFilter] = useState('all');
@@ -91,6 +91,29 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], the
     if (!project?.themeId) return null;
     const themeItem = themes.find(t => t.id === project.themeId);
     return themeItem?.title || null;
+  };
+
+  // Get brand/restaurant names for signal
+  const getAssignedLocations = (signal) => {
+    const names = [];
+    
+    // Check restaurantIds (these are actually newRestaurant IDs)
+    if (signal.restaurantIds?.length > 0) {
+      signal.restaurantIds.forEach(id => {
+        const restaurant = restaurants.find(r => r.id === id);
+        if (restaurant?.title) names.push(restaurant.title);
+      });
+    }
+    
+    // Check brandIds if present
+    if (signal.brandIds?.length > 0) {
+      signal.brandIds.forEach(id => {
+        const brand = brands.find(b => b.id === id);
+        if (brand?.title) names.push(brand.title);
+      });
+    }
+    
+    return names.length > 0 ? names.join(', ') : null;
   };
 
   const formatDate = (dateString) => {
@@ -307,15 +330,23 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], the
                   {signal.title}
                 </h3>
 
-                {/* Theme assignment */}
-                {getThemeName(signal) && (
+                {/* Assignments info */}
+                {(getThemeName(signal) || getAssignedLocations(signal)) && (
                   <div style={{
                     fontSize: '0.8rem',
                     color: '#10b981',
                     marginBottom: '0.5rem',
-                    fontWeight: '500'
+                    fontWeight: '500',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '0.5rem'
                   }}>
-                    Téma: {getThemeName(signal)}
+                    {getAssignedLocations(signal) && (
+                      <span style={{ color: '#6366f1' }}>📍 {getAssignedLocations(signal)}</span>
+                    )}
+                    {getThemeName(signal) && (
+                      <span>🎯 {getThemeName(signal)}</span>
+                    )}
                   </div>
                 )}
 

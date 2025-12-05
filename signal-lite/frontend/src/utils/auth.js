@@ -1,6 +1,6 @@
 const TOKEN_KEY = 'signal_lite_token';
 const TOKEN_TIMESTAMP_KEY = 'signal_lite_token_timestamp';
-const TOKEN_EXPIRY_MS = 55 * 60 * 1000; // 55 minutes (tokens expire at 60min, refresh at 55min)
+const TOKEN_EXPIRY_MS = 14 * 24 * 60 * 60 * 1000; // 2 weeks session duration
 
 export function storeToken(token) {
   try {

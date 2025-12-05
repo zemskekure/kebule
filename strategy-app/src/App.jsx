@@ -367,7 +367,7 @@ function App() {
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
             <h1 style={{ color: currentTheme === 'dark' ? '#ffffff' : '#212529', margin: 0, lineHeight: 1.2 }}>kedlubna</h1>
-            <span style={{ fontSize: '0.65rem', color: currentTheme === 'dark' ? '#6b7280' : '#9ca3af', fontWeight: 400, letterSpacing: '0.5px' }}>build 0.2.1</span>
+            <span style={{ fontSize: '0.65rem', color: currentTheme === 'dark' ? '#6b7280' : '#9ca3af', fontWeight: 400, letterSpacing: '0.5px' }}>build 0.2.2</span>
           </div>
         </div>
 

@@ -327,7 +327,7 @@ export function useStrategyData() {
   }, [userId]);
 
   const addProject = useCallback(async (themeId, initiativeId = null) => {
-    const newId = Date.now().toString();
+    const newId = self.crypto.randomUUID();
     const newProject = {
       id: newId,
       theme_id: themeId,
@@ -514,7 +514,8 @@ export function useStrategyData() {
     }
 
     const signalId = signal.id;
-    const newProjectId = Date.now().toString();
+    // Use UUID for project ID to satisfy Supabase schema constraints (signals.project_id is likely uuid type)
+    const newProjectId = self.crypto.randomUUID();
     // Note: signal_id is NOT in Supabase schema, we only track it locally for UI
     const newProject = {
       id: newProjectId,

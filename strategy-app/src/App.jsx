@@ -74,11 +74,12 @@ function App() {
 
   // Fetch live signals from Signal Lite backend
   const { signals: liveSignals } = useSignals(null);
+  
+  // Local signal updates (for optimistic UI before Realtime syncs)
+  const [localSignalUpdates, setLocalSignalUpdates] = useState({});
 
-  // Merge live signals with local signals (from Supabase)
+  // Merge live signals with local updates
   const data = useMemo(() => {
-    const localSignals = baseData.signals || [];
-    
     // Convert live signals from snake_case to camelCase
     const convertedLiveSignals = liveSignals.map(ls => ({
       id: ls.id,
@@ -97,29 +98,14 @@ function App() {
       isLive: true
     }));
     
-    // Combine and deduplicate by ID
-    // Merge strategy: use liveSignals as base, but overlay with localSignals updates
-    // This ensures optimistic updates show immediately while Realtime syncs
-    const signalMap = new Map();
-    
-    // First add all live signals
-    convertedLiveSignals.forEach(s => signalMap.set(s.id, s));
-    
-    // Then overlay with local signals (these have optimistic updates)
-    localSignals.forEach(s => {
-      const existing = signalMap.get(s.id);
-      if (existing) {
-        // Merge: keep live data but apply local updates
-        signalMap.set(s.id, { ...existing, ...s });
-      } else {
-        signalMap.set(s.id, s);
-      }
+    // Apply local updates on top of live signals
+    const mergedSignals = convertedLiveSignals.map(signal => {
+      const localUpdate = localSignalUpdates[signal.id];
+      return localUpdate ? { ...signal, ...localUpdate } : signal;
     });
-    
-    const uniqueSignals = Array.from(signalMap.values());
 
     // Sort by date, newest first
-    const sortedSignals = uniqueSignals.sort((a, b) => 
+    const sortedSignals = mergedSignals.sort((a, b) => 
       new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0)
     );
     
@@ -127,7 +113,22 @@ function App() {
       ...baseData,
       signals: sortedSignals
     };
-  }, [baseData, liveSignals]);
+  }, [baseData, liveSignals, localSignalUpdates]);
+  
+  // Update signal locally (optimistic) and sync to backend
+  const updateSignalLocal = useCallback((id, updates) => {
+    // Optimistic update
+    setLocalSignalUpdates(prev => ({
+      ...prev,
+      [id]: { ...prev[id], ...updates }
+    }));
+    
+    // Also update selectedSignal if it's the same
+    setSelectedSignal(prev => prev?.id === id ? { ...prev, ...updates } : prev);
+    
+    // Sync to backend (fire-and-forget)
+    updateNode('signal', id, updates);
+  }, [updateNode]);
 
   // UI State - default to vision for non-logged-in users
   const [viewMode, setViewMode] = useState('vision'); // 'admin' | 'dashboard' | 'vision' | 'sandbox'
@@ -381,7 +382,7 @@ function App() {
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
             <h1 style={{ color: currentTheme === 'dark' ? '#ffffff' : '#212529', margin: 0, lineHeight: 1.2 }}>kedlubna</h1>
-            <span style={{ fontSize: '0.65rem', color: currentTheme === 'dark' ? '#6b7280' : '#9ca3af', fontWeight: 400, letterSpacing: '0.5px' }}>build 0.2.5</span>
+            <span style={{ fontSize: '0.65rem', color: currentTheme === 'dark' ? '#6b7280' : '#9ca3af', fontWeight: 400, letterSpacing: '0.5px' }}>build 0.2.6</span>
           </div>
         </div>
 
@@ -608,10 +609,8 @@ function App() {
               data={{ ...data, signals: [selectedSignal] }}
               onUpdate={(type, id, updates) => {
                 console.log('SignalsView onUpdate:', { type, id, updates });
-                // Update local state for immediate UI feedback
-                setSelectedSignal(prev => ({ ...prev, ...updates }));
-                // Also update in the main data store
-                updateNode(type, id, updates);
+                // Use optimistic update function
+                updateSignalLocal(id, updates);
               }}
               onDelete={async () => {
                 if (!confirm('Opravdu chcete smazat tento drobek?')) return;

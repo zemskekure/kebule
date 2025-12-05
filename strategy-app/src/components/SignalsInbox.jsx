@@ -74,20 +74,7 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], onS
     }
   };
 
-  const getStatusLabel = (signal) => {
-    const status = signal.status;
-    if (status === 'converted') {
-      if (signal.projectId) {
-        const project = projects.find(p => p.id === signal.projectId);
-        return project ? `Převedeno na: ${project.title}` : 'Převedeno na projekt';
-      }
-      if (signal.influenceId) {
-        const influence = influences.find(i => i.id === signal.influenceId);
-        return influence ? `Převedeno na: ${influence.title}` : 'Převedeno na vliv';
-      }
-      return 'Převedeno';
-    }
-
+  const getStatusLabel = (status) => {
     switch (status) {
       case 'inbox': return 'Inbox';
       case 'triaged': return 'Tříděno';
@@ -95,6 +82,19 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], onS
       case 'archived': return 'Archivováno';
       default: return status || 'Neznámý';
     }
+  };
+
+  const getConversionTarget = (signal) => {
+    if (signal.status !== 'converted') return null;
+    if (signal.projectId) {
+      const project = projects.find(p => p.id === signal.projectId);
+      return project ? `→ ${project.title}` : null;
+    }
+    if (signal.influenceId) {
+      const influence = influences.find(i => i.id === signal.influenceId);
+      return influence ? `→ ${influence.title}` : null;
+    }
+    return null;
   };
 
   const formatDate = (dateString) => {
@@ -281,7 +281,7 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], onS
                       fontWeight: '600'
                     }}>
                       {getStatusIcon(signal.status)}
-                      {getStatusLabel(signal)}
+                      {getStatusLabel(signal.status)}
                     </span>
                     {signal.priority === 'high' && (
                       <span style={{ 
@@ -303,13 +303,25 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], onS
 
                 {/* Title */}
                 <h3 style={{ 
-                  margin: '0 0 0.5rem 0',
+                  margin: '0 0 0.25rem 0',
                   color: textColor,
                   fontSize: '1rem',
                   fontWeight: '600'
                 }}>
                   {signal.title}
                 </h3>
+
+                {/* Conversion target */}
+                {getConversionTarget(signal) && (
+                  <div style={{
+                    fontSize: '0.8rem',
+                    color: '#10b981',
+                    marginBottom: '0.5rem',
+                    fontWeight: '500'
+                  }}>
+                    {getConversionTarget(signal)}
+                  </div>
+                )}
 
                 {/* Body preview */}
                 {signal.body && (

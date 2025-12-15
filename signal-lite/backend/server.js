@@ -102,19 +102,46 @@ async function verifyToken(req, res, next) {
       console.log('Supabase verification failed, trying Google OAuth...');
       console.log('Using GOOGLE_CLIENT_ID:', GOOGLE_CLIENT_ID);
       console.log('Token preview (first 50 chars):', token.substring(0, 50));
-      const ticket = await googleClient.verifyIdToken({
-        idToken: token,
-        audience: GOOGLE_CLIENT_ID,
-      });
       
-      const payload = ticket.getPayload();
-      console.log('✓ Google OAuth token verified for:', payload.email);
-      user = {
-        id: payload.sub,
-        email: payload.email,
-        name: payload.name,
-        picture: payload.picture
-      };
+      try {
+        const ticket = await googleClient.verifyIdToken({
+          idToken: token,
+          audience: GOOGLE_CLIENT_ID,
+        });
+        
+        const payload = ticket.getPayload();
+        console.log('✓ Google OAuth token verified for:', payload.email);
+        user = {
+          id: payload.sub,
+          email: payload.email,
+          name: payload.name,
+          picture: payload.picture
+        };
+      } catch (googleError) {
+        // Fallback: verify via Google's tokeninfo endpoint
+        console.log('google-auth-library failed, trying tokeninfo endpoint...', googleError.message);
+        const tokenInfoResponse = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
+        
+        if (!tokenInfoResponse.ok) {
+          throw new Error('Token verification failed via tokeninfo endpoint');
+        }
+        
+        const tokenInfo = await tokenInfoResponse.json();
+        console.log('Token info response:', JSON.stringify(tokenInfo, null, 2));
+        
+        // Verify the audience matches our client ID
+        if (tokenInfo.aud !== GOOGLE_CLIENT_ID) {
+          throw new Error(`Token audience mismatch: expected ${GOOGLE_CLIENT_ID}, got ${tokenInfo.aud}`);
+        }
+        
+        console.log('✓ Google token verified via tokeninfo for:', tokenInfo.email);
+        user = {
+          id: tokenInfo.sub,
+          email: tokenInfo.email,
+          name: tokenInfo.name,
+          picture: tokenInfo.picture
+        };
+      }
     }
 
     if (!user) {

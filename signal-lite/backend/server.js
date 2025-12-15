@@ -100,6 +100,8 @@ async function verifyToken(req, res, next) {
     } else {
       // Try Google OAuth token (for Signal Lite PWA)
       console.log('Supabase verification failed, trying Google OAuth...');
+      console.log('Using GOOGLE_CLIENT_ID:', GOOGLE_CLIENT_ID);
+      console.log('Token preview (first 50 chars):', token.substring(0, 50));
       const ticket = await googleClient.verifyIdToken({
         idToken: token,
         audience: GOOGLE_CLIENT_ID,

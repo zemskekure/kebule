@@ -119,6 +119,15 @@ function Orb({ token, onLogout }) {
           navigator.vibrate([10, 50, 10]);
         }
       } catch (error) {
+        // Check if it's a token expiration error
+        if (error.isTokenError) {
+          setShowSpark(false);
+          setState(OrbState.IDLE);
+          alert('Vaše přihlášení vypršelo. Přihlaste se prosím znovu.');
+          onLogout();
+          return;
+        }
+        
         console.log('Falling back to offline queue:', error);
         // If network failed, queue it and still show success (but maybe different?)
         queueSignal(signalData);

@@ -1,6 +1,6 @@
 const TOKEN_KEY = 'signal_lite_token';
 const TOKEN_TIMESTAMP_KEY = 'signal_lite_token_timestamp';
-const TOKEN_EXPIRY_MS = 14 * 24 * 60 * 60 * 1000; // 2 weeks session duration
+const TOKEN_EXPIRY_MS = 50 * 60 * 1000; // 50 minutes (Google tokens expire after 1 hour)
 
 export function storeToken(token) {
   try {

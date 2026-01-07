@@ -30,13 +30,14 @@ function App() {
 
     window.addEventListener('online', handleOnline);
 
-    // Periodic token expiration check (every minute)
+    // Periodic token expiration check (every 5 minutes)
     const tokenCheckInterval = setInterval(() => {
       if (isTokenExpired()) {
-        console.log('Token expired, logging out...');
+        console.log('Token expired (>50min old), logging out...');
         handleLogout();
+        alert('Vaše relace vypršela. Přihlaste se prosím znovu.');
       }
-    }, 60000); // Check every 60 seconds
+    }, 5 * 60000); // Check every 5 minutes
 
     return () => {
       window.removeEventListener('online', handleOnline);

@@ -49,13 +49,21 @@ export async function processOfflineQueue(token) {
 
   const failedSignals = [];
 
-  for (const signal of queue) {
+  for (let i = 0; i < queue.length; i++) {
+    const signal = queue[i];
     try {
       // Remove queuedAt before sending
       const { queuedAt, ...signalData } = signal;
       await sendSignal(signalData, token);
       console.log('Queued signal sent:', signalData.title);
     } catch (error) {
+      // If token expired, stop processing and keep all remaining signals in queue
+      if (error.isTokenError) {
+        console.log('Token expired during queue processing, stopping');
+        failedSignals.push(signal);
+        failedSignals.push(...queue.slice(i + 1));
+        break;
+      }
       console.error('Failed to send queued signal:', error);
       failedSignals.push(signal);
     }

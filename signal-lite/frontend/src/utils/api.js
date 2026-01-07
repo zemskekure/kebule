@@ -12,6 +12,14 @@ export async function sendSignal(signalData, token) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Network error' }));
+    
+    // If token is invalid/expired, throw a specific error
+    if (response.status === 401) {
+      const tokenError = new Error('TOKEN_EXPIRED');
+      tokenError.isTokenError = true;
+      throw tokenError;
+    }
+    
     throw new Error(error.error || 'Failed to send signal');
   }
 

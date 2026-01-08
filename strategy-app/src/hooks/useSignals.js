@@ -68,5 +68,27 @@ export function useSignals(googleToken) {
     };
   }, [fetchSignals]);
 
-  return { signals, loading, error, refetch: fetchSignals };
+  // Delete multiple signals by IDs
+  const deleteSignals = useCallback(async (signalIds) => {
+    if (!signalIds || signalIds.length === 0) return { success: false };
+
+    try {
+      const { error: deleteError } = await supabase
+        .from('signals')
+        .delete()
+        .in('id', signalIds);
+
+      if (deleteError) throw deleteError;
+
+      // Optimistically remove from local state (realtime will also update)
+      setSignals(prev => prev.filter(s => !signalIds.includes(s.id)));
+
+      return { success: true };
+    } catch (err) {
+      console.error('Failed to delete signals:', err);
+      return { success: false, error: err.message };
+    }
+  }, []);
+
+  return { signals, loading, error, refetch: fetchSignals, deleteSignals };
 }

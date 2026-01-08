@@ -73,7 +73,7 @@ function App() {
   } = useStrategyData();
 
   // Fetch live signals from Signal Lite backend
-  const { signals: liveSignals } = useSignals(null);
+  const { signals: liveSignals, deleteSignals } = useSignals(null);
   
   // Local signal updates (for optimistic UI before Realtime syncs)
   const [localSignalUpdates, setLocalSignalUpdates] = useState({});
@@ -592,7 +592,7 @@ function App() {
           overflow: 'hidden',
           backgroundColor: currentTheme === 'dark' ? '#0a0a0a' : '#f8f9fa'
         }}>
-          <SignalsInbox 
+          <SignalsInbox
             signals={data.signals}
             projects={data.projects}
             influences={data.influences}
@@ -603,6 +603,7 @@ function App() {
               setSelectedSignal(signal);
               setSelectedNode({ type: 'signal', id: signal.id });
             }}
+            onDeleteSignals={deleteSignals}
             theme={currentTheme}
           />
           {selectedSignal && (

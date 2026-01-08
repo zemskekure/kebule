@@ -1,14 +1,15 @@
 import { useState, useMemo } from 'react';
-import { Search, Filter, Radio, AlertCircle, CheckCircle, Archive, ArrowRight } from 'lucide-react';
+import { Search, Filter, Radio, AlertCircle, CheckCircle, Archive, ArrowRight, Trash2, Square, CheckSquare } from 'lucide-react';
 import './SignalsInbox.css';
 
 /**
  * Enhanced Signals Inbox for admin triage
  */
-export function SignalsInbox({ signals = [], projects = [], influences = [], themes = [], brands = [], restaurants = [], onSelectSignal, theme = 'light' }) {
+export function SignalsInbox({ signals = [], projects = [], influences = [], themes = [], brands = [], restaurants = [], onSelectSignal, onDeleteSignals, theme = 'light' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [restaurantFilter, setRestaurantFilter] = useState('all');
+  const [selectedIds, setSelectedIds] = useState(new Set());
 
   const isDark = theme === 'dark';
   const bgColor = isDark ? '#0a0a0a' : '#f8f9fa';
@@ -138,6 +139,45 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], the
     });
   };
 
+  // Selection helpers
+  const toggleSelection = (id, e) => {
+    e.stopPropagation();
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === filteredSignals.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredSignals.map(s => s.id)));
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedIds.size === 0) return;
+
+    const confirmed = window.confirm(`Opravdu chcete smazat ${selectedIds.size} drobků?`);
+    if (!confirmed) return;
+
+    if (onDeleteSignals) {
+      const result = await onDeleteSignals(Array.from(selectedIds));
+      if (result?.success) {
+        setSelectedIds(new Set());
+      }
+    }
+  };
+
+  const allSelected = filteredSignals.length > 0 && selectedIds.size === filteredSignals.length;
+  const someSelected = selectedIds.size > 0;
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -243,6 +283,60 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], the
             </select>
           )}
         </div>
+
+        {/* Selection bar */}
+        {filteredSignals.length > 0 && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginTop: '1rem',
+            padding: '0.5rem 0.75rem',
+            borderRadius: '8px',
+            backgroundColor: someSelected ? (isDark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.1)') : 'transparent',
+            transition: 'background-color 0.2s ease'
+          }}>
+            <button
+              onClick={selectAll}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.25rem 0.5rem',
+                background: 'none',
+                border: 'none',
+                color: textColor,
+                cursor: 'pointer',
+                fontSize: '0.85rem'
+              }}
+            >
+              {allSelected ? <CheckSquare size={18} color="#6366f1" /> : <Square size={18} />}
+              {allSelected ? 'Zrušit výběr' : 'Vybrat vše'}
+            </button>
+
+            {someSelected && (
+              <button
+                onClick={handleDelete}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#ef4444',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  fontWeight: '500'
+                }}
+              >
+                <Trash2 size={16} />
+                Smazat ({selectedIds.size})
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Signals list */}
@@ -268,19 +362,43 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], the
                 key={signal.id}
                 onClick={() => onSelectSignal?.(signal)}
                 style={{
+                  display: 'flex',
+                  gap: '0.75rem',
                   padding: '1rem',
                   borderRadius: '8px',
-                  backgroundColor: cardBg,
-                  border: `1px solid ${borderColor}`,
+                  backgroundColor: selectedIds.has(signal.id)
+                    ? (isDark ? 'rgba(99, 102, 241, 0.15)' : 'rgba(99, 102, 241, 0.08)')
+                    : cardBg,
+                  border: `1px solid ${selectedIds.has(signal.id) ? '#6366f1' : borderColor}`,
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  ':hover': {
-                    borderColor: '#6366f1'
-                  }
+                  transition: 'all 0.2s ease'
                 }}
-                onMouseEnter={e => e.currentTarget.style.borderColor = '#6366f1'}
-                onMouseLeave={e => e.currentTarget.style.borderColor = borderColor}
+                onMouseEnter={e => {
+                  if (!selectedIds.has(signal.id)) e.currentTarget.style.borderColor = '#6366f1';
+                }}
+                onMouseLeave={e => {
+                  if (!selectedIds.has(signal.id)) e.currentTarget.style.borderColor = borderColor;
+                }}
               >
+                {/* Checkbox */}
+                <div
+                  onClick={(e) => toggleSelection(signal.id, e)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    paddingTop: '0.125rem',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {selectedIds.has(signal.id) ? (
+                    <CheckSquare size={20} color="#6366f1" />
+                  ) : (
+                    <Square size={20} color={textSecondary} />
+                  )}
+                </div>
+
+                {/* Content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Header */}
                 <div style={{ 
                   display: 'flex', 
@@ -369,9 +487,9 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], the
                 )}
 
                 {/* Footer */}
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'space-between',
                   fontSize: '0.8rem',
                   color: textSecondary
@@ -380,6 +498,7 @@ export function SignalsInbox({ signals = [], projects = [], influences = [], the
                     <strong style={{ color: textColor }}>{signal.authorName}</strong>
                   </div>
                   <ArrowRight size={16} />
+                </div>
                 </div>
               </div>
             ))}

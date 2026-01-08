@@ -267,19 +267,114 @@ function App() {
 
   // --- AI Command Handler ---
 
-  const handleAICommand = (cmd) => {
+  const handleAICommand = async (cmd) => {
     console.log("Received AI Command:", cmd);
 
-    if (cmd.command === 'UPDATE_DATE') {
-      const targetName = cmd.target.toLowerCase();
-      const targetRest = data.newRestaurants.find(r => r.title.toLowerCase().includes(targetName));
+    const findByName = (items, name) => {
+      if (!items || !name) return null;
+      const lower = name.toLowerCase();
+      return items.find(item =>
+        (item.title || item.name || '').toLowerCase().includes(lower)
+      );
+    };
 
-      if (targetRest) {
-        updateNode('newRestaurant', targetRest.id, { openingDate: cmd.date });
-        console.log(`Updated ${targetRest.title} to ${cmd.date}`);
-      } else {
-        alert(`AI Error: Nemohu najít restauraci s názvem "${cmd.target}"`);
+    switch (cmd.command) {
+      // === CREATE COMMANDS ===
+      case 'CREATE_PROJECT': {
+        const theme = findByName(data.themes, cmd.theme);
+        if (!theme) {
+          alert(`AI: Nenašel jsem téma "${cmd.theme}"`);
+          return;
+        }
+        const newId = await addProject(theme.id);
+        if (newId && cmd.title) {
+          await updateNode('project', newId, { title: cmd.title });
+        }
+        break;
       }
+
+      case 'CREATE_RESTAURANT': {
+        const category = cmd.category === 'facelift' ? 'facelift' : 'new';
+        const newId = await addNewRestaurant(category);
+        if (newId && cmd.title) {
+          await updateNode('newRestaurant', newId, { title: cmd.title });
+        }
+        if (newId && cmd.date) {
+          await updateNode('newRestaurant', newId, { openingDate: cmd.date });
+        }
+        break;
+      }
+
+      case 'CREATE_INFLUENCE': {
+        const type = cmd.type === 'external' ? 'external' : 'internal';
+        await addInfluence(cmd.title || 'Nový vliv', type);
+        break;
+      }
+
+      // === UPDATE COMMANDS ===
+      case 'UPDATE_DATE': {
+        const targetRest = findByName(data.newRestaurants, cmd.target);
+        if (targetRest) {
+          await updateNode('newRestaurant', targetRest.id, { openingDate: cmd.date });
+        } else {
+          alert(`AI: Nenašel jsem restauraci "${cmd.target}"`);
+        }
+        break;
+      }
+
+      case 'UPDATE_STATUS': {
+        const project = findByName(data.projects, cmd.target);
+        if (project) {
+          await updateNode('project', project.id, { status: cmd.status });
+        } else {
+          alert(`AI: Nenašel jsem projekt "${cmd.target}"`);
+        }
+        break;
+      }
+
+      case 'UPDATE_PHASE': {
+        const restaurant = findByName(data.newRestaurants, cmd.target);
+        if (restaurant) {
+          await updateNode('newRestaurant', restaurant.id, { phase: cmd.phase });
+        } else {
+          alert(`AI: Nenašel jsem restauraci "${cmd.target}"`);
+        }
+        break;
+      }
+
+      // === DELETE COMMANDS ===
+      case 'DELETE_PROJECT': {
+        const project = findByName(data.projects, cmd.target);
+        if (project) {
+          await deleteNode('project', project.id, { skipConfirm: true });
+        } else {
+          alert(`AI: Nenašel jsem projekt "${cmd.target}"`);
+        }
+        break;
+      }
+
+      case 'DELETE_RESTAURANT': {
+        const restaurant = findByName(data.newRestaurants, cmd.target);
+        if (restaurant) {
+          await deleteNode('newRestaurant', restaurant.id, { skipConfirm: true });
+        } else {
+          alert(`AI: Nenašel jsem restauraci "${cmd.target}"`);
+        }
+        break;
+      }
+
+      case 'DELETE_INFLUENCE': {
+        const influence = findByName(data.influences, cmd.target);
+        if (influence) {
+          await deleteNode('influence', influence.id, { skipConfirm: true });
+        } else {
+          alert(`AI: Nenašel jsem vliv "${cmd.target}"`);
+        }
+        break;
+      }
+
+      default:
+        console.log("Unknown AI command:", cmd.command);
     }
   };
 

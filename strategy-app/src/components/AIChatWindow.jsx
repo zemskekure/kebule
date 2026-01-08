@@ -73,29 +73,51 @@ export function AIChatWindow({ onCommand, data }) {
         const projectsList = data?.projects?.map(p => `${p.title} (Status: ${p.status})`).join('; ') || 'Žádné';
         const newRestaurantsList = data?.newRestaurants?.map(r => `${r.title} (Otevření: ${r.openingDate})`).join('; ') || 'Žádné';
 
+        // Get themes list for context
+        const themesList = data?.themes?.map(t => t.title).join(', ') || 'Žádné';
+        const influencesList = data?.influences?.map(i => `${i.title} (${i.type})`).join(', ') || 'Žádné';
+
         // Context for the AI
         const context = `
-            Jsi strategický AI partner pro aplikaci "Thought OS: Ambiente".
-            
-            TADY JSOU AKTUÁLNÍ DATA Z APLIKACE:
-            -----------------------------------
-            Značky: ${brandsList}
-            Vize a Cíle: ${visionsList}
-            Běžící Projekty: ${projectsList}
-            Nové Restaurace/Facelifty: ${newRestaurantsList}
-            -----------------------------------
-            
-            INSTRUKCE PRO AKCE:
-            Pokud uživatel chce něco změnit (např. datum otevření, status), MUSÍŠ vygenerovat JSON příkaz na konci odpovědi.
-            
-            Formát pro změnu data:
-            \`\`\`json
-            { "command": "UPDATE_DATE", "target": "Název restaurace", "date": "YYYY-MM-DD" }
-            \`\`\`
-            
-            Uživatel se ptá: "${inputValue}"
-            
-            Odpověz česky. Pokud je potřeba akce, přidej JSON blok na konec.
+Jsi strategický AI partner pro aplikaci "Thought OS: Ambiente". Pomáháš se správou firemní strategie.
+
+AKTUÁLNÍ DATA:
+==============
+Značky: ${brandsList}
+Témata: ${themesList}
+Vize a Cíle: ${visionsList}
+Projekty: ${projectsList}
+Nové Restaurace/Facelifty: ${newRestaurantsList}
+Vlivy: ${influencesList}
+
+DOSTUPNÉ PŘÍKAZY:
+=================
+Pokud uživatel chce VYTVOŘIT, UPRAVIT nebo SMAZAT něco, vygeneruj JSON příkaz na konci odpovědi.
+
+VYTVOŘENÍ:
+- Nový projekt: { "command": "CREATE_PROJECT", "title": "Název projektu", "theme": "Název tématu" }
+- Nová restaurace: { "command": "CREATE_RESTAURANT", "title": "Název", "category": "new", "date": "YYYY-MM-DD" }
+- Nový facelift: { "command": "CREATE_RESTAURANT", "title": "Název", "category": "facelift", "date": "YYYY-MM-DD" }
+- Nový vliv: { "command": "CREATE_INFLUENCE", "title": "Název vlivu", "type": "internal" } (nebo "external")
+
+ÚPRAVA:
+- Změna data otevření: { "command": "UPDATE_DATE", "target": "Název restaurace", "date": "YYYY-MM-DD" }
+- Změna statusu projektu: { "command": "UPDATE_STATUS", "target": "Název projektu", "status": "Běží" } (hodnoty: Nápad, Běží, Hotovo)
+- Změna fáze restaurace: { "command": "UPDATE_PHASE", "target": "Název restaurace", "phase": "Construction" }
+
+SMAZÁNÍ:
+- Smazat projekt: { "command": "DELETE_PROJECT", "target": "Název projektu" }
+- Smazat restauraci: { "command": "DELETE_RESTAURANT", "target": "Název restaurace" }
+- Smazat vliv: { "command": "DELETE_INFLUENCE", "target": "Název vlivu" }
+
+PRAVIDLA:
+- Odpovídej VŽDY česky
+- Pokud potřebuješ provést akci, přidej JSON blok na konec (v \`\`\`json ... \`\`\`)
+- Pokud je to jen dotaz (např. "kolik máme projektů?"), odpověz bez JSON
+- Při mazání se ujisti, že uživatel to opravdu chce
+- Buď stručný a přátelský
+
+Uživatel říká: "${inputValue}"
         `;
 
         const aiResponseText = await callGeminiAPI(context);

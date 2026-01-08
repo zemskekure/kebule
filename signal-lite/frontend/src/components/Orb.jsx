@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { sendSignal } from '../utils/api';
 import { queueSignal } from '../utils/offlineQueue';
-import { isTokenExpired } from '../utils/auth';
 import DrobekHistory from './DrobekHistory';
 import './Orb.css';
 
@@ -13,35 +12,15 @@ const OrbState = {
   ERROR: 'error'
 };
 
-function Orb({ token, onLogout }) {
+function Orb({ token, user, onLogout }) {
   const [state, setState] = useState(OrbState.IDLE);
   const [inputValue, setInputValue] = useState('');
   const [showSpark, setShowSpark] = useState(false);
   const [sparkStyle, setSparkStyle] = useState({});
-  const [userName, setUserName] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const inputRef = useRef(null);
 
-  // Decode token to get user name
-  useEffect(() => {
-    if (token) {
-      try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        // Properly decode UTF-8 from base64
-        const jsonPayload = decodeURIComponent(
-          atob(base64)
-            .split('')
-            .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-            .join('')
-        );
-        const payload = JSON.parse(jsonPayload);
-        setUserName(payload.name || payload.email);
-      } catch (e) {
-        console.error('Failed to decode token', e);
-      }
-    }
-  }, [token]);
+  const userName = user?.name || user?.email || '';
 
   useEffect(() => {
     if (state === OrbState.CAPTURE && inputRef.current) {
@@ -62,13 +41,6 @@ function Orb({ token, onLogout }) {
 
   const handleSend = async () => {
     if (!inputValue.trim()) return;
-
-    // Check if token is expired
-    if (isTokenExpired()) {
-      alert('Vaše přihlášení vypršelo. Přihlaste se prosím znovu.');
-      onLogout();
-      return;
-    }
 
     setState(OrbState.SENDING);
     setShowSpark(true);

@@ -82,3 +82,30 @@
 .login-button-wrapper {
   margin-top: 16px;
 }
+
+.google-login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #fff;
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 240px;
+}
+
+.google-login-button:hover:not(:disabled) {
+  background: #2a2a2a;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.google-login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

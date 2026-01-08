@@ -1,72 +1,56 @@
 import { useState, useEffect } from 'react';
-import { useGoogleLogin } from '@react-oauth/google';
+import { supabase } from './services/supabaseClient';
 import Orb from './components/Orb';
 import LoginScreen from './components/LoginScreen';
-import { getStoredToken, storeToken, clearToken, isTokenExpired } from './utils/auth';
+import { logout, getUserFromSession } from './utils/auth';
 import { processOfflineQueue } from './utils/offlineQueue';
 import './App.css';
 
 function App() {
-  const [token, setToken] = useState(null);
+  const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored token on mount
-    const storedToken = getStoredToken();
-    if (storedToken) {
-      setToken(storedToken);
-      // Process any queued signals
-      processOfflineQueue(storedToken);
-    }
-    setIsLoading(false);
+    // Check for existing session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setIsLoading(false);
+
+      // Process any queued signals if we have a session
+      if (session?.access_token) {
+        processOfflineQueue(session.access_token);
+      }
+    });
+
+    // Listen for auth state changes (login, logout, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+
+      // Process offline queue when user logs in or token refreshes
+      if (session?.access_token && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+        processOfflineQueue(session.access_token);
+      }
+    });
 
     // Listen for online events to process queue
-    const handleOnline = () => {
-      const currentToken = getStoredToken();
-      if (currentToken) {
-        processOfflineQueue(currentToken);
+    const handleOnline = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        processOfflineQueue(session.access_token);
       }
     };
 
     window.addEventListener('online', handleOnline);
 
-    // Periodic token expiration check (every 5 minutes)
-    const tokenCheckInterval = setInterval(() => {
-      if (isTokenExpired()) {
-        console.log('Token expired (>50min old), logging out...');
-        handleLogout();
-        alert('Vaše relace vypršela. Přihlaste se prosím znovu.');
-      }
-    }, 5 * 60000); // Check every 5 minutes
-
     return () => {
+      subscription.unsubscribe();
       window.removeEventListener('online', handleOnline);
-      clearInterval(tokenCheckInterval);
     };
   }, []);
 
-  const login = useGoogleLogin({
-    onSuccess: (tokenResponse) => {
-      // Store the access token (we'll exchange it for ID token on backend)
-      // For now, we use the credential from the ID token flow
-      console.log('Login success:', tokenResponse);
-    },
-    onError: (error) => {
-      console.error('Login failed:', error);
-      alert('Login failed. Please try again.');
-    },
-    flow: 'implicit' // Use implicit flow to get ID token directly
-  });
-
-  const handleLogin = (credential) => {
-    storeToken(credential);
-    setToken(credential);
-    processOfflineQueue(credential);
-  };
-
-  const handleLogout = () => {
-    clearToken();
-    setToken(null);
+  const handleLogout = async () => {
+    await logout();
+    setSession(null);
   };
 
   if (isLoading) {
@@ -77,12 +61,15 @@ function App() {
     );
   }
 
+  const token = session?.access_token;
+  const user = getUserFromSession(session);
+
   return (
     <div className="app">
-      {!token ? (
-        <LoginScreen onLogin={handleLogin} />
+      {!session ? (
+        <LoginScreen />
       ) : (
-        <Orb token={token} onLogout={handleLogout} />
+        <Orb token={token} user={user} onLogout={handleLogout} />
       )}
     </div>
   );

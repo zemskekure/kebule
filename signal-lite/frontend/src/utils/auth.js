@@ -1,57 +1,53 @@
-const TOKEN_KEY = 'signal_lite_token';
-const TOKEN_TIMESTAMP_KEY = 'signal_lite_token_timestamp';
-const TOKEN_EXPIRY_MS = 50 * 60 * 1000; // 50 minutes (Google tokens expire after 1 hour)
+import { supabase } from '../services/supabaseClient';
 
-export function storeToken(token) {
-  try {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(TOKEN_TIMESTAMP_KEY, Date.now().toString());
-  } catch (error) {
-    console.error('Failed to store token:', error);
-  }
-}
-
-export function getStoredToken() {
-  try {
-    const token = localStorage.getItem(TOKEN_KEY);
-    const timestamp = localStorage.getItem(TOKEN_TIMESTAMP_KEY);
-    
-    if (!token || !timestamp) {
-      return null;
-    }
-    
-    // Check if token is expired
-    const age = Date.now() - parseInt(timestamp, 10);
-    if (age > TOKEN_EXPIRY_MS) {
-      console.log('Token expired, clearing...');
-      clearToken();
-      return null;
-    }
-    
-    return token;
-  } catch (error) {
-    console.error('Failed to get token:', error);
+export async function getSession() {
+  const { data: { session }, error } = await supabase.auth.getSession();
+  if (error) {
+    console.error('Failed to get session:', error);
     return null;
   }
+  return session;
 }
 
-export function clearToken() {
-  try {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(TOKEN_TIMESTAMP_KEY);
-  } catch (error) {
-    console.error('Failed to clear token:', error);
+export async function getAccessToken() {
+  const session = await getSession();
+  return session?.access_token || null;
+}
+
+export async function login() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      queryParams: {
+        prompt: 'select_account',
+        access_type: 'offline'
+      },
+      redirectTo: window.location.origin
+    }
+  });
+
+  if (error) {
+    console.error('Login failed:', error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+}
+
+export async function logout() {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    console.error('Logout failed:', error);
   }
 }
 
-export function isTokenExpired() {
-  try {
-    const timestamp = localStorage.getItem(TOKEN_TIMESTAMP_KEY);
-    if (!timestamp) return true;
-    
-    const age = Date.now() - parseInt(timestamp, 10);
-    return age > TOKEN_EXPIRY_MS;
-  } catch (error) {
-    return true;
-  }
+export function getUserFromSession(session) {
+  if (!session?.user) return null;
+
+  const user = session.user;
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.user_metadata?.name || user.user_metadata?.full_name || user.email
+  };
 }

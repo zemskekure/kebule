@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 export function Dashboard({ data, theme = 'dark' }) {
-    const { projects, newRestaurants, themes, visions, years, influences, signals } = data;
+    const { projects, newRestaurants, themes, visions, years, influences, signals, brands, locations } = data;
 
     // Year filter state - default to current year or first available
     const currentYear = new Date().getFullYear();
@@ -709,9 +709,9 @@ export function Dashboard({ data, theme = 'dark' }) {
                                 .sort((a, b) => b[1] - a[1])
                                 .slice(0, 3)
                                 .map(([id, count]) => {
-                                    const loc = (data.locations || []).find(l => l.id === id);
-                                    const brand = loc ? data.brands.find(b => b.id === loc.brandId) : null;
-                                    return { id, count, name: loc ? `${brand?.name || ''} ${loc.name}` : id };
+                                    const loc = (locations || []).find(l => l.id === id);
+                                    const brand = loc ? (brands || []).find(b => b.id === loc.brandId) : null;
+                                    return { id, count, name: loc ? `${brand?.name || brand?.title || ''} ${loc.name || loc.title || ''}`.trim() : id };
                                 });
                             
                             // Top influences by signal count

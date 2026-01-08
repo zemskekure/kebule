@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { Download, Upload, LayoutGrid, List, BarChart3, Search, Moon, Sun, GitBranch, LogOut, User, Radio } from 'lucide-react';
+import { Download, Upload, LayoutGrid, List, BarChart3, Search, Moon, Sun, LogOut, User, Radio } from 'lucide-react';
 import { useAuth } from './contexts/AuthContext';
 import { useConfirm } from './contexts/ConfirmContext';
 import { LoginModal } from './components/LoginModal';
@@ -435,16 +435,6 @@ function App() {
               }}
             >
               <LayoutGrid size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Vize
-            </button>
-            <button
-              className={`toggle-btn ${viewMode === 'sandbox' ? 'active' : ''}`}
-              onClick={() => isAdmin ? setViewMode('sandbox') : setShowLoginModal(true)}
-              style={{
-                color: currentTheme === 'dark' ? (viewMode === 'sandbox' ? '#000' : '#fff') : (viewMode === 'sandbox' ? '#212529' : '#868e96'),
-                backgroundColor: viewMode === 'sandbox' ? (currentTheme === 'dark' ? '#fff' : '#fff') : 'transparent'
-              }}
-            >
-              <GitBranch size={14} style={{ marginRight: 4, verticalAlign: 'text-bottom' }} /> Sandbox
             </button>
             <button
               className={`toggle-btn ${viewMode === 'signals' ? 'active' : ''}`}

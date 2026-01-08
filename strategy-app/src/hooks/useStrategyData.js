@@ -148,7 +148,7 @@ export function useStrategyData() {
       await createBrand(newBrand);
     } catch (err) {
       console.error('Failed to create brand:', err);
-      // Revert on error would go here
+      alert('Nepodařilo se vytvořit značku. Zkuste to znovu.');
     }
     
     return newId;
@@ -172,6 +172,7 @@ export function useStrategyData() {
       await createLocation(newLocation);
     } catch (err) {
       console.error('Failed to create location:', err);
+      alert('Nepodařilo se vytvořit pobočku. Zkuste to znovu.');
     }
     return newId;
   }, [userId]);
@@ -197,6 +198,7 @@ export function useStrategyData() {
       await createInfluence(newInfluence);
     } catch (err) {
       console.error('Failed to create influence:', err);
+      alert('Nepodařilo se vytvořit vliv. Zkuste to znovu.');
     }
     return newId;
   }, [userId]);
@@ -228,6 +230,7 @@ export function useStrategyData() {
       await createNewRestaurant(newRest);
     } catch (err) {
       console.error('Failed to create new restaurant:', err);
+      alert('Nepodařilo se vytvořit restauraci. Zkuste to znovu.');
     }
     return newId;
   }, [userId]);
@@ -242,6 +245,7 @@ export function useStrategyData() {
       await createYear(newYear);
     } catch (err) {
       console.error('Failed to create year:', err);
+      alert('Nepodařilo se vytvořit rok. Zkuste to znovu.');
     }
     return newId;
   }, [userId]);
@@ -265,6 +269,7 @@ export function useStrategyData() {
       await createVision(newVision);
     } catch (err) {
       console.error('Failed to create vision:', err);
+      alert('Nepodařilo se vytvořit vizi. Zkuste to znovu.');
     }
     return newId;
   }, [userId]);
@@ -289,6 +294,7 @@ export function useStrategyData() {
       await createTheme(newTheme);
     } catch (err) {
       console.error('Failed to create theme:', err);
+      alert('Nepodařilo se vytvořit téma. Zkuste to znovu.');
     }
     return newId;
   }, [userId]);
@@ -321,7 +327,7 @@ export function useStrategyData() {
       return created.id;
     } catch (err) {
       console.error('Failed to create initiative:', err);
-      // Even if API fails, we could optimistically add it, but let's stick to safe behavior
+      alert('Nepodařilo se vytvořit cíl. Zkuste to znovu.');
       return null;
     }
   }, [userId]);
@@ -349,6 +355,7 @@ export function useStrategyData() {
       await createProject(newProject);
     } catch (err) {
       console.error('Failed to create project:', err);
+      alert('Nepodařilo se vytvořit projekt. Zkuste to znovu.');
     }
     return newId;
   }, [userId]);
@@ -397,6 +404,7 @@ export function useStrategyData() {
       }
     } catch (err) {
       console.error(`Failed to update ${type}:`, err);
+      alert('Nepodařilo se uložit změny. Zkuste to znovu.');
     }
   }, [userId, googleToken]);
 
@@ -468,6 +476,7 @@ export function useStrategyData() {
       // Signals are handled separately
     } catch (err) {
       console.error(`Failed to delete ${type}:`, err);
+      alert('Nepodařilo se smazat položku. Zkuste to znovu.');
     }
 
     return true;

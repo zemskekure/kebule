@@ -33,7 +33,6 @@ services:
   - type: web
     name: drobky
     runtime: static
-    region: frankfurt
     plan: free
     rootDir: fresh/drobky/frontend
     buildCommand: npm install && npm run build
@@ -60,7 +59,6 @@ services:
   - type: web
     name: kedlubna
     runtime: static
-    region: frankfurt
     plan: free
     rootDir: fresh/kedlubna
     buildCommand: npm install && npm run build

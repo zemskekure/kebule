@@ -1,0 +1,235 @@
+.plan {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.plan-header h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+.add-theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #2D2A26;
+  color: #FFFFFF;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.add-theme-btn:hover {
+  background: #3D3A36;
+}
+
+/* Add Form */
+.add-theme-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #FFFFFF;
+  border: 1px solid #EDE9E3;
+  border-radius: 12px;
+}
+
+.add-theme-form input {
+  flex: 1;
+  padding: 10px 14px;
+  background: #F5F2ED;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #2D2A26;
+}
+
+.add-theme-form input::placeholder {
+  color: #8B8680;
+}
+
+.save-btn {
+  padding: 10px 16px;
+  background: #E8BC6A;
+  color: #2D2A26;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.save-btn:hover {
+  background: #D4A24C;
+}
+
+.cancel-btn {
+  padding: 10px 16px;
+  background: #F5F2ED;
+  color: #8B8680;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.cancel-btn:hover {
+  background: #EDE9E3;
+  color: #2D2A26;
+}
+
+/* Themes Grid */
+.themes-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  overflow-y: auto;
+  align-content: start;
+}
+
+.theme-card {
+  background: #FFFFFF;
+  border: 1px solid #EDE9E3;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s;
+}
+
+.theme-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.theme-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.theme-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--theme-color);
+  flex-shrink: 0;
+}
+
+.theme-header h3 {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.theme-count {
+  background: #F5F2ED;
+  color: #8B8680;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.delete-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: #8B8680;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+.theme-card:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  background: #FFEBEE;
+  color: #E57373;
+}
+
+.theme-drobky {
+  flex: 1;
+  min-height: 80px;
+}
+
+.empty-hint {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #8B8680;
+  border: 2px dashed #EDE9E3;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  min-height: 80px;
+}
+
+/* Drobky in Tema */
+.tema-drobky-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tema-drobek {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: #FAF8F5;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.tema-drobek:hover {
+  background: #F5F2ED;
+}
+
+.tema-drobek.priority {
+  border-left: 3px solid #E57373;
+}
+
+.tema-drobek-title {
+  flex: 1;
+  font-size: 13px;
+  color: #2D2A26;
+}
+
+.tema-drobek-remove {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  color: #8B8680;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.15s;
+}
+
+.tema-drobek:hover .tema-drobek-remove {
+  opacity: 1;
+}
+
+.tema-drobek-remove:hover {
+  background: #FFEBEE;
+  color: #E57373;
+}

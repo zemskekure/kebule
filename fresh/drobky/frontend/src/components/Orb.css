@@ -1,0 +1,471 @@
+.orb-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  gap: 40px;
+  background: #FAF8F5;
+}
+
+/* Orb - Base Styles */
+.orb {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #FBE8C2 0%,
+    #F5D799 25%,
+    #E8BC6A 50%,
+    #D4A24C 100%
+  );
+  box-shadow:
+    0 15px 50px rgba(212, 162, 76, 0.25),
+    0 0 100px rgba(245, 215, 153, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  border: none;
+  outline: none;
+  overflow: hidden;
+  will-change: width, height, transform;
+}
+
+/* Highlight reflection */
+.orb::before {
+  content: '';
+  position: absolute;
+  top: 12%;
+  left: 18%;
+  width: 35%;
+  height: 25%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.45) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Outer glow */
+.orb::after {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(245, 215, 153, 0.25) 0%,
+    rgba(245, 215, 153, 0.08) 50%,
+    transparent 70%
+  );
+  animation: glowPulse 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+/* Idle State */
+.orb-idle {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+
+/* Capture State - orb shrinks to send button */
+.orb-capture {
+  width: 80px !important;
+  height: 80px !important;
+  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              height 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.orb-capture.orb-ready {
+  box-shadow:
+    0 10px 40px rgba(212, 162, 76, 0.35),
+    0 0 80px rgba(245, 215, 153, 0.25);
+  transform: scale(1.05);
+}
+
+.orb:active:not(:disabled) {
+  transform: scale(0.95);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sending State */
+.orb-sending {
+  width: 90px;
+  height: 90px;
+  animation: sendPulse 0.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes sendPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+/* Success State */
+.orb-success {
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #C8E6C9 0%,
+    #A5D6A7 40%,
+    #81C784 100%
+  );
+  pointer-events: none;
+  animation: successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes successPop {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Error State */
+.orb-error {
+  background: radial-gradient(
+    circle at 35% 30%,
+    #FFCDD2 0%,
+    #EF9A9A 40%,
+    #E57373 100%
+  );
+  animation: errorShake 0.5s ease-out;
+}
+
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-8px); }
+  80% { transform: translateX(8px); }
+}
+
+.orb-label {
+  display: none;
+}
+
+/* Input Container */
+.input-container {
+  width: 90%;
+  max-width: 400px;
+  animation: slideDown 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.signal-input {
+  width: 100%;
+  min-height: 100px;
+  background: #F5F2ED;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  padding: 20px;
+  color: #2D2A26;
+  font-size: 17px;
+  line-height: 1.5;
+  resize: none;
+  transition: all 0.3s ease;
+}
+
+.signal-input::placeholder {
+  color: #8B8680;
+}
+
+.signal-input:focus {
+  border-color: #E8BC6A;
+  background: #FFFFFF;
+  box-shadow: 0 4px 20px rgba(212, 162, 76, 0.15);
+}
+
+/* Character Counter */
+.character-counter {
+  position: absolute;
+  bottom: -28px;
+  right: 10px;
+  font-size: 13px;
+  color: #8B8680;
+  font-weight: 500;
+}
+
+/* Messages */
+.success-message {
+  position: absolute;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: #2D2A26;
+  opacity: 0;
+  animation: messageFadeIn 0.6s ease-out forwards;
+  z-index: 20;
+}
+
+@keyframes messageFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.error-message {
+  position: absolute;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+  font-weight: 400;
+  color: #E57373;
+  animation: messageAppear 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes messageAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Spark/Flare Animation */
+.spark {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    #FBE8C2 0%,
+    #E8BC6A 50%,
+    #D4A24C 100%
+  );
+  box-shadow:
+    0 0 10px #F5D799,
+    0 0 20px rgba(245, 215, 153, 0.6),
+    0 0 30px rgba(212, 162, 76, 0.4);
+  animation: sparkFly 5s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+  pointer-events: none;
+  z-index: 100;
+}
+
+@keyframes sparkFly {
+  0% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 0) scale(0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+    transform: translate(-50%, -20px) scale(1);
+  }
+  25% {
+    transform: translate(calc(-50% + var(--x1)), -18vh) scale(1);
+  }
+  50% {
+    transform: translate(calc(-50% + var(--x2)), -40vh) scale(0.9);
+  }
+  75% {
+    transform: translate(calc(-50% + var(--x3)), -60vh) scale(0.8);
+  }
+  100% {
+    top: -50px;
+    left: 50%;
+    transform: translate(calc(-50% + var(--x4)), -90vh) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* User Info & Navigation */
+.user-info {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.history-button {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #F5F2ED;
+  color: #8B8680;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.history-button:hover {
+  background: #EDE9E3;
+  color: #2D2A26;
+}
+
+.history-button:active {
+  transform: scale(0.95);
+}
+
+.history-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.user-name {
+  color: #2D2A26;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 14px;
+  background: #F5F2ED;
+  border-radius: 10px;
+}
+
+.logout-button {
+  background: #F5F2ED;
+  color: #8B8680;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.logout-button:hover {
+  background: #EDE9E3;
+  color: #2D2A26;
+}
+
+/* Offline Indicator */
+.offline-indicator {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: #FEF3C7;
+  color: #92400E;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 24px;
+  border: 1px solid #FCD34D;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .orb {
+    width: 180px;
+    height: 180px;
+  }
+
+  .orb-capture {
+    width: 70px !important;
+    height: 70px !important;
+  }
+
+  .user-info {
+    top: 16px;
+    right: 16px;
+    gap: 8px;
+  }
+
+  .history-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .history-button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .user-name {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .logout-button {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .signal-input {
+    font-size: 16px;
+    padding: 16px;
+  }
+}
+
+/* Ambiente Branding */
+.ambiente-brand {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: #B8B4AE;
+  letter-spacing: 0.3px;
+}
+
+.ambiente-logo {
+  height: 16px;
+  width: auto;
+  opacity: 0.5;
+}
+
+.ambiente-brand strong {
+  font-weight: 700;
+  color: #8B8680;
+}

@@ -1,0 +1,137 @@
+.login {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.login-orb {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    #E8F5D9 0%,
+    #C5E1A5 30%,
+    #9CCC65 60%,
+    #7CB342 100%
+  );
+  box-shadow:
+    0 20px 60px rgba(124, 179, 66, 0.3),
+    0 0 100px rgba(156, 204, 101, 0.15);
+  margin-bottom: 40px;
+  animation: breathe 4s ease-in-out infinite;
+  position: relative;
+}
+
+/* Highlight reflection */
+.login-orb::before {
+  content: '';
+  position: absolute;
+  top: 12%;
+  left: 18%;
+  width: 35%;
+  height: 25%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.5) 0%,
+    transparent 70%
+  );
+}
+
+/* Outer glow */
+.login-orb::after {
+  content: '';
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    rgba(156, 204, 101, 0.25) 0%,
+    rgba(156, 204, 101, 0.08) 50%,
+    transparent 70%
+  );
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+
+.login h1 {
+  font-size: 42px;
+  font-weight: 400;
+  margin-bottom: 12px;
+  color: #2D2A26;
+}
+
+.tagline {
+  font-size: 16px;
+  color: #8B8680;
+  margin-bottom: 40px;
+}
+
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 32px;
+  background: #2D2A26;
+  color: #FFFFFF;
+  border-radius: 24px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.login-btn:hover {
+  background: #3D3A36;
+  transform: translateY(-1px);
+}
+
+.login-btn svg {
+  transition: transform 0.2s;
+}
+
+.login-btn:hover svg {
+  transform: translateX(3px);
+}
+
+/* Ambiente Branding */
+.ambiente-brand {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  color: #B8B4AE;
+  letter-spacing: 0.3px;
+}
+
+.ambiente-logo {
+  height: 16px;
+  width: auto;
+  opacity: 0.5;
+}
+
+.ambiente-brand strong {
+  font-weight: 700;
+  color: #8B8680;
+}

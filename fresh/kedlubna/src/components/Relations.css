@@ -1,0 +1,134 @@
+.relations {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow: hidden;
+}
+
+.relations-header {
+  margin-bottom: 16px;
+}
+
+.relations-header h2 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 24px;
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+
+.relations-subtitle {
+  font-size: 13px;
+  color: #8B8680;
+}
+
+/* Container */
+.relations-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.relations-canvas {
+  width: 100%;
+  height: 100%;
+  background: #FAFAFA;
+  border: 1px solid #EDE9E3;
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Column Labels */
+.column-labels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 60px;
+  background: linear-gradient(to bottom, #FAFAFA 60%, transparent);
+  z-index: 1;
+}
+
+.column-labels span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8B8680;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* SVG */
+.relations-svg {
+  display: block;
+}
+
+/* Connection lines */
+.connection-line {
+  transition: opacity 0.2s, stroke-width 0.2s;
+}
+
+/* Node styling */
+.node {
+  transition: opacity 0.2s;
+}
+
+.node.dimmed circle {
+  opacity: 0.3;
+}
+
+.node.dimmed .node-label {
+  opacity: 0.4;
+}
+
+.node-label {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  pointer-events: none;
+  transition: fill 0.2s;
+}
+
+.node:hover circle {
+  filter: brightness(1.1);
+}
+
+/* Empty state */
+.relations-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.relations-empty p {
+  color: #8B8680;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.relations-empty span {
+  color: #B8B4AE;
+  font-size: 12px;
+}
+
+
+/* Mobile */
+@media (max-width: 768px) {
+  .relations {
+    padding: 12px;
+  }
+
+  .relations-canvas {
+    min-height: 400px;
+  }
+
+  .column-labels {
+    padding: 8px 20px;
+  }
+
+  .column-labels span {
+    font-size: 9px;
+  }
+}

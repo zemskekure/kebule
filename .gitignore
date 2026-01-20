@@ -1,1 +1,6 @@
 *.zip
+.DS_Store
+signal-lite/
+signal-lite-backup-*/
+kedlubna/
+node_modules/

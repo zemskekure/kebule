@@ -1,0 +1,543 @@
+.briefs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  overflow: hidden;
+}
+
+.briefs-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.briefs-header h2 {
+  font-family: 'GT America', sans-serif; font-weight: 500;
+  font-size: 28px;
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+
+.briefs-subtitle {
+  font-size: 14px;
+  color: #8B8680;
+}
+
+.briefs-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.add-brief-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #2D2A26;
+  color: #FFFFFF;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.add-brief-btn:hover {
+  background: #3D3A36;
+}
+
+/* Convert Section */
+.convert-section {
+  background: #FAF8F5;
+  border: 1px solid #EDE9E3;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.convert-section h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8B8680;
+  margin-bottom: 12px;
+}
+
+.projects-to-convert {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.convert-project-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: #FFFFFF;
+  border: 1px solid #EDE9E3;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #2D2A26;
+  transition: all 0.2s;
+}
+
+.convert-project-btn:hover {
+  border-color: #E8BC6A;
+  background: #FFFDF9;
+}
+
+.convert-project-btn .project-name {
+  font-weight: 500;
+}
+
+.convert-project-btn svg {
+  color: #B8B4AE;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(45, 42, 38, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: #FFFFFF;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: modalIn 0.2s ease-out;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #EDE9E3;
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #2D2A26;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #F5F2ED;
+  color: #8B8680;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #EDE9E3;
+  color: #2D2A26;
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #EDE9E3;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.source-project {
+  background: #FAF8F5;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.source-project .label {
+  color: #8B8680;
+  margin-right: 8px;
+}
+
+.source-project .value {
+  font-weight: 600;
+  color: #2D2A26;
+}
+
+/* Form */
+.brief-form {
+  background: #FFFFFF;
+  border: 1px solid #EDE9E3;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.brief-form h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #2D2A26;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8B8680;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 10px 14px;
+  background: #F5F2ED;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #2D2A26;
+  transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  background: #FFFFFF;
+  border-color: #E8BC6A;
+  outline: none;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #B8B4AE;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.save-btn {
+  padding: 10px 20px;
+  background: #2D2A26;
+  color: #FFFFFF;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.save-btn:hover {
+  background: #3D3A36;
+}
+
+.cancel-btn {
+  padding: 10px 20px;
+  background: #F5F2ED;
+  color: #8B8680;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  background: #EDE9E3;
+  color: #2D2A26;
+}
+
+/* Briefs List */
+.briefs-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.briefs-section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8B8680;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.briefs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+/* Brief Card */
+.brief-card {
+  background: #FFFFFF;
+  border: 1px solid #EDE9E3;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s;
+}
+
+.brief-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.brief-card.final {
+  border-left: 3px solid #81C784;
+}
+
+.brief-card.expanded {
+  grid-column: span 2;
+}
+
+.brief-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.brief-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.brand-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.brief-header h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2D2A26;
+  cursor: pointer;
+}
+
+.brief-header h3:hover {
+  color: #E8BC6A;
+}
+
+.status-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+}
+
+.status-badge.final {
+  background: #E8F5E9;
+  color: #4CAF50;
+}
+
+.brief-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.brief-card:hover .brief-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: #B8B4AE;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.action-btn.finalize:hover {
+  background: #E8F5E9;
+  color: #4CAF50;
+}
+
+.action-btn.edit:hover {
+  background: #F5F2ED;
+  color: #2D2A26;
+}
+
+.action-btn.delete:hover {
+  background: #FFEBEE;
+  color: #E57373;
+}
+
+.action-btn.download:hover {
+  background: #E3F2FD;
+  color: #2196F3;
+}
+
+.action-btn.revert:hover {
+  background: #FFF3E0;
+  color: #FF9800;
+}
+
+.brief-description {
+  font-size: 13px;
+  color: #8B8680;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.brief-details {
+  background: #FAF8F5;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.detail-section {
+  margin-bottom: 12px;
+}
+
+.detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.detail-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8B8680;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.detail-section p {
+  font-size: 13px;
+  color: #2D2A26;
+  line-height: 1.5;
+}
+
+.brief-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid #EDE9E3;
+}
+
+.brief-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.meta-brand {
+  color: #2D2A26;
+  font-weight: 500;
+}
+
+.meta-project {
+  color: #B8B4AE;
+}
+
+.brief-due {
+  font-size: 12px;
+  color: #E8BC6A;
+  font-weight: 500;
+}
+
+/* Edit Form */
+.brief-edit-form .form-group {
+  margin-bottom: 12px;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 40px;
+  color: #8B8680;
+}
+
+.empty-state p {
+  margin-bottom: 8px;
+}
+
+.empty-hint {
+  font-size: 13px;
+  color: #B8B4AE;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .briefs-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .briefs-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .brief-card.expanded {
+    grid-column: span 1;
+  }
+}

@@ -14,6 +14,7 @@ function Znacky({ brands, signals, onCreateBrand, onUpdateBrand, onDeleteBrand }
     name: '',
     vision: '',
     description: '',
+    address: '',
     color: '#64B5F6'
   });
 
@@ -27,7 +28,7 @@ function Znacky({ brands, signals, onCreateBrand, onUpdateBrand, onDeleteBrand }
     if (!formData.name.trim()) return;
     try {
       await onCreateBrand(formData);
-      setFormData({ name: '', vision: '', description: '', color: '#64B5F6' });
+      setFormData({ name: '', vision: '', description: '', address: '', color: '#64B5F6' });
       setShowAdd(false);
     } catch (error) {
       console.error('Failed to create brand:', error);
@@ -40,6 +41,7 @@ function Znacky({ brands, signals, onCreateBrand, onUpdateBrand, onDeleteBrand }
       name: brand.name || '',
       vision: brand.vision || '',
       description: brand.description || '',
+      address: brand.address || '',
       color: brand.color || '#64B5F6'
     });
   };
@@ -48,7 +50,7 @@ function Znacky({ brands, signals, onCreateBrand, onUpdateBrand, onDeleteBrand }
     try {
       await onUpdateBrand(editingId, formData);
       setEditingId(null);
-      setFormData({ name: '', vision: '', description: '', color: '#64B5F6' });
+      setFormData({ name: '', vision: '', description: '', address: '', color: '#64B5F6' });
     } catch (error) {
       console.error('Failed to update brand:', error);
     }
@@ -56,12 +58,17 @@ function Znacky({ brands, signals, onCreateBrand, onUpdateBrand, onDeleteBrand }
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setFormData({ name: '', vision: '', description: '', color: '#64B5F6' });
+    setFormData({ name: '', vision: '', description: '', address: '', color: '#64B5F6' });
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Opravdu smazat tuto značku?')) {
-      await onDeleteBrand(id);
+      try {
+        await onDeleteBrand(id);
+      } catch (error) {
+        console.error('Delete brand error:', error);
+        alert('Nepodařilo se smazat značku: ' + (error.message || 'Neznámá chyba'));
+      }
     }
   };
 
@@ -245,6 +252,15 @@ function Znacky({ brands, signals, onCreateBrand, onUpdateBrand, onDeleteBrand }
             />
           </div>
           <div className="form-group">
+            <label>Adresa</label>
+            <input
+              type="text"
+              placeholder="např. Václavské náměstí 1, Praha"
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            />
+          </div>
+          <div className="form-group">
             <label>Barva</label>
             <div className="color-picker">
               {colors.map(c => (
@@ -259,7 +275,7 @@ function Znacky({ brands, signals, onCreateBrand, onUpdateBrand, onDeleteBrand }
           </div>
           <div className="form-actions">
             <button className="save-btn" onClick={handleAdd}>Uložit</button>
-            <button className="cancel-btn" onClick={() => { setShowAdd(false); setFormData({ name: '', vision: '', description: '', color: '#64B5F6' }); }}>Zrušit</button>
+            <button className="cancel-btn" onClick={() => { setShowAdd(false); setFormData({ name: '', vision: '', description: '', address: '', color: '#64B5F6' }); }}>Zrušit</button>
           </div>
         </div>
       )}
@@ -305,6 +321,15 @@ function Znacky({ brands, signals, onCreateBrand, onUpdateBrand, onDeleteBrand }
                       />
                     </div>
                     <div className="form-group">
+                      <label>Adresa</label>
+                      <input
+                        type="text"
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        placeholder="např. Václavské náměstí 1, Praha"
+                      />
+                    </div>
+                    <div className="form-group">
                       <label>Barva</label>
                       <div className="color-picker">
                         {colors.map(c => (
@@ -330,13 +355,27 @@ function Znacky({ brands, signals, onCreateBrand, onUpdateBrand, onDeleteBrand }
                       <h3>{brand.name}</h3>
                     </div>
 
+                    {brand.address && (
+                      <p className="znacka-address">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                          <path d="M6 1C4.067 1 2.5 2.567 2.5 4.5C2.5 7.25 6 11 6 11C6 11 9.5 7.25 9.5 4.5C9.5 2.567 7.933 1 6 1Z" stroke="currentColor" strokeWidth="1.2"/>
+                          <circle cx="6" cy="4.5" r="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                        </svg>
+                        {brand.address}
+                      </p>
+                    )}
+
                     {brand.vision && (
                       <p className="znacka-vision">{brand.vision}</p>
                     )}
 
+                    {brand.description && (
+                      <p className="znacka-description">{brand.description}</p>
+                    )}
+
                     <div className="znacka-footer">
                       <span className="znacka-signals-count">
-                        {getSignalsCount(brand.id)} signálů
+                        {getSignalsCount(brand.id)} {getSignalsCount(brand.id) === 1 ? 'drobek' : getSignalsCount(brand.id) >= 2 && getSignalsCount(brand.id) <= 4 ? 'drobky' : 'drobků'}
                       </span>
                       <div className="znacka-actions">
                         <button className="edit-btn" onClick={() => handleEdit(brand)} title="Upravit">

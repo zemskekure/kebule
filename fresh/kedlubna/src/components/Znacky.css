@@ -14,7 +14,7 @@
 }
 
 .znacky-header h2 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'GT America', sans-serif; font-weight: 500;
   font-size: 24px;
   font-weight: 400;
 }
@@ -161,8 +161,8 @@
 .znacky-list {
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
   overflow-y: auto;
   align-content: start;
 }
@@ -171,8 +171,9 @@
   background: #FFFFFF;
   border: 1px solid #EDE9E3;
   border-radius: 10px;
-  padding: 14px;
+  padding: 16px;
   transition: all 0.2s;
+  overflow: visible;
 }
 
 .znacka-card:hover {
@@ -200,11 +201,35 @@
   color: #2D2A26;
 }
 
+.znacka-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 12px;
+  color: #6B6660;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+.znacka-address svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #8B8680;
+}
+
 .znacka-vision {
   font-size: 12px;
   color: #8B8680;
+  font-style: italic;
   line-height: 1.4;
   margin-top: 8px;
+}
+
+.znacka-description {
+  font-size: 12px;
+  color: #6B6660;
+  line-height: 1.4;
+  margin-top: 6px;
 }
 
 .znacka-footer {
@@ -214,41 +239,53 @@
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid #F0EDE8;
+  gap: 8px;
 }
 
 .znacka-signals-count {
   font-size: 11px;
   color: #B8B4AE;
+  flex: 1;
+  min-width: 0;
 }
 
 .znacka-actions {
   display: flex;
-  gap: 4px;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .edit-btn,
 .delete-btn {
-  width: 26px;
-  height: 26px;
-  border-radius: 5px;
-  color: #B8B4AE;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #8B8680;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s;
-  background: transparent;
-  border: none;
+  background: #F5F2ED;
+  border: 1px solid #EDE9E3;
   cursor: pointer;
 }
 
 .edit-btn:hover {
-  background: #F5F2ED;
+  background: #EDE9E3;
   color: #2D2A26;
+  border-color: #D5D0C8;
+}
+
+.delete-btn {
+  background: #FFF5F5;
+  border-color: #FFCDD2;
+  color: #E57373;
 }
 
 .delete-btn:hover {
   background: #FFEBEE;
-  color: #E57373;
+  color: #C62828;
+  border-color: #E57373;
 }
 
 /* Empty state */

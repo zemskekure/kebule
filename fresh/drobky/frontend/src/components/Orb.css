@@ -451,21 +451,26 @@
   position: absolute;
   top: 20px;
   left: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  color: #B8B4AE;
-  letter-spacing: 0.3px;
 }
 
 .ambiente-logo {
-  height: 16px;
+  height: 20px;
   width: auto;
-  opacity: 0.5;
+  opacity: 0.4;
+  transition: opacity 0.2s;
 }
 
-.ambiente-brand strong {
-  font-weight: 700;
-  color: #8B8680;
+.ambiente-logo:hover {
+  opacity: 0.6;
+}
+
+@media (max-width: 640px) {
+  .ambiente-brand {
+    top: 16px;
+    left: 16px;
+  }
+
+  .ambiente-logo {
+    height: 18px;
+  }
 }

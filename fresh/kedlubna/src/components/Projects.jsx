@@ -11,6 +11,7 @@ function Projects({
   onDeleteProject
 }) {
   const [showAdd, setShowAdd] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -51,16 +52,52 @@ function Projects({
     await onUpdateProject(projectId, { status: newStatus });
   };
 
+  const handleEdit = (project) => {
+    setEditingId(project.id);
+    setFormData({
+      name: project.name || '',
+      description: project.description || '',
+      due_date: project.due_date ? project.due_date.split('T')[0] : '',
+      status: project.status || 'active'
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      await onUpdateProject(editingId, {
+        name: formData.name,
+        description: formData.description,
+        due_date: formData.due_date || null
+      });
+      setEditingId(null);
+      setFormData({ name: '', description: '', due_date: '', status: 'active' });
+    } catch (error) {
+      console.error('Failed to update project:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ name: '', description: '', due_date: '', status: 'active' });
+  };
+
   const handleDelete = async (id) => {
     if (window.confirm('Smazat tento projekt?')) {
       await onDeleteProject(id);
     }
   };
 
+  const getDrobkyCount = (count) => {
+    if (count === 1) return '1 drobek';
+    if (count >= 2 && count <= 4) return `${count} drobky`;
+    return `${count} drobků`;
+  };
+
   const getStatusLabel = (status) => {
     switch (status) {
       case 'active': return 'Aktivní';
-      case 'completed': return 'Dokončeno';
+      case 'zadano': return 'Zadáno';
+      case 'completed': return 'Hotovo';
       case 'failed': return 'Neúspěšný';
       default: return status;
     }
@@ -69,13 +106,14 @@ function Projects({
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return '#64B5F6';
+      case 'zadano': return '#E8BC6A';
       case 'completed': return '#81C784';
       case 'failed': return '#E57373';
       default: return '#8B8680';
     }
   };
 
-  const activeProjects = projects.filter(p => p.status === 'active');
+  const activeProjects = projects.filter(p => p.status === 'active' || p.status === 'zadano');
   const completedProjects = projects.filter(p => p.status === 'completed' || p.status === 'failed');
 
   return (
@@ -150,67 +188,130 @@ function Projects({
                     const projectTopics = getTopicsForProject(project);
                     const projectBrands = getBrandsForProject(project);
                     const projectSignals = getSignalsForProject(project.id);
+                    const isEditing = editingId === project.id;
 
                     return (
-                      <div key={project.id} className="project-card">
-                        <div className="project-header">
-                          <h3>{project.name}</h3>
-                          <div className="project-actions">
-                            <button
-                              className="status-btn complete"
-                              onClick={() => handleStatusChange(project.id, 'completed')}
-                              title="Označit jako dokončené"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            </button>
-                            <button
-                              className="status-btn fail"
-                              onClick={() => handleStatusChange(project.id, 'failed')}
-                              title="Označit jako neúspěšný"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3L11 11M11 3L3 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-                            </button>
-                            <button
-                              className="delete-btn"
-                              onClick={() => handleDelete(project.id)}
-                              title="Smazat"
-                            >
-                              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M4 4V3C4 2.44772 4.44772 2 5 2H9C9.55228 2 10 2.44772 10 3V4M5 6V10M9 6V10M3 4L4 12C4 12.5523 4.44772 13 5 13H9C9.55228 13 10 12.5523 10 12L11 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            </button>
-                          </div>
-                        </div>
-
-                        {project.description && (
-                          <p className="project-description">{project.description}</p>
-                        )}
-
-                        {project.due_date && (
-                          <div className="project-due">
-                            Termín: {new Date(project.due_date).toLocaleDateString('cs-CZ')}
-                          </div>
-                        )}
-
-                        <div className="project-meta">
-                          {projectTopics.length > 0 && (
-                            <div className="project-tags">
-                              {projectTopics.map(t => (
-                                <span key={t.id} className="tag" style={{ background: t.color }}>{t.name}</span>
-                              ))}
+                      <div key={project.id} className={`project-card ${project.status === 'zadano' ? 'zadano' : ''}`}>
+                        {isEditing ? (
+                          // Edit Mode
+                          <div className="project-edit-form">
+                            <div className="form-group">
+                              <label>Název</label>
+                              <input
+                                type="text"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                              />
                             </div>
-                          )}
-                          {projectBrands.length > 0 && (
-                            <div className="project-brands">
-                              {projectBrands.map(b => (
-                                <span key={b.id} className="brand-name">{b.name}</span>
-                              ))}
+                            <div className="form-group">
+                              <label>Popis</label>
+                              <textarea
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                rows={3}
+                              />
                             </div>
-                          )}
-                        </div>
-
-                        {projectSignals.length > 0 && (
-                          <div className="project-signals">
-                            <span className="signals-count">{projectSignals.length} signálů</span>
+                            <div className="form-group">
+                              <label>Termín</label>
+                              <input
+                                type="date"
+                                value={formData.due_date}
+                                onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                              />
+                            </div>
+                            <div className="form-actions">
+                              <button className="save-btn" onClick={handleSaveEdit}>Uložit</button>
+                              <button className="cancel-btn" onClick={handleCancelEdit}>Zrušit</button>
+                            </div>
                           </div>
+                        ) : (
+                          // View Mode
+                          <>
+                            <div className="project-header">
+                              <h3>{project.name}</h3>
+                              {project.status === 'zadano' && (
+                                <span className="status-badge" style={{ color: getStatusColor('zadano') }}>
+                                  {getStatusLabel('zadano')}
+                                </span>
+                              )}
+                              <div className="project-actions">
+                                <button
+                                  className="edit-btn"
+                                  onClick={() => handleEdit(project)}
+                                  title="Upravit"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M10.5 1.5L12.5 3.5L4 12H2V10L10.5 1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                </button>
+                                <button
+                                  className="status-btn complete"
+                                  onClick={() => handleStatusChange(project.id, 'completed')}
+                                  title="Označit jako hotové"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7L5.5 10.5L12 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                </button>
+                                <button
+                                  className="status-btn fail"
+                                  onClick={() => handleStatusChange(project.id, 'failed')}
+                                  title="Označit jako neúspěšný"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3L11 11M11 3L3 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                                </button>
+                                <button
+                                  className="delete-btn"
+                                  onClick={() => handleDelete(project.id)}
+                                  title="Smazat"
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4H12M4 4V3C4 2.44772 4.44772 2 5 2H9C9.55228 2 10 2.44772 10 3V4M5 6V10M9 6V10M3 4L4 12C4 12.5523 4.44772 13 5 13H9C9.55228 13 10 12.5523 10 12L11 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                                </button>
+                              </div>
+                            </div>
+
+                            {project.description && (
+                              <p className="project-description">{project.description}</p>
+                            )}
+
+                            {project.due_date && (
+                              <div className="project-due">
+                                Termín: {new Date(project.due_date).toLocaleDateString('cs-CZ')}
+                              </div>
+                            )}
+
+                            <div className="project-meta">
+                              {projectTopics.length > 0 && (
+                                <div className="project-tags">
+                                  {projectTopics.map(t => (
+                                    <span key={t.id} className="tag" style={{ background: t.color }}>{t.name}</span>
+                                  ))}
+                                </div>
+                              )}
+                              {projectBrands.length > 0 && (
+                                <div className="project-brands">
+                                  {projectBrands.map(b => (
+                                    <span key={b.id} className="brand-name">{b.name}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {projectSignals.length > 0 && (
+                              <div className="project-signals">
+                                <div className="signals-header">
+                                  <span className="signals-count">{getDrobkyCount(projectSignals.length)}</span>
+                                </div>
+                                <div className="signals-list">
+                                  {projectSignals.slice(0, 3).map(s => (
+                                    <div key={s.id} className="signal-preview">
+                                      <span className="signal-title">{s.title}</span>
+                                      <span className="signal-author">{s.author_name}</span>
+                                    </div>
+                                  ))}
+                                  {projectSignals.length > 3 && (
+                                    <div className="signals-more">+{projectSignals.length - 3} dalších</div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </>
                         )}
                       </div>
                     );

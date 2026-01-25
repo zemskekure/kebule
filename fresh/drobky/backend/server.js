@@ -551,6 +551,85 @@ Example: [{"name": "Café Luna", "description": "Cozy neighborhood coffee shop w
   }
 });
 
+// POST /api/fetch-restaurant-address - Use Claude to find restaurant address
+app.post('/api/fetch-restaurant-address', async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ error: 'Restaurant name is required' });
+    }
+
+    if (!ANTHROPIC_API_KEY) {
+      return res.status(500).json({ error: 'Anthropic API key not configured' });
+    }
+
+    console.log(`Fetching address for restaurant: ${name}`);
+
+    const systemPrompt = `You are a helpful assistant that finds restaurant addresses in Prague, Czech Republic.
+Given a restaurant or brand name, provide the main address if you know it.
+If you're not sure or the restaurant doesn't exist, say so.
+
+Respond ONLY with a JSON object in this format:
+{"address": "the address", "confidence": "high|medium|low"}
+
+If you don't know the address:
+{"address": null, "confidence": "none", "message": "reason why not found"}
+
+Be concise. Only include the street address, no additional information.
+Example: {"address": "Dlouhá 33, Praha 1", "confidence": "high"}`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 256,
+        system: systemPrompt,
+        messages: [
+          {
+            role: 'user',
+            content: `What is the address of "${name}" restaurant/brand in Prague?`
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('Claude API error:', error);
+      return res.status(500).json({ error: 'Failed to fetch address' });
+    }
+
+    const data = await response.json();
+    const content = data.content[0]?.text || '{}';
+
+    console.log('Claude response for address:', content);
+
+    let result;
+    try {
+      result = JSON.parse(content);
+    } catch (e) {
+      // Try to extract JSON from response
+      const jsonMatch = content.match(/\{[\s\S]*?\}/);
+      if (jsonMatch) {
+        result = JSON.parse(jsonMatch[0]);
+      } else {
+        return res.status(400).json({ error: 'Failed to parse response' });
+      }
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching restaurant address:', error);
+    res.status(500).json({ error: 'Failed to fetch address' });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Signal Lite backend running on port ${PORT}`);

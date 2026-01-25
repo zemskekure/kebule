@@ -169,10 +169,10 @@ export async function fetchBrands() {
   return data;
 }
 
-export async function createBrand({ name, vision, description, color }) {
+export async function createBrand({ name, vision, description, color, address }) {
   const { data, error } = await supabase
     .from('brands')
-    .insert({ name, vision, description, color })
+    .insert({ name, vision, description, color, address })
     .select()
     .single();
 
@@ -193,6 +193,40 @@ export async function updateBrand(id, updates) {
 }
 
 export async function deleteBrand(id) {
+  // First delete all signal-brand associations
+  const { error: signalAssocError } = await supabase
+    .from('signal_brands')
+    .delete()
+    .eq('brand_id', id);
+
+  if (signalAssocError) {
+    console.error('Failed to delete signal-brand associations:', signalAssocError);
+    throw signalAssocError;
+  }
+
+  // Delete project-brand associations
+  const { error: projectAssocError } = await supabase
+    .from('project_brands')
+    .delete()
+    .eq('brand_id', id);
+
+  if (projectAssocError) {
+    console.error('Failed to delete project-brand associations:', projectAssocError);
+    throw projectAssocError;
+  }
+
+  // Delete briefs that reference this brand
+  const { error: briefsError } = await supabase
+    .from('briefs')
+    .delete()
+    .eq('brand_id', id);
+
+  if (briefsError) {
+    console.error('Failed to delete brand briefs:', briefsError);
+    throw briefsError;
+  }
+
+  // Then delete the brand
   const { error } = await supabase
     .from('brands')
     .delete()
@@ -323,4 +357,58 @@ export async function rejectSignal(signalId, resolutionNote) {
 
   if (error) throw error;
   return data;
+}
+
+// ============ BRIEFS ============
+
+export async function fetchBriefs() {
+  const { data, error } = await supabase
+    .from('briefs')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+}
+
+export async function createBrief(briefData) {
+  const { data, error } = await supabase
+    .from('briefs')
+    .insert({
+      project_id: briefData.project_id,
+      brand_id: briefData.brand_id,
+      name: briefData.name,
+      description: briefData.description,
+      goal: briefData.goal,
+      target_audience: briefData.target_audience,
+      budget: briefData.budget,
+      due_date: briefData.due_date || null,
+      status: briefData.status || 'draft'
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function updateBrief(id, updates) {
+  const { data, error } = await supabase
+    .from('briefs')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteBrief(id) {
+  const { error } = await supabase
+    .from('briefs')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
 }

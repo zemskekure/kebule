@@ -225,7 +225,6 @@ function Orb({ token, user, onLogout }) {
       {/* Ambiente Branding */}
       <div className="ambiente-brand">
         <img src="/ambi_symbol_cernobile_rgb_fullhd.png" alt="Ambiente" className="ambiente-logo" />
-        <span>Důvěrné · Pouze pro interní použití <strong>Ambiente</strong></span>
       </div>
     </div>
   );

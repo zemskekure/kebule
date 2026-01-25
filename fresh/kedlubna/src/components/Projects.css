@@ -14,7 +14,7 @@
 }
 
 .projects-header h2 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'GT America', sans-serif; font-weight: 500;
   font-size: 28px;
   font-weight: 400;
   margin-bottom: 4px;
@@ -166,6 +166,10 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+.project-card.zadano {
+  border-left: 3px solid #E8BC6A;
+}
+
 .project-card.completed {
   border-left: 3px solid #81C784;
 }
@@ -200,7 +204,8 @@
 }
 
 .status-btn,
-.delete-btn {
+.delete-btn,
+.edit-btn {
   width: 28px;
   height: 28px;
   border-radius: 6px;
@@ -209,6 +214,14 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.edit-btn:hover {
+  background: #F5F2ED;
+  color: #2D2A26;
 }
 
 .status-btn.complete:hover {
@@ -300,4 +313,61 @@
 .empty-hint {
   font-size: 13px;
   color: #B8B4AE;
+}
+
+/* Project Edit Form */
+.project-edit-form {
+  padding: 0;
+}
+
+.project-edit-form .form-group {
+  margin-bottom: 12px;
+}
+
+.project-edit-form .form-group:last-of-type {
+  margin-bottom: 16px;
+}
+
+/* Drobky List in Project */
+.signals-header {
+  margin-bottom: 8px;
+}
+
+.signals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.signal-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #FAF8F5;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.signal-title {
+  color: #2D2A26;
+  font-weight: 500;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 8px;
+}
+
+.signal-author {
+  color: #B8B4AE;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.signals-more {
+  font-size: 11px;
+  color: #8B8680;
+  text-align: center;
+  padding: 4px;
 }
